@@ -4,7 +4,7 @@ using SNetwork;
 
 namespace AWO.WEE.Events.Level;
 
-internal sealed class AddTerminalCommand : BaseEvent
+internal sealed class ForceCompleteLevelEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.ForceCompleteLevel;
 

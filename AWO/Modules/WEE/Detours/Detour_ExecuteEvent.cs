@@ -66,6 +66,7 @@ internal static class Detour_ExecuteEvent
         var context = new ExecuteEventContext(_this);
         var data = context.Data;
         var type = data.Type;
+        Logger.Debug($"we got type {data.Type} on an event");
         if (Enum.IsDefined(typeof(WEE_Type), (int)type))
         {
             var extType = (WEE_Type)type;

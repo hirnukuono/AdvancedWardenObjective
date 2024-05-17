@@ -46,12 +46,15 @@ public static class WardenEventExt
 
         JsonInjector.SetConverter(new EventTypeConverter());
         JsonInjector.AddHandler(new EventDataHandler());
+        JsonInjector.AddHandler(new TriggerDataHandler());
         WEE_EnumInjector.Inject();
         Detour_ExecuteEvent.Patch();
     }
 
     internal static void HandleEvent(WEE_Type type, WardenObjectiveEventData e, float currentDuration)
     {
+        Logger.Debug($"we got type {type} on WardenEventExt event");
+
         var weeData = e.GetWEEData();
         if (weeData != null)
         {

@@ -1,6 +1,7 @@
 ﻿using Agents;
 using AIGraph;
 using AWO.Jsons;
+using Enemies;
 using GameData;
 using LevelGeneration;
 using SNetwork;
@@ -49,6 +50,12 @@ public sealed class WEE_EventData
     public bool CleanUpEnemiesBehind { get; set; } = true;
     public WEE_SpawnHibernateData SpawnHibernates { get; set; } = new();
     public WEE_SpawnScoutData SpawnScouts { get; set; } = new();
+
+    // hirnu
+    public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
+    public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
+    public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
+    public WEE_AddChainPuzzleToSecurityDoor AddChainPuzzleToSecurityDoor { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -115,7 +122,7 @@ public sealed class WEE_CleanupEnemiesData
 
     public void DoClear(AIG_CourseNode node)
     {
-        if (SNet.IsMaster)
+        if (!SNet.IsMaster)
             return;
 
         if (node == null)
@@ -124,7 +131,12 @@ public sealed class WEE_CleanupEnemiesData
         if (node.m_enemiesInNode == null)
             return;
 
-        foreach (var enemy in node.m_enemiesInNode)
+        List<EnemyAgent> enemylist = new();
+        enemylist.Clear();
+
+        foreach (EnemyAgent enemy in node.m_enemiesInNode) enemylist.Add(enemy);
+
+        foreach (EnemyAgent enemy in enemylist)
         {
             bool clear = enemy.AI.Mode switch
             {
@@ -198,4 +210,33 @@ public enum FilterMode
 {
     Exclude,
     Include,
+}
+
+public sealed class WEE_AddTerminalCommand
+{
+    public int TerminalIndex { get; set; } = 0;
+    public int CommandNumber { get; set; } = 6;
+    public string Command { get; set; } = "";
+    public string CommandDesc { get; set; } = "";
+    public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
+    public WardenObjectiveEventData[] CommandEvents { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public TerminalOutput[] PostCommandOutputs { get; set; } = Array.Empty<TerminalOutput>();
+}
+public sealed class WEE_HideTerminalCommand
+{
+    public int TerminalIndex { get; set; } = 0; 
+    public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
+    public int CommandNumber { get; set; } = new();
+}
+public sealed class WEE_UnhideTerminalCommand
+{
+    public int TerminalIndex { get; set; } = 0; 
+    public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
+
+    public int CommandNumber { get; set; } = new();
+}
+
+public sealed class WEE_AddChainPuzzleToSecurityDoor
+{
+    public uint ChainPuzzle { get; set; } = 0;
 }

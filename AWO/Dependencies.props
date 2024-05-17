@@ -1,55 +1,59 @@
-﻿<Project InitialTargets="ValidateGamePath">
-	<Import Project="$(MSBuildThisFileDirectory)\GameFolder.props" Condition="Exists('$(MSBuildThisFileDirectory)\GameFolder.props')" />
-  
+﻿<Project InitialTargets ="ValidateGamePath">
+
+	<!--
+     Add a GameFolder.props file to the solution to set your game path:
+    <Project>
+      <PropertyGroup>
+        <GameFolder>C:\Program Files (x86)\Steam\steamapps\common\GTFO</GameFolder>
+       </PropertyGroup>
+    </Project>
+  -->
+
+	<Import Project ="$(MSBuildThisFileDirectory)/GameFolder.props" Condition="Exists('$(MSBuildThisFileDirectory)/GameFolder.props')" />
 	<Target Name="ValidateGamePath">
 		<Error Text="The GameFolder property must be set to the GTFO game folder." Condition="'$(GameFolder)' == '' or !Exists('$(GameFolder)')" />
 	</Target>
 
-	<!-- Path Info -->
+
 	<PropertyGroup>
-		<BIELibsFolder>$(GameFolder)\BepInEx\core</BIELibsFolder>
-		<BIECacheFolder>$(GameFolder)\BepInEx\cache</BIECacheFolder>
-		<CorLibsFolder>$(GameFolder)\dotnet</CorLibsFolder>
-		<InteropLibsFolder>$(GameFolder)\BepInEx\interop</InteropLibsFolder>
-		<PluginsFolder>$(GameFolder)\BepInEx\plugins</PluginsFolder>
+		<BIELibsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\core</BIELibsFolder>
+		<BIECacheFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\cache</BIECacheFolder>
+		<CorLibsFolder>$(GameFolder)\dotnet\corlib</CorLibsFolder>
+		<InteropLibsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\interop</InteropLibsFolder>
+		<PluginsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\plugins</PluginsFolder>
+		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
+		<OutputPath>$(BuildDirectory)</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
 
-	<!-- BepInEx libs -->
+	<!-- NuGet Packages -->
 	<ItemGroup>
+		<PackageReference Include="VersionInfoGenerator" Version="2.0.0" PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Assemblies -->
+	<ItemGroup>
+		<!-- BepInEx -->
 		<Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\Il2CppInterop.*.dll" Private="false" />
-	</ItemGroup>
-
-	<!-- Interop -->
-	<ItemGroup>
-		<Reference Include="$(InteropLibsFolder)\*.dll" Private="false" />
 		<Reference Include="$(BIECacheFolder)\Il2CppJsonNet.dll" Private="false" />
-		<Reference Remove="$(InteropLibsFolder)\netstandard.dll" />
-		<Reference Remove="$(InteropLibsFolder)\Newtonsoft.Json.dll" />
+
+		<!-- CoreCLR -->
+		<Reference Include="$(CorLibsFolder)\*.dll" Private="false" />
+		<Reference Include="$(CorLibsFolder)\..\System.Private.CoreLib.dll" Private="false" />
+
+		<!-- Interop -->
+		<Reference Include="$(InteropLibsFolder)/*.dll" Private="false" />
+		<Reference Remove="$(InteropLibsFolder)/netstandard.dll" />
+		<Reference Remove="$(InteropLibsFolder)/Newtonsoft.Json.dll" />
 	</ItemGroup>
 
-	<!-- Plugin Dependencies -->
+	<!--Other plugin dependencies -->
 	<ItemGroup>
-		<Reference Include="$(PluginsFolder)\**\GTFO-API.dll" Private="false" />
+		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="False"/>
 		<Reference Include="$(PluginsFolder)\**\InjectLib.dll" Private="false" />
-	</ItemGroup>
-
-	<!-- NuGet Packages -->
-	<ItemGroup>
-		<PackageReference Include="VersionInfoGenerator" Version="2.1.3" />
-		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.14.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
-
-	<!-- MSBuild Action-->
-	<Target Name="CustomAfterBuild" AfterTargets="Build">
-		<Message Text="Copying Output to Plugins Folder..." Importance="High"/>
-		<Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll"
-			  DestinationFolder="$(PluginsFolder)"/>
-		<Message Text="Output has copied to Plugins Folder!" Importance="High"/>
-	</Target>
+	</ItemGroup>	
 </Project>

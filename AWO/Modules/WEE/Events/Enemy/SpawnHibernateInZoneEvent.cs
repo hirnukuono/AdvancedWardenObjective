@@ -6,6 +6,8 @@ using LevelGeneration;
 using Agents;
 using Enemies;
 using AIGraph;
+using Random = UnityEngine.Random;
+using Player;
 
 namespace AWO.Modules.WEE.Events.Enemy;
 internal class SpawnHibernateInZoneEvent : BaseEvent
@@ -14,7 +16,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     private const float TimeToCompleteSpawn = 2.0f;
 
-    protected override void TriggerMaster(WEE_EventData e) 
+    protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone) || zone == null) return;
 
@@ -26,9 +28,9 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, sh.Position, Quaternion.Euler(sh.Rotation));
         }
-        else 
+        else
         {
-            if(sh.AreaIndex != -1)
+            if (sh.AreaIndex != -1)
             {
                 if (!IsValidAreaIndex(sh.AreaIndex, zone)) return;
             }
@@ -50,9 +52,27 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         {
             AIG_CourseNode spawnNode = e.AreaIndex != -1 ? areas[e.AreaIndex].m_courseNode : areas[rand.Next(0, areas.Count)].m_courseNode;
             // scout:
-            Quaternion rotation = Quaternion.LookRotation(new Vector3(EnemyGroup.s_randomRot2D.x, 0.0f, EnemyGroup.s_randomRot2D.y), Vector3.up);
+            //Quaternion rotation = Quaternion.LookRotation(new Vector3(randomVector.x, 0.0f, randomVector.y), Vector3.up);
+            bool flag1 = false;
+            Vector3 pos = new(0, 0, 0);
+            while (!flag1)
+            {
+                bool flag2 = false;
+                pos = spawnNode.GetRandomPositionInside();
+                foreach (var player in PlayerManager.PlayerAgentsInLevel)
+                {
+                    if (Vector3.Distance(player.Position, pos) < 2)
+                    {
+                        flag2 = true;
+                        //Debug.Log("AdvancedWardenObjective - spawn position rerolling due to position conflict");
+                    }
+                }
+                if (!flag2) flag1 = true;
+            }
+
+            Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(e.EnemyID, spawnNode, mode,
-                spawnNode.GetRandomPositionInside()/* TODO: improve position random - enemies will spawn at the same position by low chances */,
+                pos/* TODO: improve position random - enemies will spawn at the same position by low chances */,
                 rotation);
 
             yield return new WaitForSeconds(SpawnInterval);
@@ -62,7 +82,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
     private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
     {
         var areas = zone.m_areas;
-        if(areaIndex < 0 || areaIndex >= areas.Count)
+        if (areaIndex < 0 || areaIndex >= areas.Count)
         {
             Logger.Error($"Invalid area index {areaIndex}");
             return false;

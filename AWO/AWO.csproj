@@ -1,31 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="Metadata.props" />
-	<Import Project="Dependencies.props" />
 	<PropertyGroup>
-		<OutputType>Library</OutputType>
-		<TargetFramework>net6.0-windows</TargetFramework>
-		<LangVersion>latest</LangVersion>
+
+		<!--
+		Use the following property to set your preferred r2modman profile
+		-->
+		<Profile>hirnuplugins</Profile>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<OutputPath>bin\$(Configuration)\</OutputPath>
-		<Platforms>x64</Platforms>
-		<Configurations>Debug;Release</Configurations>
-	</PropertyGroup>
-	<PropertyGroup>
-		<ErrorReport>prompt</ErrorReport>
-		<WarningLevel>4</WarningLevel>
+		<TargetFramework>net6</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<DebugType>None</DebugType>
+		<AssemblyName>AdvancedWardenObjective</AssemblyName>
+		<RootNamespace>$(SolutionName)</RootNamespace>
+		<BepInEx>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx</BepInEx>
+		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
+		<OutputPath>$(BuildDirectory)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-		<DebugSymbols>true</DebugSymbols>
-		<DebugType>full</DebugType>
-		<Optimize>false</Optimize>
-		<DefineConstants>DEBUG;TRACE</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-		<DebugType>pdbonly</DebugType>
-		<Optimize>true</Optimize>
-		<Obfuscate>True</Obfuscate>
-		<DefineConstants>RELEASE</DefineConstants>
-	</PropertyGroup>
+	<Target Name="PostBuild" BeforeTargets="PostBuildEvent">
+		<Delete Files="$(OutputPath)$(AssemblyName).deps.json" />
+	</Target>
+
+	<Import Project="Dependencies.props" />
+
 </Project>

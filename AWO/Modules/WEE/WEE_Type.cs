@@ -27,5 +27,9 @@ public enum WEE_Type
     SpawnScoutInZone, // Added by Inas
     SaveCheckpoint, //Done
     MoveExtractionWorldPosition, //Done
-    SetBlackoutEnabled //Done
+    SetBlackoutEnabled, //Done
+    AddTerminalCommand,
+    HideTerminalCommand,
+    UnhideTerminalCommand,
+    AddChainPuzzleToSecurityDoor
 }

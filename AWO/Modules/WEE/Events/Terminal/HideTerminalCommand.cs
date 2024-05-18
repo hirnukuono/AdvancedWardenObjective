@@ -8,7 +8,7 @@ internal sealed class HideTerminalCommand : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.HideTerminalCommand;
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone))
         {
@@ -31,7 +31,9 @@ internal sealed class HideTerminalCommand : BaseEvent
 
         if (SNet.IsMaster && tempcommand != TERM_Command.None)
         {
-            term.TrySyncSetCommandHidden(tempcommand);
+            var state = term.m_stateReplicator.State;
+            state.TryHideCommand(tempcommand);
+            term.m_stateReplicator.State = state;
             // if (SNet.IsMaster) if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type=0, WardenIntel=e.WardenIntel });
             UnityEngine.Debug.Log($"AdvancedWardenObjective - command {tempcommand} should be hidden now");
         }

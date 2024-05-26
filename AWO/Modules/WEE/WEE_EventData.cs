@@ -120,6 +120,8 @@ public sealed class WEE_CleanupEnemiesData
     public bool IncludeScout { get; set; } = true;
     public uint[] ExcludeEnemyID { get; set; } = Array.Empty<uint>();
 
+    public uint[] IncludeOnlyID { get; set; } = Array.Empty<uint>();
+
     public void DoClear(AIG_CourseNode node)
     {
         if (!SNet.IsMaster)
@@ -152,6 +154,8 @@ public sealed class WEE_CleanupEnemiesData
                 {
                     continue;
                 }
+
+                if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID)) continue;
 
                 switch (Type)
                 {

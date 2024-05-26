@@ -34,7 +34,8 @@ internal sealed class HideTerminalCommand : BaseEvent
         {
             var state = term.m_stateReplicator.State;
             state.TryHideCommand(tempcommand);
-            if (e.HideTerminalCommand.DeleteCommand) state.RemovedCommands.Add(tempcommand);
+            if (e.HideTerminalCommand.DeleteCommand) term.TrySyncSetCommandRule(tempcommand, TERM_CommandRule.OnlyOnceDelete);
+            if (e.HideTerminalCommand.DeleteCommand) term.TrySyncSetCommandIsUsed(tempcommand);
             term.m_stateReplicator.State = state;
             // if (SNet.IsMaster) if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type=0, WardenIntel=e.WardenIntel });
             UnityEngine.Debug.Log($"AdvancedWardenObjective - command {tempcommand} should be hidden now");

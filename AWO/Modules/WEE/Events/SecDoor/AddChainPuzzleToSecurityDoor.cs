@@ -39,15 +39,15 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
         }
 
         // sync.AttemptDoorInteraction(eDoorInteractionType.Close, 0f, 0f, door.gameObject.transform.position, null);
-        door.SetupChainedPuzzleLock(e.AddChainPuzzleToSecurityDoor.ChainPuzzle);
+        door.SetupChainedPuzzleLock(e.ChainPuzzle);
         state.status = eDoorStatus.Closed_LockedWithChainedPuzzle;
 
         sync.m_stateReplicator.State = state;
-        LogInfo($"door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added chainpuzzle {e.AddChainPuzzleToSecurityDoor.ChainPuzzle}");
+        LogInfo($"door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added chainpuzzle {e.ChainPuzzle}");
 
         if (locks != null)
         {
-            locks.m_intOpenDoor.InteractionMessage = "<color=red>[warning: " + GameData.ChainedPuzzleDataBlock.GetBlock(e.AddChainPuzzleToSecurityDoor.ChainPuzzle).PublicAlarmName + " detected]</color>";
+            locks.m_intOpenDoor.InteractionMessage = "<color=red>[warning: " + GameData.ChainedPuzzleDataBlock.GetBlock(e.ChainPuzzle).PublicAlarmName + " detected]</color>";
         }
     }
 }

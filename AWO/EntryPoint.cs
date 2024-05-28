@@ -21,7 +21,11 @@ namespace AWO;
 internal class EntryPoint : BasePlugin
 {
     public static float CountdownStarted { get; set; }
-
+    public static float TPFStarted { get; set; }
+    public static float IOTStarted { get; set; }
+    public static float DOTStarted { get; set; }
+    public static HashSet<int> ActiveEventLoops { get; set; } = new HashSet<int>();
+    public static float TimerModifier { get; set; } = 0;
     public unsafe override void Load()
     {
         WardenEventExt.Initialize();

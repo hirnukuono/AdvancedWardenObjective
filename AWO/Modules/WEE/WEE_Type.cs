@@ -2,34 +2,44 @@
 
 public enum WEE_Type
 {
-    CloseSecurityDoor //Done
-        = WEE_EnumInjector.ExtendedIndex + 0,
-
-    LockSecurityDoor, //Done
-    SetDoorInteraction,
-    TriggerSecurityDoorAlarm, //Done
-    SolveSecurityDoorAlarm, //TODO: Partially works
-    StartReactor, //Done
-    ModifyReactorWaveState, //Done
-    ForceCompleteReactor, //Done
-    ForceCompleteLevel, //Done
-    ForceFailLevel, //Done
-    Countdown, //Done
-    SetLevelFailCheckEnabled, //Done
+    CloseSecurityDoor = WEE_EnumInjector.ExtendedIndex + 0,
+    LockSecurityDoor, // TODO: add door interaction text
+    SetDoorInteraction, // ??
+    TriggerSecurityDoorAlarm, 
+    SolveSecurityDoorAlarm, // Only solves "displayed" door alarm, not active CP
+    StartReactor, 
+    ModifyReactorWaveState, 
+    ForceCompleteReactor, 
+    ForceCompleteLevel, 
+    ForceFailLevel, 
+    Countdown, 
+    SetLevelFailCheckEnabled, 
     SetLevelFailWhenAnyPlayerDowned, 
-    KillAllPlayers, //Done
-    KillPlayersInZone, //Done
-    SolveSingleObjectiveItem, //Done
-    SetLightDataInZone, //TODO: Partially Done, Need to Work on Animation
-    AlertEnemiesInZone, //Done
-    CleanupEnemiesInZone, //Done, Kill, Despawn Has Merged with this
+    KillAllPlayers, 
+    KillPlayersInZone, 
+    SolveSingleObjectiveItem, // Deprecated
+    SetLightDataInZone, // TODO: Partially done, need to work on animation
+    AlertEnemiesInZone, 
+    CleanupEnemiesInZone, // Kill, Despawn has merged with this
     SpawnHibernateInZone, // Added by Inas
     SpawnScoutInZone, // Added by Inas
-    SaveCheckpoint, //Done
-    MoveExtractionWorldPosition, //Done
-    SetBlackoutEnabled, //Done
+    SaveCheckpoint,
+    MoveExtractionWorldPosition, 
+    SetBlackoutEnabled,
+
+    // Hirnu AWO Events:
     AddTerminalCommand,
     HideTerminalCommand,
     UnhideTerminalCommand,
-    AddChainPuzzleToSecurityDoor
+    AddChainPuzzleToSecurityDoor,
+
+    // Amor AWO Events:
+    NestedEvent = WEE_EnumInjector.ExtendedIndex + 10000,
+    StartEventLoop = WEE_EnumInjector.ExtendedIndex + 10001,
+    StopEventLoop = WEE_EnumInjector.ExtendedIndex + 10002,
+    TeleportPlayer = WEE_EnumInjector.ExtendedIndex + 10003,
+    InfectPlayer = WEE_EnumInjector.ExtendedIndex + 10004,
+    DamagePlayer = WEE_EnumInjector.ExtendedIndex + 10005,
+    RevivePlayer = WEE_EnumInjector.ExtendedIndex + 10006,
+    AdjustAWOTimer = WEE_EnumInjector.ExtendedIndex + 10007
 }

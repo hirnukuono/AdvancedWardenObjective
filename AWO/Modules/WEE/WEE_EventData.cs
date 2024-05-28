@@ -31,10 +31,13 @@ public sealed class WEE_EventData
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
+    public float Duration { get; set; } = 0.0f;
+    public bool ClearDimension { get; set; } = false;
     public LocaleText WardenIntel { get; set; } = LocaleText.Empty;
     public uint SoundID { get; set; } = 0u;
     public LocaleText SoundSubtitle { get; set; } = LocaleText.Empty;
     public uint DialogueID { get; set; } = 0u;
+    public int Count { get; set; } = 0;
     public bool Enabled { get; set; } = true;
 
 
@@ -55,7 +58,15 @@ public sealed class WEE_EventData
     public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
     public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
     public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
-    public WEE_AddChainPuzzleToSecurityDoor AddChainPuzzleToSecurityDoor { get; set; } = new();
+
+    // amor
+    public WEE_NestedEvent NestedEvent { get; set; } = new();
+    public WEE_StartEventLoop StartEventLoop { get; set; } = new();
+    public WEE_StartEventLoop StopEventLoop { get; set; } = new();
+    public WEE_TeleportPlayer TeleportPlayer { get; set; } = new();
+    public WEE_InfectPlayer InfectPlayer { get; set; } = new();
+    public WEE_DamagePlayer DamagePlayer { get; set; } = new();
+    public WEE_RevivePlayer RevivePlayer { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -241,7 +252,57 @@ public sealed class WEE_UnhideTerminalCommand
     public int CommandNumber { get; set; } = new();
 }
 
-public sealed class WEE_AddChainPuzzleToSecurityDoor
+
+public sealed class WEE_NestedEvent
 {
-    public uint ChainPuzzle { get; set; } = 0;
+    public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
+}
+public sealed class WEE_StartEventLoop
+{
+    public int LoopIndex { get; set; } = 0;
+    public float LoopDelay { get; set; } = 1.0f;
+    public int LoopCount { get; set; } = -1;
+    public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
+}
+public enum SlotIndex : byte
+{
+    P0,
+    P1,
+    P2,
+    P3
+}
+public sealed class WEE_TeleportPlayer
+{
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new();
+    public bool PlayWarpAnimation { get; set; } = true;
+    public bool FlashTeleport { get; set; } = false;
+    public bool WarpSentries { get; set; } = true;
+    public bool WarpBigPickups { get; set; } = true;
+    public bool SendBPUsToHost {  get; set; } = false;
+    public Vector3 Player0Position { get; set; } = Vector3.zero;
+    public int P0LookDir { get; set; } = 0;
+    public Vector3 Player1Position { get; set; } = Vector3.zero;
+    public int P1LookDir { get; set; } = 0;
+    public Vector3 Player2Position { get; set; } = Vector3.zero;
+    public int P2LookDir { get; set; } = 0;
+    public Vector3 Player3Position { get; set; } = Vector3.zero;
+    public int P3LookDir { get; set; } = 0;
+}
+public sealed class WEE_InfectPlayer
+{
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3};
+    public float InfectionAmount { get; set; } = 0.0f;
+    public bool InfectOverTime { get; set; } = false;
+    public bool UseZone { get; set; } = false;
+}
+public sealed class WEE_DamagePlayer
+{
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+    public float DamageAmount { get; set; } = 0.0f;
+    public bool DamageOverTime { get; set; } = false;
+    public bool UseZone { get; set; } = false;
+}
+public sealed class WEE_RevivePlayer
+{
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
 }

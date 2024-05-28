@@ -1,0 +1,5 @@
+﻿<Project>
+    <PropertyGroup>
+        <GameFolder>C:\Program Files (x86)\Steam\steamapps\common\GTFO</GameFolder>
+    </PropertyGroup>
+</Project>

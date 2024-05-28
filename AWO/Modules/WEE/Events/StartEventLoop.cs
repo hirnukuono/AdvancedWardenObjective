@@ -13,16 +13,22 @@ internal sealed class StartEventLoop : BaseEvent
     protected override void TriggerMaster(WEE_EventData e)
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
+        {
+            Logger.Error($"AdvancedWardenObjective - EventLoop LoopDelay must be > 1.0");
             return;
+        }
 
         lock (EntryPoint.ActiveEventLoops)
         {
-            if (!EntryPoint.ActiveEventLoops.Contains(e.StartEventLoop.LoopIndex))
+            if (EntryPoint.ActiveEventLoops.Contains(e.StartEventLoop.LoopIndex))
             {
-                EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
-                Logger.Debug($"AdvancedWardenObjective - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
-                CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
+                Logger.Error($"AdvancedWardenObjective - EventLoop {e.StartEventLoop.LoopIndex} is already active...");
+                return;
             }
+
+            EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
+            Logger.Debug($"AdvancedWardenObjective - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
+            CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
         }
     }
 
@@ -37,28 +43,34 @@ internal sealed class StartEventLoop : BaseEvent
 
         while (repeatNum < repeatMax || repeatInf)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-                yield break; // no longer in level, exit
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
-                yield break; // checkpoint was used, exit
-            
             lock (EntryPoint.ActiveEventLoops)
             {
+                if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+                {
+                    EntryPoint.ActiveEventLoops.Remove(index);
+                    yield break; // no longer in level, exit
+                }
+                if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
+                {
+                    EntryPoint.ActiveEventLoops.Remove(index);
+                    yield break; // checkpoint was used, exit
+                }
                 if (!EntryPoint.ActiveEventLoops.Contains(index))
                 {
                     Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
                     yield break; // StopEventLoop used, exit
                 }
             }
-
+            
+            Logger.Debug($"AdvancedWardenObjective - EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
                 if (SNet.IsMaster)
                     WorldEventManager.ExecuteEvent(eventData);
 
-            Logger.Debug($"AdvancedWardenObjective - EventLoop {index} repeating #{repeatNum}");
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;
         }
+
         Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
     }
 }

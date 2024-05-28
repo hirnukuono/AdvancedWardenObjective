@@ -13,7 +13,7 @@ internal sealed class StopEventLoop : BaseEvent
         {
             if (e.Count == -1)
             {
-                Logger.Debug($"AdvancedWardenObjective - Stopping all EventLoop...");
+                Logger.Debug($"AdvancedWardenObjective - Stopping all EventLoops...");
                 EntryPoint.ActiveEventLoops.Clear();
             }
             else

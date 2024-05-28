@@ -14,6 +14,7 @@ internal sealed class CountdownEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
+        EntryPoint.TimerModifier = 0.0f;
         CoroutineDispatcher.StartCoroutine(DoCountdown(e));
     }
 
@@ -54,6 +55,13 @@ internal sealed class CountdownEvent : BaseEvent
 
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
             time += Time.deltaTime;
+            
+            if (EntryPoint.TimerModifier != 0.0f)
+            {
+                time -= EntryPoint.TimerModifier;
+                EntryPoint.TimerModifier = 0.0f;
+            }
+
             yield return null;
         }
 

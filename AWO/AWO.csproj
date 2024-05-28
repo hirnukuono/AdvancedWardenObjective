@@ -5,7 +5,7 @@
 		<!--
 		Use the following property to set your preferred r2modman profile
 		-->
-		<Profile>hirnuplugins</Profile>
+		<Profile>Plugin Testing</Profile>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TargetFramework>net6</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>

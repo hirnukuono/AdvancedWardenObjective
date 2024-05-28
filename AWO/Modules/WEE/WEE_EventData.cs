@@ -58,7 +58,6 @@ public sealed class WEE_EventData
     public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
     public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
     public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
-    public WEE_AddChainPuzzleToSecurityDoor AddChainPuzzleToSecurityDoor { get; set; } = new();
 
     // amor
     public WEE_NestedEvent NestedEvent { get; set; } = new();
@@ -239,6 +238,7 @@ public sealed class WEE_HideTerminalCommand
     public int TerminalIndex { get; set; } = 0; 
     public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
     public int CommandNumber { get; set; } = new();
+    public bool DeleteCommand { get; set; } = false;
 }
 public sealed class WEE_UnhideTerminalCommand
 {

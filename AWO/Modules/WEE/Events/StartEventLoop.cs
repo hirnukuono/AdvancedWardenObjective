@@ -1,4 +1,4 @@
-﻿using GTFO.API.Utilities;
+﻿using GTFO.API;
 using System.Collections;
 using UnityEngine;
 using SNetwork;
@@ -29,7 +29,14 @@ internal sealed class StartEventLoop : BaseEvent
             EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
             Logger.Debug($"AdvancedWardenObjective - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
             CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
+            LevelAPI.OnLevelCleanup += OnLevelCleanup;
         }
+    }
+
+    private static void OnLevelCleanup()
+    {
+        Logger.Debug($"AdvancedWardenObjective - Cleaned up active EventLoops...");
+        EntryPoint.ActiveEventLoops.Clear();
     }
 
     static IEnumerator DoLoop(WEE_EventData e)
@@ -70,7 +77,5 @@ internal sealed class StartEventLoop : BaseEvent
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;
         }
-
-        Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
     }
 }

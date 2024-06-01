@@ -77,5 +77,6 @@ internal sealed class StartEventLoop : BaseEvent
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;
         }
+        Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
     }
 }

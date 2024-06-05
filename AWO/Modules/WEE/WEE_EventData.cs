@@ -67,6 +67,7 @@ public sealed class WEE_EventData
     public WEE_InfectPlayer InfectPlayer { get; set; } = new();
     public WEE_DamagePlayer DamagePlayer { get; set; } = new();
     public WEE_RevivePlayer RevivePlayer { get; set; } = new();
+    public WEE_Countup Countup { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -305,4 +306,17 @@ public sealed class WEE_DamagePlayer
 public sealed class WEE_RevivePlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+}
+public sealed class WEE_Countup
+{
+    public enum CountupMode : byte
+    {
+        Stopwatch,
+        Counter
+    }
+    public LocaleText TimerText { get; set; } = LocaleText.Empty;
+    public Color TimerColor { get; set; } = Color.red;
+    public LocaleText CustomText { get; set; } = LocaleText.Empty;
+    public float SpeedMultiplier { get; set; } = 0.1f;
+    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }

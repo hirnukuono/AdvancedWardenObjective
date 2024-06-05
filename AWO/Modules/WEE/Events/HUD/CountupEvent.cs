@@ -6,7 +6,7 @@ using SNetwork;
 
 namespace AWO.WEE.Events.HUD;
 
-internal sealed class CountdownEvent : BaseEvent
+internal sealed class CountupEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countdown;
 
@@ -14,32 +14,22 @@ internal sealed class CountdownEvent : BaseEvent
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountdown(e, GetDuration(e)));
+        CoroutineDispatcher.StartCoroutine(DoCountupStopwatch(e));
     }
 
-    private static float GetDuration(WEE_EventData e)
+    static IEnumerator DoCountupStopwatch(WEE_EventData e)
     {
-        if (e.Countdown.Duration != 0.0f)
-            return e.Countdown.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-       
-        return e.Countdown.Duration;
-    }
-
-    static IEnumerator DoCountdown(WEE_EventData e, float d)
-    {
-        int myreloadcount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float mystarttime = EntryPoint.CountdownStarted;
-        var cd = e.Countdown;
-        var duration = d;
+        int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        float myStartTime = EntryPoint.CountdownStarted;
+        var cu = e.Countup;
+        var duration = e.Duration;
 
         var time = 0.0f;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cd.TimerText.ToString());
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
+        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cu.TimerText.ToString());
+        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(time, duration, cu.TimerColor);
 
         while (time <= duration)
         {
@@ -48,13 +38,13 @@ internal sealed class CountdownEvent : BaseEvent
                 yield break;
             }
 
-            if (mystarttime < EntryPoint.CountdownStarted)
+            if (myStartTime < EntryPoint.CountdownStarted)
             {
-                // someone has started a new countdown while we were stuck here, exit
+                // someone has started a new countup while we were stuck here, exit
                 yield break;
             }
 
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myreloadcount)
+            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
             {
                 // checkpoint has been used
                 GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
@@ -62,9 +52,9 @@ internal sealed class CountdownEvent : BaseEvent
                 yield break;
             }
 
-            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
+            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(time, duration, cu.TimerColor);
             time += Time.deltaTime;
-            
+
             if (EntryPoint.TimerModifier != 0.0f)
             {
                 time -= EntryPoint.TimerModifier;
@@ -75,7 +65,7 @@ internal sealed class CountdownEvent : BaseEvent
         }
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
-        foreach (var eventData in cd.EventsOnDone)
+        foreach (var eventData in cu.EventsOnDone)
         {
             if (SNet.IsMaster) WorldEventManager.ExecuteEvent(eventData);
         }

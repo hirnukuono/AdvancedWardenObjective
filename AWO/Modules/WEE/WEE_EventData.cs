@@ -53,6 +53,7 @@ public sealed class WEE_EventData
     public bool CleanUpEnemiesBehind { get; set; } = true;
     public WEE_SpawnHibernateData SpawnHibernates { get; set; } = new();
     public WEE_SpawnScoutData SpawnScouts { get; set; } = new();
+    public float Speed { get; set; } = 1.0f;
 
     // hirnu
     public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
@@ -309,14 +310,9 @@ public sealed class WEE_RevivePlayer
 }
 public sealed class WEE_Countup
 {
-    public enum CountupMode : byte
-    {
-        Stopwatch,
-        Counter
-    }
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
-    public Color TimerColor { get; set; } = Color.red;
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
-    public float SpeedMultiplier { get; set; } = 0.1f;
+    public Color TimerColor { get; set; } = Color.red;
+    public int DecimalPoints { get; set; } = 0;
     public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }

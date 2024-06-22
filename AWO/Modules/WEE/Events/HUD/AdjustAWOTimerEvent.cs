@@ -12,5 +12,6 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.TimerModifier = e.Duration;
+        if (e.Enabled) EntryPoint.SpeedModifier = e.Speed;
     }
 }

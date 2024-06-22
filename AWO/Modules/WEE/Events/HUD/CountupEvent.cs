@@ -3,71 +3,89 @@ using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 using SNetwork;
+using TMPro;
 
 namespace AWO.WEE.Events.HUD;
 
 internal sealed class CountupEvent : BaseEvent
 {
-    public override WEE_Type EventType => WEE_Type.Countdown;
+    public override WEE_Type EventType => WEE_Type.Countup;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountupStopwatch(e));
+        CoroutineDispatcher.StartCoroutine(DoCountup(e));
     }
 
-    static IEnumerator DoCountupStopwatch(WEE_EventData e)
+    static IEnumerator DoCountup(WEE_EventData e)
     {
         int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float myStartTime = EntryPoint.CountdownStarted;
         var cu = e.Countup;
-        var duration = e.Duration;
-
-        var time = 0.0f;
+        float duration = e.Duration;
+        float speed = e.Speed;
+        float count = 0.0f;
+        EntryPoint.SpeedModifier = speed;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
         GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cu.TimerText.ToString());
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(time, duration, cu.TimerColor);
 
-        while (time <= duration)
+        string head, tail;
+        string tag = "[COUNTUP]";
+        int tagIndex = cu.CustomText.ToString().IndexOf(tag);
+
+        if (tagIndex == -1)
+        {
+            head = string.Empty;
+            tail = string.Empty;
+        }
+        else
+        {
+            head = cu.CustomText.ToString().Substring(0, tagIndex);
+            tail = cu.CustomText.ToString().Substring(tagIndex + tag.Length);
+        }
+
+        TextMeshPro myTimerText = new()
+        {
+            enabled = true,
+            color = cu.TimerColor,
+            text = $"{head}{count.ToString($"F{cu.DecimalPoints}")}{tail}"
+        };
+        TMP_UpdateManager.RegisterTextObjectForUpdate(myTimerText);
+        //TextmeshRebuildManager.RegisterForRebuild(myTimerText);
+
+        while (count <= duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-            {
                 yield break;
-            }
-
             if (myStartTime < EntryPoint.CountdownStarted)
-            {
-                // someone has started a new countup while we were stuck here, exit
-                yield break;
-            }
-
+                yield break; // someone has started a new countup while we were stuck here, exit
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
             {
-                // checkpoint has been used
-                GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
-                GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(false);
-                yield break;
+                GuiManager.PlayerLayer.m_objectiveTimer.gameObject.active = false;
+                yield break; // checkpoint has been used
             }
 
-            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(time, duration, cu.TimerColor);
-            time += Time.deltaTime;
+            myTimerText.text = $"{head}{count.ToString($"F{cu.DecimalPoints}")}{tail}";
+            TMP_UpdateManager.RegisterTextObjectForUpdate(myTimerText);
+            count += speed * Time.deltaTime;
 
             if (EntryPoint.TimerModifier != 0.0f)
             {
-                time -= EntryPoint.TimerModifier;
+                count -= EntryPoint.TimerModifier;
                 EntryPoint.TimerModifier = 0.0f;
             }
+            if (EntryPoint.SpeedModifier != speed)
+                speed = EntryPoint.SpeedModifier;
 
             yield return null;
         }
 
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
+        GuiManager.PlayerLayer.m_objectiveTimer.gameObject.active = false;
         foreach (var eventData in cu.EventsOnDone)
-        {
-            if (SNet.IsMaster) WorldEventManager.ExecuteEvent(eventData);
-        }
+            if (SNet.IsMaster)
+                WorldEventManager.ExecuteEvent(eventData);
     }
 }

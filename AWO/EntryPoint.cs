@@ -26,6 +26,7 @@ internal class EntryPoint : BasePlugin
     public static float DOTStarted { get; set; }
     public static HashSet<int> ActiveEventLoops { get; set; } = new HashSet<int>();
     public static float TimerModifier { get; set; }
+    public static float SpeedModifier { get; set; }
     public unsafe override void Load()
     {
         WardenEventExt.Initialize();

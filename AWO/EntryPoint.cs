@@ -25,7 +25,15 @@ internal class EntryPoint : BasePlugin
     public static float IOTStarted { get; set; }
     public static float DOTStarted { get; set; }
     public static HashSet<int> ActiveEventLoops { get; set; } = new HashSet<int>();
-    public static float TimerModifier { get; set; }
+    public struct TimerMods
+    {
+        public static float TimeModifier { get; set; }
+        public static Color TimerColor { get; set; }
+        public static float SpeedModifier { get; set; }
+        public static LocaleText CountupText { get; set; }
+    }
+    
+
     public unsafe override void Load()
     {
         WardenEventExt.Initialize();

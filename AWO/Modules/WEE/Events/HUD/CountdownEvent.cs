@@ -9,22 +9,27 @@ namespace AWO.WEE.Events.HUD;
 internal sealed class CountdownEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countdown;
-    public float CountdownStarted = 0;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
-        EntryPoint.TimerModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountdown(e));
+        CoroutineDispatcher.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)));
     }
 
-    static IEnumerator DoCountdown(WEE_EventData e)
+    private static float GetDuration(WEE_EventData e)
+    {
+        if (e.Countdown.Duration != 0.0f)
+            return e.Countdown.Duration;
+        else if (e.Duration != 0.0f)
+            return e.Duration;
+       
+        return e.Countdown.Duration;
+    }
+
+    static IEnumerator DoCountdown(WEE_CountdownData cd, float duration)
     {
         int myreloadcount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float mystarttime = EntryPoint.CountdownStarted;
-        var cd = e.Countdown;
-        var duration = cd.Duration;
-
         var time = 0.0f;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
@@ -56,10 +61,9 @@ internal sealed class CountdownEvent : BaseEvent
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
             time += Time.deltaTime;
             
-            if (EntryPoint.TimerModifier != 0.0f)
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f)
             {
-                time -= EntryPoint.TimerModifier;
-                EntryPoint.TimerModifier = 0.0f;
+                time -= EntryPoint.TimerMods.TimeModifier;
             }
 
             yield return null;
@@ -67,8 +71,7 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
         foreach (var eventData in cd.EventsOnDone)
-        {
-            if (SNet.IsMaster) WorldEventManager.ExecuteEvent(eventData);
-        }
+            if (SNet.IsMaster) 
+                WorldEventManager.ExecuteEvent(eventData);
     }
 }

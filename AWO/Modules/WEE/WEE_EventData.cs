@@ -67,6 +67,8 @@ public sealed class WEE_EventData
     public WEE_InfectPlayer InfectPlayer { get; set; } = new();
     public WEE_DamagePlayer DamagePlayer { get; set; } = new();
     public WEE_RevivePlayer RevivePlayer { get; set; } = new();
+    public WEE_AdjustTimer AdjustTimer { get; set; } = new();
+    public WEE_CountupData Countup { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -117,7 +119,7 @@ public sealed class WEE_DoorInteractionData
 
 public sealed class WEE_CountdownData
 {
-    public float Duration { get; set; }
+    public float Duration { get; set; } = 0.0f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public Color TimerColor { get; set; } = Color.red;
     public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
@@ -305,4 +307,23 @@ public sealed class WEE_DamagePlayer
 public sealed class WEE_RevivePlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+}
+public sealed class WEE_AdjustTimer
+{
+    public float Duration { get; set; } = 0.0f;
+    public float Speed { get; set; } = 0.0f;
+    public bool UpdateText { get; set; } = false;
+    public LocaleText CustomText { get; set; } = LocaleText.Empty;
+    public Color TimerColor { get; set; } = Color.red;
+}
+public sealed class WEE_CountupData
+{
+    public float Duration { get; set; } = 0.0f;
+    public float StartValue { get; set; } = 0.0f;
+    public float Speed { get; set; } = 1.0f;
+    public LocaleText TimerText { get; set; } = LocaleText.Empty;
+    public LocaleText CustomText { get; set; } = LocaleText.Empty;
+    public Color TimerColor { get; set; } = Color.red;
+    public int DecimalPoints { get; set; } = 0;
+    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }

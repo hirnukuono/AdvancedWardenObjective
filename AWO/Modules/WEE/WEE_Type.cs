@@ -42,5 +42,6 @@ public enum WEE_Type
     DamagePlayer = WEE_EnumInjector.ExtendedIndex + 10005,
     RevivePlayer = WEE_EnumInjector.ExtendedIndex + 10006,
     AdjustAWOTimer = WEE_EnumInjector.ExtendedIndex + 10007,
-    Countup = WEE_EnumInjector.ExtendedIndex + 10008
+    Countup = WEE_EnumInjector.ExtendedIndex + 10008,
+    ForceCompleteChainPuzzle = WEE_EnumInjector.ExtendedIndex + 10009
 }

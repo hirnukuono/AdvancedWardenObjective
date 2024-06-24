@@ -13,8 +13,7 @@ internal sealed class CountdownEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
-        EntryPoint.TimerModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountdown(e, GetDuration(e)));
+        CoroutineDispatcher.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)));
     }
 
     private static float GetDuration(WEE_EventData e)
@@ -27,13 +26,10 @@ internal sealed class CountdownEvent : BaseEvent
         return e.Countdown.Duration;
     }
 
-    static IEnumerator DoCountdown(WEE_EventData e, float d)
+    static IEnumerator DoCountdown(WEE_CountdownData cd, float duration)
     {
         int myreloadcount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float mystarttime = EntryPoint.CountdownStarted;
-        var cd = e.Countdown;
-        var duration = d;
-
         var time = 0.0f;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
@@ -65,10 +61,9 @@ internal sealed class CountdownEvent : BaseEvent
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
             time += Time.deltaTime;
             
-            if (EntryPoint.TimerModifier != 0.0f)
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f)
             {
-                time -= EntryPoint.TimerModifier;
-                EntryPoint.TimerModifier = 0.0f;
+                time -= EntryPoint.TimerMods.TimeModifier;
             }
 
             yield return null;
@@ -76,8 +71,7 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
         foreach (var eventData in cd.EventsOnDone)
-        {
-            if (SNet.IsMaster) WorldEventManager.ExecuteEvent(eventData);
-        }
+            if (SNet.IsMaster) 
+                WorldEventManager.ExecuteEvent(eventData);
     }
 }

@@ -47,6 +47,7 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
             return;
         }
 
+        /*
         var cp = door.m_locks.ChainedPuzzleToSolve;
 
         if (cp != null && !cp.IsSolved)
@@ -54,8 +55,10 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
             //TODO: 씨발 개힘듬
             RecursivelySolveAlarm(cp.TryCast<iChainedPuzzleOwner>());
         }
+        */
     }
 
+    /*
     protected void RecursivelySolveAlarm(iChainedPuzzleOwner cpOwner)
     {
         var count = cpOwner.NRofPuzzles();
@@ -115,12 +118,12 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
             var spline = basicCore.m_spline.TryCast<CP_Holopath_Spline>();
             basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP, isGlobal: true);
             spline.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, isGlobal: true); //STFU
-            /*
+            /\*
             basicCore.Master_OnPlayerScanChangedCheckProgress(1.0f,
                 new Il2CppSystem.Collections.Generic.List<Player.PlayerAgent>(),
                 0,
                 new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppStructArray<bool>(0));
-            */
+            *\/
         }
         yield return new WaitForSeconds(RNG.Float01 * 0.35f);
 
@@ -128,4 +131,5 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
 
         yield break;
     }
+    */
 }

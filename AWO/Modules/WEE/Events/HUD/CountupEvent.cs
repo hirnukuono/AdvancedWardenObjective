@@ -3,7 +3,6 @@ using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 using SNetwork;
-using TMPro;
 
 namespace AWO.WEE.Events.HUD;
 
@@ -14,47 +13,32 @@ internal sealed class CountupEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
-        EntryPoint.TimerModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountup(e));
+        CoroutineDispatcher.StartCoroutine(DoCountup(e.Countup, GetDuration(e)));
     }
 
-    static IEnumerator DoCountup(WEE_EventData e)
+    private static float GetDuration(WEE_EventData e)
+    {
+        if (e.Countup.Duration != 0.0f)
+            return e.Countup.Duration;
+        else if (e.Duration != 0.0f)
+            return e.Duration;
+
+        return e.Countup.Duration;
+    }
+
+    static IEnumerator DoCountup(WEE_CountupData cu, float duration)
     {
         int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float myStartTime = EntryPoint.CountdownStarted;
-        var cu = e.Countup;
-        float duration = e.Duration;
-        float speed = e.Speed;
-        float count = 0.0f;
-        EntryPoint.SpeedModifier = speed;
+        float count = cu.StartValue;
+        string[] body = ParseCustomText(cu.CustomText.ToString(), duration);
+        EntryPoint.TimerMods.SpeedModifier = cu.Speed;
+        EntryPoint.TimerMods.CountupText = cu.CustomText;
+        EntryPoint.TimerMods.TimerColor = cu.TimerColor;
 
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cu.TimerText.ToString());
-
-        string head, tail;
-        string tag = "[COUNTUP]";
-        int tagIndex = cu.CustomText.ToString().IndexOf(tag);
-
-        if (tagIndex == -1)
-        {
-            head = string.Empty;
-            tail = string.Empty;
-        }
-        else
-        {
-            head = cu.CustomText.ToString().Substring(0, tagIndex);
-            tail = cu.CustomText.ToString().Substring(tagIndex + tag.Length);
-        }
-
-        TextMeshPro myTimerText = new()
-        {
-            enabled = true,
-            color = cu.TimerColor,
-            text = $"{head}{count.ToString($"F{cu.DecimalPoints}")}{tail}"
-        };
-        TMP_UpdateManager.RegisterTextObjectForUpdate(myTimerText);
-        //TextmeshRebuildManager.RegisterForRebuild(myTimerText);
+        CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
+        GuiManager.PlayerLayer.m_objectiveTimer.gameObject.active = true;
+        GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText.ToString();
 
         while (count <= duration)
         {
@@ -68,24 +52,45 @@ internal sealed class CountupEvent : BaseEvent
                 yield break; // checkpoint has been used
             }
 
-            myTimerText.text = $"{head}{count.ToString($"F{cu.DecimalPoints}")}{tail}";
-            TMP_UpdateManager.RegisterTextObjectForUpdate(myTimerText);
-            count += speed * Time.deltaTime;
+            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
+            count += cu.Speed * Time.deltaTime;
 
-            if (EntryPoint.TimerModifier != 0.0f)
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
             {
-                count -= EntryPoint.TimerModifier;
-                EntryPoint.TimerModifier = 0.0f;
+                count -= EntryPoint.TimerMods.TimeModifier;
+                EntryPoint.TimerMods.TimeModifier = 0.0f;
             }
-            if (EntryPoint.SpeedModifier != speed)
-                speed = EntryPoint.SpeedModifier;
+            if (EntryPoint.TimerMods.SpeedModifier != cu.Speed) // speed mod
+                cu.Speed = EntryPoint.TimerMods.SpeedModifier;
+            if (EntryPoint.TimerMods.CountupText != cu.CustomText) // text mod
+            {
+                cu.CustomText = EntryPoint.TimerMods.CountupText; 
+                body = ParseCustomText(cu.CustomText.ToString(), duration);
+            }
+            if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod
+                cu.TimerColor = EntryPoint.TimerMods.TimerColor;
 
             yield return null;
         }
 
-        GuiManager.PlayerLayer.m_objectiveTimer.gameObject.active = false;
+        CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
+        GuiManager.PlayerLayer.m_objectiveTimer.gameObject.SetActive(false);
         foreach (var eventData in cu.EventsOnDone)
             if (SNet.IsMaster)
                 WorldEventManager.ExecuteEvent(eventData);
+    }
+
+    private static string[] ParseCustomText(string custom, float d)
+    {
+        string tag = "[COUNTUP]";
+        string max = "[CMAX]";
+
+        if (!custom.Contains(tag))
+            return new string[] { string.Empty, string.Empty };
+
+        if (custom.Contains(max))
+            custom = custom.Replace(max, d.ToString());
+
+        return custom.Split(tag, 2);
     }
 }

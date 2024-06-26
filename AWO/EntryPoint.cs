@@ -21,7 +21,7 @@ namespace AWO;
 internal class EntryPoint : BasePlugin
 {
     public static HashSet<int> ActiveEventLoops { get; set; } = new();
-    public static List<LG_WorldEventNavMarker> NavMarkers { get; set; } = new();
+    public static HashSet<LG_WorldEventNavMarker> NavMarkers { get; set; } = new();
     public struct Coroutines
     {
         public static float CountdownStarted { get; set; }

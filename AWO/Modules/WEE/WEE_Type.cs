@@ -6,7 +6,7 @@ public enum WEE_Type
     LockSecurityDoor, // TODO: add door interaction text
     SetDoorInteraction, // Unused
     TriggerSecurityDoorAlarm, 
-    SolveSecurityDoorAlarm, // Only solves "displayed" door alarm, not active CP
+    SolveSecurityDoorAlarm,
     StartReactor, 
     ModifyReactorWaveState, 
     ForceCompleteReactor, 
@@ -43,5 +43,6 @@ public enum WEE_Type
     RevivePlayer = WEE_EnumInjector.ExtendedIndex + 10006,
     AdjustAWOTimer = WEE_EnumInjector.ExtendedIndex + 10007,
     Countup = WEE_EnumInjector.ExtendedIndex + 10008,
-    ForceCompleteChainPuzzle = WEE_EnumInjector.ExtendedIndex + 10009
+    ForceCompleteChainPuzzle = WEE_EnumInjector.ExtendedIndex + 10009,
+    SpawnNavMarker = WEE_EnumInjector.ExtendedIndex + 10010
 }

@@ -1,6 +1,4 @@
-﻿using GTFO.API.Utilities;
-using SNetwork;
-using AWO.WEE.Events;
+﻿using AWO.WEE.Events;
 using Player;
 using System.Collections;
 using UnityEngine;
@@ -14,7 +12,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
     protected override void TriggerMaster(WEE_EventData e)
     {
         var activeSlotIndices = new HashSet<int>(e.DamagePlayer.PlayerFilter.Select(filter => (int)filter));
-        EntryPoint.DOTStarted = Time.realtimeSinceStartup;
+        EntryPoint.Coroutines.DOTStarted = Time.realtimeSinceStartup;
 
         if (!TryGetZone(e, out var zone))
         {
@@ -39,23 +37,20 @@ internal sealed class DamagePlayerEvent : BaseEvent
     private static IEnumerator DamageOverTime(WEE_EventData e, PlayerAgent player, int id)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float startTime = EntryPoint.DOTStarted;
-        var dp = e.DamagePlayer;
-        PlayerAgent p = player;
-        float duration = e.Duration;
-        float damagePerSecond = dp.DamageAmount / duration;
+        float startTime = EntryPoint.Coroutines.DOTStarted;
+        float damagePerSecond = e.DamagePlayer.DamageAmount / e.Duration;
         float elapsed = 0.0f;
 
-        while (elapsed <= duration)
+        while (elapsed <= e.Duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
                 yield break; // no longer in level, exit
-            if (startTime < EntryPoint.DOTStarted)
+            if (startTime < EntryPoint.Coroutines.DOTStarted)
                 yield break; // new DamagePlayer event started, exit
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
                 yield break; // checkpoint was used, exit
 
-            ApplyDamage(p, damagePerSecond, dp.UseZone, id);
+            ApplyDamage(player, damagePerSecond, e.DamagePlayer.UseZone, id);
             elapsed += Time.deltaTime;
             yield return new WaitForSeconds(1.0f);
         }

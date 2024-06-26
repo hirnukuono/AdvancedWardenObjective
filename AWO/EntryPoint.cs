@@ -20,11 +20,15 @@ namespace AWO;
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 internal class EntryPoint : BasePlugin
 {
-    public static float CountdownStarted { get; set; }
-    public static float TPFStarted { get; set; }
-    public static float IOTStarted { get; set; }
-    public static float DOTStarted { get; set; }
-    public static HashSet<int> ActiveEventLoops { get; set; } = new HashSet<int>();
+    public static HashSet<int> ActiveEventLoops { get; set; } = new();
+    public static List<LG_WorldEventNavMarker> NavMarkers { get; set; } = new();
+    public struct Coroutines
+    {
+        public static float CountdownStarted { get; set; }
+        public static float TPFStarted { get; set; }
+        public static float IOTStarted { get; set; }
+        public static float DOTStarted { get; set; }
+    }
     public struct TimerMods
     {
         public static float TimeModifier { get; set; }

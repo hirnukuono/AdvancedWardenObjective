@@ -1,8 +1,7 @@
-﻿using GTFO.API;
+﻿using AWO.WEE.Events;
+using GTFO.API;
 using System.Collections;
 using UnityEngine;
-using SNetwork;
-using AWO.WEE.Events;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -35,7 +34,7 @@ internal sealed class StartEventLoop : BaseEvent
 
     private static void OnLevelCleanup()
     {
-        Logger.Debug($"AdvancedWardenObjective - Cleaned up active EventLoops...");
+        Logger.Debug($"AdvancedWardenObjective - Cleaning up active EventLoops...");
         EntryPoint.ActiveEventLoops.Clear();
     }
 
@@ -71,7 +70,7 @@ internal sealed class StartEventLoop : BaseEvent
             
             Logger.Debug($"AdvancedWardenObjective - EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
-                if (SNet.IsMaster)
+                if (IsMaster)
                     WorldEventManager.ExecuteEvent(eventData);
 
             yield return new WaitForSeconds(sel.LoopDelay);

@@ -1,7 +1,8 @@
 ﻿using AWO.Modules.WEE;
 using AWO.Sessions;
+using AWO.WEE.Events;
 
-namespace AWO.WEE.Events;
+namespace AWO.Modules.WEE.Events.Level;
 
 internal sealed class SetLevelFailCheckEnabledEvent : BaseEvent
 {

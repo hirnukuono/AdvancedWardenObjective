@@ -1,5 +1,4 @@
 ﻿using AWO.WEE.Events;
-using SNetwork;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -10,7 +9,7 @@ internal sealed class NestedEvent : BaseEvent
     protected override void TriggerMaster(WEE_EventData e)
     {
         foreach (var eventData in e.NestedEvent.EventsToActivate)
-            if (SNet.IsMaster) 
+            if (IsMaster) 
                 WorldEventManager.ExecuteEvent(eventData);
     }         
 }

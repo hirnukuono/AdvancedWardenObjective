@@ -1,7 +1,4 @@
-﻿using GTFO.API.Utilities;
-using SNetwork;
-using AWO.WEE.Events;
-using UnityEngine;
+﻿using AWO.WEE.Events;
 
 namespace AWO.Modules.WEE.Events.HUD;
 

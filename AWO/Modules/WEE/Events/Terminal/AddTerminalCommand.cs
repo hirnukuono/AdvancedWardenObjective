@@ -33,7 +33,7 @@ internal sealed class AddTerminalCommand : BaseEvent
         Il2CppSystem.Collections.Generic.List<TerminalOutput> outputlist = new();
         foreach (var asd in e.AddTerminalCommand.PostCommandOutputs) outputlist.Add(asd);
 
-        LocalizedText desc = new() { UntranslatedText = e.AddTerminalCommand.CommandDesc };
+        LocalizedText desc = new() { UntranslatedText = e.AddTerminalCommand.CommandDesc.ToString() };
 
         term.m_command.m_commandsPerEnum.Add((TERM_Command)num, e.AddTerminalCommand.Command.ToLower());
         term.m_command.m_commandsPerString.Add(e.AddTerminalCommand.Command.ToLower(), (TERM_Command)num);

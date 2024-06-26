@@ -1,6 +1,4 @@
-﻿using GTFO.API.Utilities;
-using SNetwork;
-using AWO.WEE.Events;
+﻿using AWO.WEE.Events;
 using AIGraph;
 using LevelGeneration;
 using Player;
@@ -46,7 +44,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             { 3, new TPData(SlotIndex.P3, e.TeleportPlayer.Player3Position, e.TeleportPlayer.P3LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[3]) }
         };
         var activeSlotIndices = new HashSet<int>(e.TeleportPlayer.PlayerFilter.Select(filter => (int)filter));
-        EntryPoint.TPFStarted = Time.realtimeSinceStartup;
+        EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
 
         foreach (PlayerAgent player in PlayerManager.PlayerAgentsInLevel)
         {
@@ -102,24 +100,21 @@ internal sealed class TeleportPlayerEvent : BaseEvent
     static IEnumerator FlashBack(WEE_EventData e, PlayerAgent player, TPData playerData)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float startTime = EntryPoint.TPFStarted;
-        var tpp = e;
-        PlayerAgent p = player;
-        TPData pData = playerData;
-        tpp.DimensionIndex = pData.LastDim;
-        pData.Position = pData.LastPosition;
+        float startTime = EntryPoint.Coroutines.TPFStarted;
+        e.DimensionIndex = playerData.LastDim;
+        playerData.Position = playerData.LastPosition;
 
-        yield return new WaitForSeconds(tpp.Duration);
+        yield return new WaitForSeconds(e.Duration);
 
         if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
             yield break; // no longer in level, exit
-        if (startTime < EntryPoint.TPFStarted)
+        if (startTime < EntryPoint.Coroutines.TPFStarted)
             yield break; // new TeleportPlayer event started, exit
         if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             yield break; // checkpoint was used, exit
 
         Logger.Debug($"AdvancedWardenObjective - Teleporting players back...");
-        Teleport(tpp, p, pData);
+        Teleport(e, player, playerData);
     }
 
     private static void Teleport(WEE_EventData e, PlayerAgent player, TPData playerData)

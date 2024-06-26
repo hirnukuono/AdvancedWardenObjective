@@ -1,5 +1,4 @@
-﻿using SNetwork;
-using AWO.WEE.Events;
+﻿using AWO.WEE.Events;
 
 namespace AWO.Modules.WEE.Events;
 

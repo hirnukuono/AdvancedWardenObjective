@@ -2,7 +2,6 @@
 using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
-using SNetwork;
 
 namespace AWO.WEE.Events.HUD;
 
@@ -12,7 +11,8 @@ internal sealed class CountdownEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        EntryPoint.CountdownStarted = Time.realtimeSinceStartup;
+        EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
+        EntryPoint.TimerMods.TimeModifier = 0.0f;
         CoroutineDispatcher.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)));
     }
 
@@ -28,8 +28,8 @@ internal sealed class CountdownEvent : BaseEvent
 
     static IEnumerator DoCountdown(WEE_CountdownData cd, float duration)
     {
-        int myreloadcount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float mystarttime = EntryPoint.CountdownStarted;
+        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        float startTime = EntryPoint.Coroutines.CountdownStarted;
         var time = 0.0f;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
@@ -44,13 +44,13 @@ internal sealed class CountdownEvent : BaseEvent
                 yield break;
             }
 
-            if (mystarttime < EntryPoint.CountdownStarted)
+            if (startTime < EntryPoint.Coroutines.CountdownStarted)
             {
                 // someone has started a new countdown while we were stuck here, exit
                 yield break;
             }
 
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myreloadcount)
+            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 // checkpoint has been used
                 GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
@@ -71,7 +71,7 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
         foreach (var eventData in cd.EventsOnDone)
-            if (SNet.IsMaster) 
+            if (IsMaster) 
                 WorldEventManager.ExecuteEvent(eventData);
     }
 }

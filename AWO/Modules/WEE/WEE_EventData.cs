@@ -234,11 +234,12 @@ public sealed class WEE_AddTerminalCommand
     public int TerminalIndex { get; set; } = 0;
     public int CommandNumber { get; set; } = 6;
     public string Command { get; set; } = "";
-    public string CommandDesc { get; set; } = "";
+    public LocaleText CommandDesc { get; set; } = LocaleText.Empty;
     public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
     public WardenObjectiveEventData[] CommandEvents { get; set; } = Array.Empty<WardenObjectiveEventData>();
     public TerminalOutput[] PostCommandOutputs { get; set; } = Array.Empty<TerminalOutput>();
 }
+
 public sealed class WEE_HideTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0; 
@@ -246,6 +247,7 @@ public sealed class WEE_HideTerminalCommand
     public int CommandNumber { get; set; } = new();
     public bool DeleteCommand { get; set; } = false;
 }
+
 public sealed class WEE_UnhideTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0; 
@@ -259,6 +261,7 @@ public sealed class WEE_NestedEvent
 {
     public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }
+
 public sealed class WEE_StartEventLoop
 {
     public int LoopIndex { get; set; } = 0;
@@ -266,6 +269,7 @@ public sealed class WEE_StartEventLoop
     public int LoopCount { get; set; } = -1;
     public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }
+
 public enum SlotIndex : byte
 {
     P0,
@@ -273,6 +277,7 @@ public enum SlotIndex : byte
     P2,
     P3
 }
+
 public sealed class WEE_TeleportPlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new();
@@ -290,6 +295,7 @@ public sealed class WEE_TeleportPlayer
     public Vector3 Player3Position { get; set; } = Vector3.zero;
     public int P3LookDir { get; set; } = 0;
 }
+
 public sealed class WEE_InfectPlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3};
@@ -297,6 +303,7 @@ public sealed class WEE_InfectPlayer
     public bool InfectOverTime { get; set; } = false;
     public bool UseZone { get; set; } = false;
 }
+
 public sealed class WEE_DamagePlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
@@ -304,10 +311,12 @@ public sealed class WEE_DamagePlayer
     public bool DamageOverTime { get; set; } = false;
     public bool UseZone { get; set; } = false;
 }
+
 public sealed class WEE_RevivePlayer
 {
     public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
 }
+
 public sealed class WEE_AdjustTimer
 {
     public float Duration { get; set; } = 0.0f;
@@ -316,6 +325,7 @@ public sealed class WEE_AdjustTimer
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
     public Color TimerColor { get; set; } = Color.red;
 }
+
 public sealed class WEE_CountupData
 {
     public float Duration { get; set; } = 0.0f;

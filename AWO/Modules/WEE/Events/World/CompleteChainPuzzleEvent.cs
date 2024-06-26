@@ -1,8 +1,6 @@
 ﻿using AK;
 using AWO.Modules.WEE;
-using GTFO.API.Utilities;
 using ChainedPuzzles;
-using SNetwork;
 using System.Collections;
 using UnityEngine;
 
@@ -22,8 +20,27 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             return;
         }
         
-        for (int i = 0; i < cp.m_chainedPuzzleCores.Length; i++)
+        CoroutineManager.StartCoroutine(SolvePuzzleCores(cp, e.Count).WrapToIl2Cpp());
+    }
+
+    private static ChainedPuzzleInstance? GetCPInstance(Il2CppSystem.Collections.Generic.List<ChainedPuzzleInstance> m_instances, uint ID)
+    {
+        foreach (var instance in m_instances)
+            if (instance.Data.persistentID == ID)
+                return instance;
+
+        return null;
+    }
+
+    static IEnumerator SolvePuzzleCores(ChainedPuzzleInstance cp, int count)
+    {
+        for (int i = 0; i < cp.NRofPuzzles(); i++)
         {
+            if (i == count && count > 0)
+                yield break;
+
+            cp.OnPuzzleDone(i);
+
             var clusterCore = cp.m_chainedPuzzleCores[i].TryCast<CP_Cluster_Core>();
             if (clusterCore != null)
             {
@@ -37,20 +54,9 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             var basicCore = cp.m_chainedPuzzleCores[i].TryCast<CP_Bioscan_Core>();
             if (basicCore != null)
                 CoroutineManager.StartCoroutine(SolveBasicCore(basicCore).WrapToIl2Cpp());
+
+            yield return new WaitForSeconds(RNG.Float01 * 0.35f);
         }
-
-        cp.OnPuzzleDone(cp.m_chainedPuzzleCores.Length - 1);
-        Logger.Debug("AdvancedWardenObjective - Probably ignore the null refs?");
-        cp.m_chainedPuzzleCores = null;
-    }
-
-    private static ChainedPuzzleInstance? GetCPInstance(Il2CppSystem.Collections.Generic.List<ChainedPuzzleInstance> m_instances, uint ID)
-    {
-        foreach (var instance in m_instances)
-            if (instance.Data.persistentID == ID)
-                return instance;
-
-        return null;
     }
 
     static IEnumerator SolveBasicCore(CP_Bioscan_Core basicCore)
@@ -74,7 +80,5 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         yield return new WaitForSeconds(RNG.Float01 * 0.35f);
 
         CoroutineManager.BlinkOut(basicCore.gameObject);
-
-        yield break;
     }
 }

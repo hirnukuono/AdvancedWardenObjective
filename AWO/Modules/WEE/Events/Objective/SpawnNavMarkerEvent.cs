@@ -35,7 +35,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     private static void OnLevelCleanup()
     {
-        Logger.Debug($"AdvancedWardenObjective - Cleaning up Nav Markers...");
+        Logger.Debug("SpawnNavMarkers - Cleaning up Nav Markers...");
         EntryPoint.NavMarkers.Clear();
     }
 }

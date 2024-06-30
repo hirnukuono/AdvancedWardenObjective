@@ -40,7 +40,7 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
             state.status = eChainedPuzzleStatus.Solved;
             state.isSolved = true;
             state.isActive = false;
-            if (SNet.IsMaster) door.m_locks.ChainedPuzzleToSolve.m_stateReplicator.State = state;
+            if (IsMaster) door.m_locks.ChainedPuzzleToSolve.m_stateReplicator.State = state;
             var doorstate = door.m_sync.GetCurrentSyncState();
             doorstate.status = eDoorStatus.Unlocked;
             door.m_sync.SetStateUnsynced(doorstate);

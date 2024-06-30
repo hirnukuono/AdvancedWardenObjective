@@ -113,7 +113,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             yield break; // checkpoint was used, exit
 
-        Logger.Debug($"AdvancedWardenObjective - Teleporting players back...");
+        Logger.Debug("TeleportPlayer - Warping players back...");
         Teleport(e, player, playerData);
     }
 

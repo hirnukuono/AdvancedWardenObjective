@@ -16,7 +16,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
         if (cp == null || !cp.IsActive || cp.IsSolved)
         {
-            Logger.Error("AdvancedWardenObjective - Active ChainPuzzle not found");
+            Logger.Error("ForceCompleteChainPuzzle - An active ChainPuzzle was not found");
             return;
         }
         
@@ -64,8 +64,9 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         if (basicCore == null)
             yield break;
 
-        basicCore.m_playerScanner.TryCast<MonoBehaviour>().gameObject.active = true;
+        basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
         basicCore.m_spline.SetVisible(false);
+
         if (IsMaster)
         {
             basicCore.m_playerScanner.ResetScanProgression(1.0f);
@@ -73,10 +74,18 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
             yield return null;
 
-            var spline = basicCore.m_spline.TryCast<CP_Holopath_Spline>();
             basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP, isGlobal: true);
-            spline.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, isGlobal: true); 
+            try
+            {
+                var spline = basicCore.m_spline.TryCast<CP_Holopath_Spline>();
+                spline?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, isGlobal: true);
+            }
+            catch
+            {
+                Logger.Debug("ForceCompleteChainPuzzle - A CP_Bioscan_Core has no spline, skipping killing sound");
+            }
         }
+
         yield return new WaitForSeconds(RNG.Float01 * 0.35f);
 
         CoroutineManager.BlinkOut(basicCore.gameObject);

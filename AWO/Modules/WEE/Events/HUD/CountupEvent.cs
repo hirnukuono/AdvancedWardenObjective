@@ -87,7 +87,7 @@ internal sealed class CountupEvent : BaseEvent
     {
         if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
         {
-            count -= EntryPoint.TimerMods.TimeModifier;
+            count += EntryPoint.TimerMods.TimeModifier;
             EntryPoint.TimerMods.TimeModifier = 0.0f;
         }
 

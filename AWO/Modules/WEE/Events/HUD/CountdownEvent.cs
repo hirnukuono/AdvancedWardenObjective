@@ -64,6 +64,7 @@ internal sealed class CountdownEvent : BaseEvent
             if (EntryPoint.TimerMods.TimeModifier != 0.0f)
             {
                 time -= EntryPoint.TimerMods.TimeModifier;
+                EntryPoint.TimerMods.TimeModifier = 0.0f;
             }
 
             yield return null;

@@ -13,7 +13,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {
-            Logger.Error($"AdvancedWardenObjective - EventLoop LoopDelay must be > 1.0");
+            Logger.Error("StartEventLoop - EventLoop LoopDelay must be > 1.0");
             return;
         }
 
@@ -21,12 +21,12 @@ internal sealed class StartEventLoop : BaseEvent
         {
             if (EntryPoint.ActiveEventLoops.Contains(e.StartEventLoop.LoopIndex))
             {
-                Logger.Error($"AdvancedWardenObjective - EventLoop {e.StartEventLoop.LoopIndex} is already active...");
+                Logger.Error($"StartEventLoop - EventLoop {e.StartEventLoop.LoopIndex} is already active...");
                 return;
             }
 
             EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
-            Logger.Debug($"AdvancedWardenObjective - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
+            Logger.Debug($"StartEventLoop - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
             CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
             LevelAPI.OnLevelCleanup += OnLevelCleanup;
         }
@@ -34,7 +34,7 @@ internal sealed class StartEventLoop : BaseEvent
 
     private static void OnLevelCleanup()
     {
-        Logger.Debug($"AdvancedWardenObjective - Cleaning up active EventLoops...");
+        Logger.Debug("StartEventLoop - Cleaning up active EventLoops...");
         EntryPoint.ActiveEventLoops.Clear();
     }
 
@@ -63,12 +63,12 @@ internal sealed class StartEventLoop : BaseEvent
                 }
                 if (!EntryPoint.ActiveEventLoops.Contains(index))
                 {
-                    Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
+                    Logger.Debug($"StartEventLoop - EventLoop {index} done");
                     yield break; // StopEventLoop used, exit
                 }
             }
             
-            Logger.Debug($"AdvancedWardenObjective - EventLoop {index} repeating #{repeatNum}");
+            Logger.Debug($"StartEventLoop - EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
                 if (IsMaster)
                     WorldEventManager.ExecuteEvent(eventData);
@@ -76,6 +76,6 @@ internal sealed class StartEventLoop : BaseEvent
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;
         }
-        Logger.Debug($"AdvancedWardenObjective - EventLoop {index} done");
+        Logger.Debug($"StartEventLoop - EventLoop {index} done");
     }
 }

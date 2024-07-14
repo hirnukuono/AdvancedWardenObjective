@@ -1,10 +1,5 @@
 ﻿using AWO.WEE.Events;
 using Player;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AWO.Modules.WEE.Events.World;
 internal sealed class KillPlayersInZoneEvent : BaseEvent

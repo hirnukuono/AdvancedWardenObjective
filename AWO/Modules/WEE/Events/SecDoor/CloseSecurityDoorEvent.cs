@@ -25,7 +25,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
         var state = door.m_sync.GetCurrentSyncState();
         if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)
         {
-            Logger.Debug("Door Closed!");
+            LogDebug("Door Closed!");
 
             var sync = door.m_sync.TryCast<LG_Door_Sync>();
             if (sync == null)
@@ -45,7 +45,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
                 var nodeDistanceFrom = gate.m_linksFrom.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
                 var nodeDistanceBehind = gate.m_linksTo.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
                 var clearNode = nodeDistanceFrom < nodeDistanceBehind ? gate.m_linksTo.m_courseNode : gate.m_linksFrom.m_courseNode;
-                Logger.Debug("Despawning Enemies Behind Securiy Door...");
+                LogDebug("Despawning Enemies Behind Securiy Door...");
                 AIG_SearchID.IncrementSearchID();
                 DespawnEnemiesInNearNodes(AIG_SearchID.SearchID, clearNode);
             }

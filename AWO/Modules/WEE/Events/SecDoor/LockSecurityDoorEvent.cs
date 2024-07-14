@@ -1,4 +1,5 @@
 ﻿using AWO.Modules.WEE;
+using GameData;
 using LevelGeneration;
 
 namespace AWO.WEE.Events.SecDoor;
@@ -21,29 +22,19 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
             return;
         }
 
-        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
-        if (locks != null)
+        var eventData = new WardenObjectiveEventData
         {
-            var text = door.LinkedToZoneData?.ProgressionPuzzleToEnter?.CustomText?.ToText() ?? string.Empty;
-            locks.m_intCustomMessage.m_message = text;
-        }
+            Type = eWardenObjectiveEventType.LockSecurityDoor,
+            Layer = e.Layer,
+            DimensionIndex = e.DimensionIndex,
+            LocalIndex = e.LocalIndex
+        };
 
         if (IsMaster)
-        {
-            var state = door.m_sync.GetCurrentSyncState();
-            switch (state.status)
-            {
-                case eDoorStatus.Closed:
-                case eDoorStatus.Closed_LockedWithBulkheadDC:
-                case eDoorStatus.Closed_LockedWithChainedPuzzle:
-                case eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm:
-                case eDoorStatus.Closed_LockedWithKeyItem:
-                case eDoorStatus.Closed_LockedWithNoKey:
-                case eDoorStatus.Closed_LockedWithPowerGenerator:
-                case eDoorStatus.Unlocked:
-                    door.m_sync.AttemptDoorInteraction(eDoorInteractionType.SetLockedNoKey, 0.0f, 0.0f, default, null);
-                    break;
-            }
-        }
+            WorldEventManager.ExecuteEvent(eventData);
+
+        var locks = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
+        if (locks != null) 
+            locks.m_message = e.SpecialText.ToString();
     }
 }

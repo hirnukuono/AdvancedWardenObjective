@@ -3,7 +3,7 @@ using GTFO.API;
 using LevelGeneration;
 using UnityEngine;
 
-namespace AWO.Modules.WEE.Events.Objective;
+namespace AWO.Modules.WEE.Events.HUD;
 
 internal class SpawnNavMarkerEvent : BaseEvent
 {
@@ -16,12 +16,11 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
         if (marker == null)
         {
-            var nav = new GameObject().AddComponent<LG_WorldEventNavMarker>();
-            nav.name = name;
+            var nav = new GameObject(name).AddComponent<LG_WorldEventNavMarker>();
             nav.transform.position = e.Position;
             nav.m_placeNavMarkerOnGo.type = PlaceNavMarkerOnGO.eMarkerType.Guidance;
             nav.m_placeNavMarkerOnGo.m_placeOnStart = true;
-            
+
             EntryPoint.NavMarkers.Add(nav);
             LevelAPI.OnLevelCleanup += OnLevelCleanup;
             marker = nav;
@@ -33,7 +32,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
             marker.OnTrigger(null, false, true);
     }
 
-    private static void OnLevelCleanup()
+    private void OnLevelCleanup()
     {
         Logger.Debug("SpawnNavMarkers - Cleaning up Nav Markers...");
         EntryPoint.NavMarkers.Clear();

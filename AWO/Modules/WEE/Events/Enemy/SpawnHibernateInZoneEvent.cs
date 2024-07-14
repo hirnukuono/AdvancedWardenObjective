@@ -1,13 +1,12 @@
-﻿using UnityEngine;
-using AWO.WEE.Events;
-using GTFO.API.Utilities;
-using System.Collections;
-using LevelGeneration;
-using Agents;
-using Enemies;
+﻿using Agents;
 using AIGraph;
-using Random = UnityEngine.Random;
+using AWO.WEE.Events;
+using Enemies;
+using LevelGeneration;
 using Player;
+using System.Collections;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace AWO.Modules.WEE.Events.Enemy;
 internal class SpawnHibernateInZoneEvent : BaseEvent
@@ -35,13 +34,12 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 if (!IsValidAreaIndex(sh.AreaIndex, zone)) return;
             }
 
-            CoroutineDispatcher.StartCoroutine(DoSpawn(sh, zone));
+            CoroutineManager.StartCoroutine(DoSpawn(sh, zone).WrapToIl2Cpp());
         }
     }
 
     static IEnumerator DoSpawn(WEE_SpawnHibernateData e, LG_Zone zone)
     {
-        // TODO: how to fking spawn scout conveniently?
         AgentMode mode = AgentMode.Hibernate;
         float SpawnInterval = TimeToCompleteSpawn / e.Count;
 

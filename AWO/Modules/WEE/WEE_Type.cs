@@ -3,8 +3,8 @@
 public enum WEE_Type
 {
     CloseSecurityDoor = WEE_EnumInjector.ExtendedIndex + 0,
-    LockSecurityDoor, // TODO: add door interaction text
-    SetDoorInteraction, // Unused
+    LockSecurityDoor,
+    SetDoorInteraction, // Missing
     TriggerSecurityDoorAlarm, 
     SolveSecurityDoorAlarm,
     StartReactor, 
@@ -17,7 +17,7 @@ public enum WEE_Type
     SetLevelFailWhenAnyPlayerDowned, 
     KillAllPlayers, 
     KillPlayersInZone, 
-    SolveSingleObjectiveItem, // Should deprecated?
+    SolveSingleObjectiveItem, // ?
     SetLightDataInZone, // TODO: Partially done, need to work on animation
     AlertEnemiesInZone, 
     CleanupEnemiesInZone, // Kill, Despawn has merged with this
@@ -44,5 +44,10 @@ public enum WEE_Type
     AdjustAWOTimer = WEE_EnumInjector.ExtendedIndex + 10007,
     Countup = WEE_EnumInjector.ExtendedIndex + 10008,
     ForceCompleteChainPuzzle = WEE_EnumInjector.ExtendedIndex + 10009,
-    SpawnNavMarker = WEE_EnumInjector.ExtendedIndex + 10010
+    SpawnNavMarker = WEE_EnumInjector.ExtendedIndex + 10010,
+    ShakeScreen = WEE_EnumInjector.ExtendedIndex + 10011,
+    ModifyPortalMachine = WEE_EnumInjector.ExtendedIndex + 10012,
+    SetSuccessScreen = WEE_EnumInjector.ExtendedIndex + 10013,
+    PlaySubtitles = WEE_EnumInjector.ExtendedIndex + 10014,
+    MultiProgression = WEE_EnumInjector.ExtendedIndex + 10015
 }

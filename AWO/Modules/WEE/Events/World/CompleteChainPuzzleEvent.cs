@@ -3,6 +3,7 @@ using AWO.Modules.WEE;
 using ChainedPuzzles;
 using System.Collections;
 using UnityEngine;
+using Il2CppCPInstanceList = Il2CppSystem.Collections.Generic.List<ChainedPuzzles.ChainedPuzzleInstance>;
 
 namespace AWO.WEE.Events.World;
 
@@ -16,14 +17,14 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
         if (cp == null || !cp.IsActive || cp.IsSolved)
         {
-            Logger.Error("ForceCompleteChainPuzzle - An active ChainPuzzle was not found");
+            LogError("An active ChainPuzzle was not found");
             return;
         }
         
         CoroutineManager.StartCoroutine(SolvePuzzleCores(cp, e.Count).WrapToIl2Cpp());
     }
 
-    private static ChainedPuzzleInstance? GetCPInstance(Il2CppSystem.Collections.Generic.List<ChainedPuzzleInstance> m_instances, uint ID)
+    private static ChainedPuzzleInstance? GetCPInstance(Il2CppCPInstanceList m_instances, uint ID)
     {
         foreach (var instance in m_instances)
             if (instance.Data.persistentID == ID)
@@ -82,7 +83,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             }
             catch
             {
-                Logger.Debug("ForceCompleteChainPuzzle - A CP_Bioscan_Core has no spline, skipping killing sound");
+                Logger.Warn("ForceCompleteChainPuzzle - A CP_Bioscan_Core has no spline, skipping killing sound");
             }
         }
 

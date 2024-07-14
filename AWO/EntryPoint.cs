@@ -3,11 +3,8 @@ using AWO.Jsons;
 using AWO.Modules.WEE;
 using AWO.Modules.WOE;
 using AWO.Sessions;
-using AWO.WEE.Events.Level;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
-using ChainedPuzzles;
-using GameData;
 using GTFO.API;
 using HarmonyLib;
 using LevelGeneration;
@@ -22,6 +19,7 @@ internal class EntryPoint : BasePlugin
 {
     public static HashSet<int> ActiveEventLoops { get; set; } = new();
     public static HashSet<LG_WorldEventNavMarker> NavMarkers { get; set; } = new();
+    public static Dictionary<GlobalZoneIndex, LG_DimensionPortal> Portals { get; set; } = new();
     public struct Coroutines
     {
         public static float CountdownStarted { get; set; }
@@ -41,7 +39,7 @@ internal class EntryPoint : BasePlugin
     public unsafe override void Load()
     {
         WardenEventExt.Initialize();
-        WardenObjectiveExt.Initialize();
+        //WardenObjectiveExt.Initialize();
 
         new Harmony("AWO.Harmony").PatchAll();
 
@@ -56,6 +54,7 @@ internal class EntryPoint : BasePlugin
         BlackoutState.AssetLoaded();
         LevelFailUpdateState.AssetLoaded();
     }
+
     public class AWOTerminalCommands
     {
         public WEE_EventData data;

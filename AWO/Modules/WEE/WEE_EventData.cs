@@ -5,8 +5,6 @@ using Enemies;
 using GameData;
 using LevelGeneration;
 using SNetwork;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace AWO.Modules.WEE;
@@ -39,6 +37,7 @@ public sealed class WEE_EventData
     public uint DialogueID { get; set; } = 0u;
     public int Count { get; set; } = 0;
     public bool Enabled { get; set; } = true;
+    public LocaleText SpecialText { get; set; } = LocaleText.Empty;
 
 
     //Common Updater
@@ -62,13 +61,17 @@ public sealed class WEE_EventData
     // amor
     public WEE_NestedEvent NestedEvent { get; set; } = new();
     public WEE_StartEventLoop StartEventLoop { get; set; } = new();
-    public WEE_StartEventLoop StopEventLoop { get; set; } = new();
+    public WEE_StartEventLoop EventLoop { get => StartEventLoop; set => StartEventLoop = value; }
     public WEE_TeleportPlayer TeleportPlayer { get; set; } = new();
     public WEE_InfectPlayer InfectPlayer { get; set; } = new();
     public WEE_DamagePlayer DamagePlayer { get; set; } = new();
     public WEE_RevivePlayer RevivePlayer { get; set; } = new();
     public WEE_AdjustTimer AdjustTimer { get; set; } = new();
     public WEE_CountupData Countup { get; set; } = new();
+    public WEE_ShakeScreen CameraShake { get; set; } = new();
+    public WEE_ModifyPortalMachine Portal { get; set; } = new();
+    public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
+    public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -95,6 +98,12 @@ public sealed class WEE_SubObjectiveData
     public bool DoUpdate { get; set; } = false;
     public LocaleText CustomSubObjectiveHeader { get; set; } = LocaleText.Empty;
     public LocaleText CustomSubObjective { get; set; } = LocaleText.Empty;
+
+    //AMAWO Addon:
+    public uint Index { get; set; } = 0u;
+    //public bool LocalToLayer { get; set; } = false;
+    public LG_LayerType Layer /*{ get; set; }*/ = LG_LayerType.MainLayer;
+    public LocaleText OverrideTag { get; set; } = LocaleText.Empty;
 }
 
 public sealed class WEE_ReactorEventData
@@ -336,4 +345,31 @@ public sealed class WEE_CountupData
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
     public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
+}
+
+public sealed class WEE_ShakeScreen
+{
+    public float Radius { get; set; } = 0.0f;
+    public float Duration { get; set; } = 0.0f;
+    public float Amplitude { get; set; } = 0.0f;
+    public float Frequency { get; set; } = 0.0f;
+    public bool Directional { get; set; } = true;
+}
+
+public sealed class WEE_ModifyPortalMachine
+{
+    public eDimensionIndex TargetDimension { get; set; } = eDimensionIndex.Dimension_1;
+    public eLocalZoneIndex TargetZone { get; set; } = eLocalZoneIndex.Zone_0;
+}
+
+public sealed class WEE_SetSuccessScreen
+{
+    public ScreenType Type { get; set; } = ScreenType.SetSuccessScreen;
+    public WinScreen CustomSuccessScreen { get; set; } = WinScreen.Empty;
+    public eCM_MenuPage FakeEndScreen { get; set; } = eCM_MenuPage.CMP_EXPEDITION_SUCCESS;
+    public enum ScreenType : byte
+    {
+        SetSuccessScreen,
+        FlashFakeScreen
+    }
 }

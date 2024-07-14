@@ -8,8 +8,7 @@ internal sealed class NestedEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        foreach (var eventData in e.NestedEvent.EventsToActivate)
-            if (IsMaster) 
-                WorldEventManager.ExecuteEvent(eventData);
+        foreach (var eventData in e.NestedEvent.EventsToActivate) 
+            WorldEventManager.ExecuteEvent(eventData);
     }         
 }

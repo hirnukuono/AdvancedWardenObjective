@@ -1,5 +1,4 @@
 ﻿using AWO.Modules.WEE;
-using FluffyUnderware.DevTools.Extensions;
 using LevelGeneration;
 using SNetwork;
 
@@ -38,7 +37,7 @@ internal sealed class HideTerminalCommand : BaseEvent
             if (e.HideTerminalCommand.DeleteCommand) term.TrySyncSetCommandIsUsed(tempcommand);
             term.m_stateReplicator.State = state;
             // if (SNet.IsMaster) if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type=0, WardenIntel=e.WardenIntel });
-            UnityEngine.Debug.Log($"AdvancedWardenObjective - command {tempcommand} should be hidden now");
+            LogDebug($"Command {tempcommand} should be hidden now");
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using GTFO.API.Utilities;
-using SNetwork;
-using AWO.WEE.Events;
+﻿using AWO.WEE.Events;
 using Agents;
 using Player;
 

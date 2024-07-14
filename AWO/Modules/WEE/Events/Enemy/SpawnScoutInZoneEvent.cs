@@ -1,12 +1,9 @@
-﻿using UnityEngine;
-using AWO.WEE.Events;
-using AWO.Utils;
-using GTFO.API.Utilities;
-using System.Collections;
-using LevelGeneration;
-
+﻿using AWO.WEE.Events;
 using Enemies;
 using GameData;
+using LevelGeneration;
+using System.Collections;
+using UnityEngine;
 
 namespace AWO.Modules.WEE.Events.Enemy;
 internal class SpawnScoutInZoneEvent : BaseEvent
@@ -29,7 +26,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
             }
         }
 
-        CoroutineDispatcher.StartInLevelCoroutine(DoSpawn(e, zone));
+        CoroutineManager.StartCoroutine(DoSpawn(e, zone).WrapToIl2Cpp());
     }
 
     static IEnumerator DoSpawn(WEE_EventData e, LG_Zone zone)

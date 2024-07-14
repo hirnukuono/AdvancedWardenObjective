@@ -37,6 +37,7 @@ public static class LG_Objects
         _WeakLockList.Clear();
         _HSUActivatorList.Clear();
         EntryPoint.AWOCommandList.Clear();
+        EntryPoint.Portals.Clear();
     }
 
     public static void AddTerminal(LG_ComputerTerminal terminal) => AddToList(in _TerminalList, terminal);

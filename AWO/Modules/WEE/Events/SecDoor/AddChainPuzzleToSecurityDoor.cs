@@ -43,7 +43,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
         state.status = eDoorStatus.Closed_LockedWithChainedPuzzle;
 
         sync.m_stateReplicator.State = state;
-        LogInfo($"door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added chainpuzzle {e.ChainPuzzle}");
+        LogInfo($"Door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added chainpuzzle {e.ChainPuzzle}");
 
         if (locks != null)
         {

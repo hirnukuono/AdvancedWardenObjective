@@ -33,7 +33,7 @@ internal sealed class UnhideTerminalCommand : BaseEvent
         {
             term.TrySyncSetCommandShow(tempcommand);
             // if (SNet.IsMaster) if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type = 0, WardenIntel = e.WardenIntel });
-            UnityEngine.Debug.Log($"AdvancedWardenObjective - command {tempcommand} should be visible now");
+            LogDebug($"Command {tempcommand} should be visible now");
         }
     }
 }

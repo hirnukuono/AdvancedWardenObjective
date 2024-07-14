@@ -1,5 +1,4 @@
 ﻿using AWO.Modules.WEE;
-using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 
@@ -13,7 +12,7 @@ internal sealed class CountdownEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)));
+        CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)).WrapToIl2Cpp());
     }
 
     private static float GetDuration(WEE_EventData e)
@@ -71,8 +70,8 @@ internal sealed class CountdownEvent : BaseEvent
         }
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
-        foreach (var eventData in cd.EventsOnDone)
-            if (IsMaster) 
+        if (IsMaster)
+            foreach (var eventData in cd.EventsOnDone)
                 WorldEventManager.ExecuteEvent(eventData);
     }
 }

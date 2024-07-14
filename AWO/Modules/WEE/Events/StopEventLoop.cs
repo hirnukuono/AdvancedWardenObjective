@@ -12,12 +12,12 @@ internal sealed class StopEventLoop : BaseEvent
         {
             if (e.Count == -1)
             {
-                Logger.Debug("StopEventLoop - Stopping all EventLoops...");
+                LogDebug("Stopping all EventLoops...");
                 EntryPoint.ActiveEventLoops.Clear();
             }
             else
             {
-                Logger.Debug($"StopEventLoop - Stopping EventLoop {e.Count}...");
+                LogDebug($"Stopping EventLoop {e.Count}...");
                 EntryPoint.ActiveEventLoops.Remove(e.Count);
             }
         }

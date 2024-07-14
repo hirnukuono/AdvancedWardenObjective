@@ -3,8 +3,7 @@ using ChainedPuzzles;
 using GameData;
 using LevelGeneration;
 using Localization;
-using SNetwork;
-using System.Security.Policy;
+using Il2CppGeneric = Il2CppSystem.Collections.Generic;
 
 namespace AWO.WEE.Events.Terminal;
 
@@ -27,10 +26,10 @@ internal sealed class AddTerminalCommand : BaseEvent
             return;
         }
 
-        Il2CppSystem.Collections.Generic.List<WardenObjectiveEventData> eventlist = new();
+        Il2CppGeneric.List<WardenObjectiveEventData> eventlist = new();
         foreach (var asd in e.AddTerminalCommand.CommandEvents) eventlist.Add(asd);
 
-        Il2CppSystem.Collections.Generic.List<TerminalOutput> outputlist = new();
+        Il2CppGeneric.List<TerminalOutput> outputlist = new();
         foreach (var asd in e.AddTerminalCommand.PostCommandOutputs) outputlist.Add(asd);
 
         LocalizedText desc = new() { UntranslatedText = e.AddTerminalCommand.CommandDesc.ToString() };
@@ -39,6 +38,7 @@ internal sealed class AddTerminalCommand : BaseEvent
         term.m_command.m_commandsPerString.Add(e.AddTerminalCommand.Command.ToLower(), (TERM_Command)num);
         term.m_command.m_commandHelpStrings.Add((TERM_Command)num, desc);
         term.m_command.m_commandEventMap.Add((TERM_Command)num, eventlist);
+
         for (int j = 0; j < eventlist.Count; j++)
         {
             WardenObjectiveEventData wardenObjectiveEventData = eventlist[j];
@@ -52,9 +52,9 @@ internal sealed class AddTerminalCommand : BaseEvent
                 }
             }
         }
+
         term.m_command.m_commandPostOutputMap.Add((TERM_Command)num, outputlist);
         term.TrySyncSetCommandShow((TERM_Command)num);
         term.TrySyncSetCommandRule((TERM_Command)num, e.AddTerminalCommand.SpecialCommandRule);
-        if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type = 0, WardenIntel = e.WardenIntel });
     }
 }

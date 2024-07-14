@@ -13,7 +13,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {
-            Logger.Error("StartEventLoop - EventLoop LoopDelay must be > 1.0");
+            LogError("EventLoop LoopDelay must be > 1.0");
             return;
         }
 
@@ -21,18 +21,18 @@ internal sealed class StartEventLoop : BaseEvent
         {
             if (EntryPoint.ActiveEventLoops.Contains(e.StartEventLoop.LoopIndex))
             {
-                Logger.Error($"StartEventLoop - EventLoop {e.StartEventLoop.LoopIndex} is already active...");
+                LogError($"EventLoop {e.StartEventLoop.LoopIndex} is already active...");
                 return;
             }
 
             EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
-            Logger.Debug($"StartEventLoop - Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
+            LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
             CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
             LevelAPI.OnLevelCleanup += OnLevelCleanup;
         }
     }
 
-    private static void OnLevelCleanup()
+    private void OnLevelCleanup()
     {
         Logger.Debug("StartEventLoop - Cleaning up active EventLoops...");
         EntryPoint.ActiveEventLoops.Clear();
@@ -70,8 +70,7 @@ internal sealed class StartEventLoop : BaseEvent
             
             Logger.Debug($"StartEventLoop - EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
-                if (IsMaster)
-                    WorldEventManager.ExecuteEvent(eventData);
+                WorldEventManager.ExecuteEvent(eventData);
 
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;

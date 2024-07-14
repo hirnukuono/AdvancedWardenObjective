@@ -1,6 +1,5 @@
 ﻿using AK;
 using AWO.Modules.WEE;
-using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ internal sealed class CountupEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
-        CoroutineDispatcher.StartCoroutine(DoCountup(e.Countup, GetDuration(e)));
+        CoroutineManager.StartCoroutine(DoCountup(e.Countup, GetDuration(e)).WrapToIl2Cpp());
     }
 
     private static float GetDuration(WEE_EventData e)
@@ -41,6 +40,7 @@ internal sealed class CountupEvent : BaseEvent
         CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
         GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText.ToString();
+        yield return new WaitForSeconds(0.25f);
 
         while (count <= duration)
         {
@@ -61,11 +61,11 @@ internal sealed class CountupEvent : BaseEvent
             yield return null;
         }
 
-        CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
+        CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject, 0.25f);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
 
-        foreach (var eventData in cu.EventsOnDone)
-            if (IsMaster)
+        if (IsMaster)
+            foreach (var eventData in cu.EventsOnDone)
                 WorldEventManager.ExecuteEvent(eventData);
     }
 

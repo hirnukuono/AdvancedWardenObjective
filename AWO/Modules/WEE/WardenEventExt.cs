@@ -5,13 +5,9 @@ using AWO.WEE.Replicators;
 using GameData;
 using Il2CppInterop.Runtime.Injection;
 using Player;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using InjectLib.JsonNETInjection;
-using AWO.CustomFields;
 
 namespace AWO.Modules.WEE;
 
@@ -43,6 +39,7 @@ public static class WardenEventExt
     {
         ClassInjector.RegisterTypeInIl2Cpp<ScanPositionReplicator>();
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
+        //ClassInjector.RegisterTypeInIl2Cpp<MultiProgressionEvent.LocalToLayer>();
 
         JsonInjector.SetConverter(new EventTypeConverter());
         JsonInjector.AddHandler(new EventDataHandler());

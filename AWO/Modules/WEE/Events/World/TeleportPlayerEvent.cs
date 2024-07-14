@@ -4,6 +4,7 @@ using LevelGeneration;
 using Player;
 using System.Collections;
 using UnityEngine;
+using Il2CppPlayerList = Il2CppSystem.Collections.Generic.List<Player.PlayerAgent>;
 
 namespace AWO.Modules.WEE.Events.World;
 
@@ -51,7 +52,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             if (!activeSlotIndices.Contains(player.PlayerSlotIndex))
                 continue; // Player not in PlayerFilter, continue
             if (!slotPlayerData.TryGetValue(player.PlayerSlotIndex, out var playerData))
-                continue; // Player has no TPData, continue
+                continue;
 
             if (e.TeleportPlayer.FlashTeleport)
             {
@@ -65,7 +66,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
     }
 
-    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_EventData e, Il2CppSystem.Collections.Generic.List<PlayerAgent> lobby)
+    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_EventData e, Il2CppPlayerList lobby)
     {
         var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
         var warpables = Dimension.WarpableObjects;
@@ -119,10 +120,14 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     private static void Teleport(WEE_EventData e, PlayerAgent player, TPData playerData)
     {
-        if (e.TeleportPlayer.PlayWarpAnimation || player.Owner.IsBot)
-            player.TryWarpTo(e.DimensionIndex, playerData.Position, playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : default);
+        Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : default;
+
+        if (player.Owner.IsBot)
+            player.TryWarpTo(e.DimensionIndex, playerData.Position, Vector3.forward);
+        else if (e.TeleportPlayer.PlayWarpAnimation)
+            player.Sync.SendSyncWarp(e.DimensionIndex, playerData.Position, lookDirV3, PlayerAgent.WarpOptions.All);
         else
-            player.TeleportTo(playerData.Position);
+            player.Sync.SendSyncWarp(e.DimensionIndex, playerData.Position, lookDirV3, PlayerAgent.WarpOptions.PlaySounds);
 
         foreach (var item in playerData.ItemsToWarp)
         {

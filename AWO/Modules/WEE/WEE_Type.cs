@@ -46,8 +46,9 @@ public enum WEE_Type
     ForceCompleteChainPuzzle = WEE_EnumInjector.ExtendedIndex + 10009,
     SpawnNavMarker = WEE_EnumInjector.ExtendedIndex + 10010,
     ShakeScreen = WEE_EnumInjector.ExtendedIndex + 10011,
-    ModifyPortalMachine = WEE_EnumInjector.ExtendedIndex + 10012,
+    StartPortalMachine = WEE_EnumInjector.ExtendedIndex + 10012,
     SetSuccessScreen = WEE_EnumInjector.ExtendedIndex + 10013,
     PlaySubtitles = WEE_EnumInjector.ExtendedIndex + 10014,
-    MultiProgression = WEE_EnumInjector.ExtendedIndex + 10015
+    MultiProgression = WEE_EnumInjector.ExtendedIndex + 10015,
+    PlayWaveRoarSound = WEE_EnumInjector.ExtendedIndex + 10016
 }

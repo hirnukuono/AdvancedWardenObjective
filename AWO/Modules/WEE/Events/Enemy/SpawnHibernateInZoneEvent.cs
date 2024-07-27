@@ -59,7 +59,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 pos = spawnNode.GetRandomPositionInside();
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (Vector3.Distance(player.Position, pos) < 2)
+                    if (Vector3.Distance(player.Position, pos) < 3.5f)
                     {
                         flag2 = true;
                         //Debug.Log("AdvancedWardenObjective - spawn position rerolling due to position conflict");

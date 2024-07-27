@@ -69,7 +69,7 @@ internal sealed class CountdownEvent : BaseEvent
             yield return null;
         }
 
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
+        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, true);
         if (IsMaster)
             foreach (var eventData in cd.EventsOnDone)
                 WorldEventManager.ExecuteEvent(eventData);

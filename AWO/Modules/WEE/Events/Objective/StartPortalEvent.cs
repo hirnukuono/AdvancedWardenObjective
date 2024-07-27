@@ -5,9 +5,9 @@ using Player;
 
 namespace AWO.Modules.WEE.Events.Objective;
 
-internal sealed class ModifyPortalEvent : BaseEvent
+internal sealed class StartPortalEvent : BaseEvent
 {
-    public override WEE_Type EventType => WEE_Type.ModifyPortalMachine;
+    public override WEE_Type EventType => WEE_Type.StartPortalMachine;
 
     protected override void TriggerMaster(WEE_EventData e)
     {

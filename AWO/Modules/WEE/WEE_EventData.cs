@@ -69,9 +69,10 @@ public sealed class WEE_EventData
     public WEE_AdjustTimer AdjustTimer { get; set; } = new();
     public WEE_CountupData Countup { get; set; } = new();
     public WEE_ShakeScreen CameraShake { get; set; } = new();
-    public WEE_ModifyPortalMachine Portal { get; set; } = new();
+    public WEE_StartPortalMachine Portal { get; set; } = new();
     public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
     public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
+    public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -356,7 +357,7 @@ public sealed class WEE_ShakeScreen
     public bool Directional { get; set; } = true;
 }
 
-public sealed class WEE_ModifyPortalMachine
+public sealed class WEE_StartPortalMachine
 {
     public eDimensionIndex TargetDimension { get; set; } = eDimensionIndex.Dimension_1;
     public eLocalZoneIndex TargetZone { get; set; } = eLocalZoneIndex.Zone_0;
@@ -371,5 +372,32 @@ public sealed class WEE_SetSuccessScreen
     {
         SetSuccessScreen,
         FlashFakeScreen
+    }
+}
+
+public sealed class WEE_PlayWaveDistantRoar
+{
+    public WaveRoarSound RoarSound { get; set; }
+    public WaveRoarSize RoarSize { get; set; }
+    public bool IsOutside {  get; set; }
+    public enum WaveRoarSound : byte
+    {
+        Striker,
+        Shooter,
+        Birther,
+        Shadow,
+        Tank,
+        Flyer,
+        Immortal,
+        Bullrush,
+        Pouncer,
+        Striker_Berserk,
+        Shooter_Spread
+    }
+    public enum WaveRoarSize : byte
+    {
+        Small,
+        Medium,
+        Big
     }
 }

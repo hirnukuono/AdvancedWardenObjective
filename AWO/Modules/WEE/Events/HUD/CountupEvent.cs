@@ -61,7 +61,7 @@ internal sealed class CountupEvent : BaseEvent
             yield return null;
         }
 
-        CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject, 0.25f);
+        CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
 
         if (IsMaster)

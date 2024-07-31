@@ -27,13 +27,13 @@ public enum WEE_Type
     MoveExtractionWorldPosition, 
     SetBlackoutEnabled,
 
-    // Hirnu AWO Events:
+    // Hirnu AWO EventSyncState:
     AddTerminalCommand,
     HideTerminalCommand,
     UnhideTerminalCommand,
     AddChainPuzzleToSecurityDoor,
 
-    // Amor AWO Events:
+    // Amor AWO EventSyncState:
     NestedEvent = WEE_EnumInjector.ExtendedIndex + 10000,
     StartEventLoop = WEE_EnumInjector.ExtendedIndex + 10001,
     StopEventLoop = WEE_EnumInjector.ExtendedIndex + 10002,

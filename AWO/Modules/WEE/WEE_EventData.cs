@@ -30,7 +30,6 @@ public sealed class WEE_EventData
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
     public float Duration { get; set; } = 0.0f;
-    public bool ClearDimension { get; set; } = false;
     public LocaleText WardenIntel { get; set; } = LocaleText.Empty;
     public uint SoundID { get; set; } = 0u;
     public LocaleText SoundSubtitle { get; set; } = LocaleText.Empty;
@@ -368,6 +367,7 @@ public sealed class WEE_SetSuccessScreen
     public ScreenType Type { get; set; } = ScreenType.SetSuccessScreen;
     public WinScreen CustomSuccessScreen { get; set; } = WinScreen.Empty;
     public eCM_MenuPage FakeEndScreen { get; set; } = eCM_MenuPage.CMP_EXPEDITION_SUCCESS;
+    public float Duration { get; set; } = 0.0f;
     public enum ScreenType : byte
     {
         SetSuccessScreen,

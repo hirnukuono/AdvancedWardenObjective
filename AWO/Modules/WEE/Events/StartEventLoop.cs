@@ -9,7 +9,7 @@ internal sealed class StartEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartEventLoop;
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {

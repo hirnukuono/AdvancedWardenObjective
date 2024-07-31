@@ -6,7 +6,7 @@ internal sealed class StopEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StopEventLoop;
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
         lock (EntryPoint.ActiveEventLoops)
         {

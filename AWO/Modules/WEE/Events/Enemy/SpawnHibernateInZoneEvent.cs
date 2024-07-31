@@ -34,48 +34,65 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 if (!IsValidAreaIndex(sh.AreaIndex, zone)) return;
             }
 
-            CoroutineManager.StartCoroutine(DoSpawn(sh, zone).WrapToIl2Cpp());
+            CoroutineManager.StartCoroutine(DoSpawn(e, zone).WrapToIl2Cpp());
         }
     }
 
-    static IEnumerator DoSpawn(WEE_SpawnHibernateData e, LG_Zone zone)
+    static IEnumerator DoSpawn(WEE_EventData e, LG_Zone zone)
     {
+        var sh = e.SpawnHibernates;
         AgentMode mode = AgentMode.Hibernate;
-        float SpawnInterval = TimeToCompleteSpawn / e.Count;
+        float spawnInterval = TimeToCompleteSpawn / sh.Count;
 
         var rand = new System.Random();
         var areas = zone.m_areas;
 
-        for (int SpawnCount = 0; SpawnCount < e.Count; SpawnCount++)
+        for (int spawnCount = 0; spawnCount < sh.Count; spawnCount++)
         {
-            AIG_CourseNode spawnNode = e.AreaIndex != -1 ? areas[e.AreaIndex].m_courseNode : areas[rand.Next(0, areas.Count)].m_courseNode;
-            // scout:
-            //Quaternion rotation = Quaternion.LookRotation(new Vector3(randomVector.x, 0.0f, randomVector.y), Vector3.up);
-            bool flag1 = false;
-            Vector3 pos = new(0, 0, 0);
-            while (!flag1)
+            AIG_CourseNode spawnNode = sh.AreaIndex != -1 ? areas[sh.AreaIndex].m_courseNode : areas[rand.Next(0, areas.Count)].m_courseNode;
+            Vector3 pos;
+            int attempts = 0;
+            bool isValidPos;
+
+            do
             {
-                bool flag2 = false;
+                isValidPos = true;
                 pos = spawnNode.GetRandomPositionInside();
+
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
                     if (Vector3.Distance(player.Position, pos) < 3.5f)
                     {
-                        flag2 = true;
-                        //Debug.Log("AdvancedWardenObjective - spawn position rerolling due to position conflict");
+                        isValidPos = false;
+                        //Logger.Debug("SpawnHibernates - spawn pos rerolling due to pos conflict");
+                        break;
                     }
                 }
-                if (!flag2) flag1 = true;
-            }
+
+                if (isValidPos)
+                {
+                    foreach (var enemy in spawnNode.m_enemiesInNode)
+                    {
+                        if (Vector3.Distance(enemy.Position, pos) < 2.3f)
+                        {
+                            isValidPos = false;
+                            //Logger.Debug("SpawnHibernates - spawn pos rerolling due to pos conflict");
+                            break;
+                        }
+                    }
+                }
+            } while (!isValidPos && attempts++ < 5);
+
+            if (!isValidPos && !e.Enabled)
+                continue;
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-            EnemyAllocator.Current.SpawnEnemy(e.EnemyID, spawnNode, mode,
-                pos/* TODO: improve position random - enemies will spawn at the same position by low chances */,
-                rotation);
+            EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);
 
-            yield return new WaitForSeconds(SpawnInterval);
+            yield return new WaitForSeconds(spawnInterval);
         }
     }
+
 
     private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
     {

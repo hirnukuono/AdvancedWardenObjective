@@ -42,12 +42,22 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         FocusStateManager.MapToggleAllowed = false;
         FocusStateManager.MenuToggleAllowed = false;
 
-        yield return new WaitForSeconds(e.Duration);
+        yield return new WaitForSeconds(GetDuration(e));
 
         Logger.Debug("SetSuccessScreen - Disabling fake end screen... Enabled map and menu toggle");
         FocusStateManager.ExitMenu();
         FocusStateManager.ChangeState(eFocusState.FPS, force: true);
         FocusStateManager.MapToggleAllowed = true;
         FocusStateManager.MenuToggleAllowed = true;
+    }
+
+    private static float GetDuration(WEE_EventData e)
+    {
+        if (e.SuccessScreen.Duration != 0.0f)
+            return e.SuccessScreen.Duration;
+        else if (e.Duration != 0.0f)
+            return e.Duration;
+
+        return e.SuccessScreen.Duration;
     }
 }

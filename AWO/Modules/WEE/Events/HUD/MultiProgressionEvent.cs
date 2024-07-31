@@ -15,7 +15,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        // Credits to McBreezy
+        // McBased
         CoroutineManager.StartCoroutine(ApplyProgression(e).WrapToIl2Cpp());
     }
 

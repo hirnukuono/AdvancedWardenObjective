@@ -64,9 +64,8 @@ internal sealed class CountupEvent : BaseEvent
         CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
 
-        if (IsMaster)
-            foreach (var eventData in cu.EventsOnDone)
-                WorldEventManager.ExecuteEvent(eventData);
+        foreach (var eventData in cu.EventsOnDone)
+            WorldEventManager.ExecuteEvent(eventData);
     }
 
     private static string[] ParseCustomText(string custom, float d)

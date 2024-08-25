@@ -137,11 +137,11 @@ public sealed class WEE_CountdownData
 public sealed class WEE_CleanupEnemiesData
 {
     public CleanUpType Type { get; set; } = CleanUpType.Despawn;
+    public int AreaIndex { get; set; } = -1;
     public bool IncludeHibernate { get; set; } = true;
     public bool IncludeAggressive { get; set; } = true;
     public bool IncludeScout { get; set; } = true;
     public uint[] ExcludeEnemyID { get; set; } = Array.Empty<uint>();
-
     public uint[] IncludeOnlyID { get; set; } = Array.Empty<uint>();
 
     public void DoClear(AIG_CourseNode node)

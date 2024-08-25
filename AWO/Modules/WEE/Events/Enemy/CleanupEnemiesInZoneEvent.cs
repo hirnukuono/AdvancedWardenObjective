@@ -1,4 +1,5 @@
 ﻿using AWO.Modules.WEE;
+using LevelGeneration;
 
 namespace AWO.WEE.Events.Enemy;
 
@@ -21,9 +22,31 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
             return;
         }
 
-        foreach (var node in zone.m_courseNodes)
+        if (data.AreaIndex != -1)
         {
-            data.DoClear(node);
+            if (!IsValidAreaIndex(data.AreaIndex, zone))
+                return;
+
+            data.DoClear(zone.m_areas[data.AreaIndex].m_courseNode);
         }
+        else
+        {
+            foreach (var node in zone.m_courseNodes)
+            {
+                data.DoClear(node);
+            }
+        }
+    }
+
+    private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
+    {
+        var areas = zone.m_areas;
+        if (areaIndex < 0 || areaIndex >= areas.Count)
+        {
+            Logger.Error($"Invalid area index {areaIndex}");
+            return false;
+        }
+
+        return true;
     }
 }

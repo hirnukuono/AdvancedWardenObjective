@@ -17,18 +17,18 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
 
         if (!TryGetZoneEntranceSecDoor(zone, out var door))
         {
-            LogError("Cannot find Security Door!");
+            LogError("Cannot find security door!");
             return;
         }
 
         if (door.m_locks.ChainedPuzzleToSolve != null)
         {
             door.m_sync.AttemptDoorInteraction(eDoorInteractionType.ActivateChainedPuzzle, 0.0f, 0.0f, default, null);
-            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} Alarm Triggered!");
+            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} alarm triggered!");
         }
         else
         {
-            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} Does not have chainedpuzzle to activate");
+            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} does not have any ChainedPuzzles to activate");
         }
     }
 }

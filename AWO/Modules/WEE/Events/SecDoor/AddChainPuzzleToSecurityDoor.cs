@@ -34,7 +34,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
 
         if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)
         {
-            LogError("Door was already open, won't attach any chainpuzzles to it.");
+            LogError("Door is already open!");
             return;
         }
 
@@ -43,11 +43,11 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
         state.status = eDoorStatus.Closed_LockedWithChainedPuzzle;
 
         sync.m_stateReplicator.State = state;
-        LogInfo($"Door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added chainpuzzle {e.ChainPuzzle}");
+        LogInfo($"Door into zone {zone.m_navInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number)} was added ChainedPuzzle {e.ChainPuzzle}");
 
         if (locks != null)
         {
-            locks.m_intOpenDoor.InteractionMessage = "<color=red>[warning: " + GameData.ChainedPuzzleDataBlock.GetBlock(e.ChainPuzzle).PublicAlarmName + " detected]</color>";
+            locks.m_intOpenDoor.InteractionMessage = "<color=red>[Warning: " + GameData.ChainedPuzzleDataBlock.GetBlock(e.ChainPuzzle).PublicAlarmName + " detected]</color>";
         }
     }
 }

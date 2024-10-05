@@ -22,19 +22,16 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
             return;
         }
 
-        if (data.AreaIndex != -1)
-        {
-            if (!IsValidAreaIndex(data.AreaIndex, zone))
-                return;
-
-            data.DoClear(zone.m_areas[data.AreaIndex].m_courseNode);
-        }
-        else
+        if (data.AreaIndex == -1)
         {
             foreach (var node in zone.m_courseNodes)
             {
                 data.DoClear(node);
             }
+        }
+        else if (IsValidAreaIndex(data.AreaIndex, zone))
+        {
+            data.DoClear(zone.m_areas[data.AreaIndex].m_courseNode);
         }
     }
 
@@ -43,7 +40,7 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
         var areas = zone.m_areas;
         if (areaIndex < 0 || areaIndex >= areas.Count)
         {
-            Logger.Error($"Invalid area index {areaIndex}");
+            Logger.Error($"[CleanupEnemiesInZoneEvent] Invalid area index {areaIndex}");
             return false;
         }
 

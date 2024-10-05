@@ -19,7 +19,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     {
         if (pageResourcePath == string.Empty)
         {
-            Logger.Error("SetSuccessScreen - Invalid CustomSuccessScreen!");
+            Logger.Error("[SetSuccessScreen] Invalid CustomSuccessScreen!");
             return;
         }
 
@@ -27,24 +27,24 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         try
         {
             menuGUI.PageCustomExpeditionSuccess = menuGUI.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, pageResourcePath);
-            Logger.Debug($"SetSuccessScreen - CustomSuccessScreen changed to {pageResourcePath}");
+            Logger.Warn($"[SetSuccessScreen] CustomSuccessScreen changed to {pageResourcePath}");
         }
         catch
         {
-            Logger.Error($"SetSuccessScreen - CustomSuccessScreen asset {pageResourcePath} not found!");
+            Logger.Error($"[SetSuccessScreen] CustomSuccessScreen asset {pageResourcePath} not found!");
         }
     }
     
     static IEnumerator FakeScreen(WEE_EventData e)
     {
-        Logger.Debug("SetSuccessScreen - Enabling fake end screen... Disabled map and menu toggle");
+        Logger.Debug("[SetSuccessScreen] Enabling fake end screen... Disabled map and menu toggle");
         FocusStateManager.EnterMenu(e.SuccessScreen.FakeEndScreen, force: true);
         FocusStateManager.MapToggleAllowed = false;
         FocusStateManager.MenuToggleAllowed = false;
 
         yield return new WaitForSeconds(GetDuration(e));
 
-        Logger.Debug("SetSuccessScreen - Disabling fake end screen... Enabled map and menu toggle");
+        Logger.Debug("[SetSuccessScreen] Disabling fake end screen... Enabled map and menu toggle");
         FocusStateManager.ExitMenu();
         FocusStateManager.ChangeState(eFocusState.FPS, force: true);
         FocusStateManager.MapToggleAllowed = true;

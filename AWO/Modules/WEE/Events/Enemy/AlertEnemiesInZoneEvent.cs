@@ -1,4 +1,5 @@
 ﻿using Agents;
+using AIGraph;
 using AWO.Modules.WEE;
 using LevelGeneration;
 using Player;
@@ -13,54 +14,57 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
     {
         if (!TryGetZone(e, out var zone))
         {
-            LogError("Zone is Missing?");
+            LogError("Zone is missing?");
             return;
         }
 
-        foreach (var node in zone.m_courseNodes)
+        if (e.SpecialNumber == -1)
         {
-            if (node.m_enemiesInNode == null)
-                continue;
-
-            if (e.Enabled)
+            foreach (var node in zone.m_courseNodes)
             {
-                foreach (var door in node.gameObject.GetComponentsInChildren<LG_WeakDoor>())
-                {
-                    door.TriggerOperate(true);
-                    door.m_sync.AttemptDoorInteraction(eDoorInteractionType.Open, 0, 0);
-                }
-            }
-
-            foreach (var enemy in node.m_enemiesInNode)
-            {
-                
-                PlayerAgent minae;
-                PlayerManager.TryGetLocalPlayerAgent(out minae);
-                AgentMode mode = Agents.AgentMode.Agressive;
-                enemy.AI.SetStartMode(mode);
-                enemy.AI.ModeChange();
-                enemy.AI.m_mode = mode;
-                enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
-                
-                /*
-                var mode2 = enemy.AI.Mode;
-                if (mode2 == AgentMode.Hibernate)
-                {
-                    if (enemy.CourseNode.m_playerCoverage.GetNodeDistanceToClosestPlayer_Unblocked() > 2)
-                    {
-                        enemy.AI.m_behaviour.ChangeState(Enemies.EB_States.InCombat);
-                    }
-                    else
-                    {
-                        var delta = (LocalPlayer.Position - enemy.Position);
-                        enemy.Locomotion.HibernateWakeup.ActivateState(delta.normalized, delta.magnitude, 0.0f, false);
-                    }
-                }
-                else if (mode == AgentMode.Scout)
-                {
-                    enemy.Locomotion.ScoutScream.ActivateState(enemy.AI.m_behaviourData.GetTarget(LocalPlayer));
-                }*/
+                DoAlert(node, e.Enabled);
             }
         }
+        else if (IsValidAreaIndex(e.SpecialNumber, zone))
+        {
+            DoAlert(zone.m_areas[e.SpecialNumber].m_courseNode, e.Enabled);
+        }
+    }
+
+    private static void DoAlert(AIG_CourseNode node, bool enabled)
+    {
+        if (node.m_enemiesInNode == null)
+            return;
+
+        if (enabled)
+        {
+            foreach (var door in node.gameObject.GetComponentsInChildren<LG_WeakDoor>())
+            {
+                door.TriggerOperate(true);
+                door.m_sync.AttemptDoorInteraction(eDoorInteractionType.Open, 0, 0);
+            }
+        }
+
+        foreach (var enemy in node.m_enemiesInNode)
+        {
+            PlayerManager.TryGetLocalPlayerAgent(out PlayerAgent minae);
+            AgentMode mode = AgentMode.Agressive;
+            enemy.AI.SetStartMode(mode);
+            enemy.AI.ModeChange();
+            enemy.AI.m_mode = mode;
+            enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
+        }
+    }
+
+    private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
+    {
+        var areas = zone.m_areas;
+        if (areaIndex < 0 || areaIndex >= areas.Count)
+        {
+            Logger.Error($"[AlertEnemiesInZoneEvent] Invalid area index {areaIndex}");
+            return false;
+        }
+
+        return true;
     }
 }

@@ -17,7 +17,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
         if (cp == null || !cp.IsActive || cp.IsSolved)
         {
-            LogError("An active ChainPuzzle was not found");
+            LogError("An active ChainedPuzzle was not found");
             return;
         }
         
@@ -83,7 +83,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             }
             catch
             {
-                Logger.Warn("ForceCompleteChainPuzzle - A CP_Bioscan_Core has no spline, skipping killing sound");
+                Logger.Warn("[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
             }
         }
 

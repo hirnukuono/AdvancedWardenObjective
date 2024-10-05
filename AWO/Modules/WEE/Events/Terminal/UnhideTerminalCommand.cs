@@ -12,7 +12,7 @@ internal sealed class UnhideTerminalCommand : BaseEvent
     {
         if (!TryGetZone(e, out var zone))
         {
-            LogError("Zone is Missing?");
+            LogError("Zone is missing?");
             return;
         }
 

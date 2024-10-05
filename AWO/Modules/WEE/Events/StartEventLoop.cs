@@ -13,7 +13,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {
-            LogError("EventLoop LoopDelay must be > 1.0");
+            LogError("LoopDelay must be > 1.0");
             return;
         }
 
@@ -34,7 +34,7 @@ internal sealed class StartEventLoop : BaseEvent
 
     private void OnLevelCleanup()
     {
-        Logger.Debug("StartEventLoop - Cleaning up active EventLoops...");
+        Logger.Debug("[StartEventLoop] Cleaning up active EventLoops...");
         EntryPoint.ActiveEventLoops.Clear();
     }
 
@@ -63,18 +63,18 @@ internal sealed class StartEventLoop : BaseEvent
                 }
                 if (!EntryPoint.ActiveEventLoops.Contains(index))
                 {
-                    Logger.Debug($"StartEventLoop - EventLoop {index} done");
+                    Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");
                     yield break; // StopEventLoop used, exit
                 }
             }
             
-            Logger.Debug($"StartEventLoop - EventLoop {index} repeating #{repeatNum}");
+            Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
                 WorldEventManager.ExecuteEvent(eventData);
 
             yield return new WaitForSeconds(sel.LoopDelay);
             repeatNum++;
         }
-        Logger.Debug($"StartEventLoop - EventLoop {index} done");
+        Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");
     }
 }

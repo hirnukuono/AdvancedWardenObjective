@@ -13,7 +13,7 @@ public sealed class WEE_EventData
 {
     public WEE_Type Type { get; set; }
 
-    //Vanilla Fields for Serialization
+    // Vanilla Fields for Serialization
     public WorldEventConditionPair Condition { get; set; } = new()
     {
         ConditionIndex = -1,
@@ -23,9 +23,9 @@ public sealed class WEE_EventData
     public bool UseStaticBioscanPoints { get; set; } = false;
     public eWardenObjectiveEventTrigger Trigger { get; set; } = eWardenObjectiveEventTrigger.None;
 
-    //Common Fields
-    public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
+    // Common Fields
     public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
+    public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;    
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
@@ -36,14 +36,15 @@ public sealed class WEE_EventData
     public uint DialogueID { get; set; } = 0u;
     public int Count { get; set; } = 0;
     public bool Enabled { get; set; } = true;
+    public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
 
 
-    //Common Updater
+    // Common Updater
     public WEE_SubObjectiveData SubObjective { get; set; } = new();
     public WEE_UpdateFogData Fog { get; set; } = new();
 
-    //Command Specific
+    // Command Specific
     public WEE_ReactorEventData Reactor { get; set; } = new();
     public WEE_CountdownData Countdown { get; set; } = new();
     public WEE_CleanupEnemiesData CleanupEnemies { get; set; } = new();
@@ -99,9 +100,9 @@ public sealed class WEE_SubObjectiveData
     public LocaleText CustomSubObjectiveHeader { get; set; } = LocaleText.Empty;
     public LocaleText CustomSubObjective { get; set; } = LocaleText.Empty;
 
-    //AMAWO Addon:
+    // AMAWO Addon:
     public uint Index { get; set; } = 0u;
-    //public bool LocalToLayer { get; set; } = false;
+    // public bool LocalToLayer { get; set; } = false;
     public LG_LayerType Layer /*{ get; set; }*/ = LG_LayerType.MainLayer;
     public LocaleText OverrideTag { get; set; } = LocaleText.Empty;
 }
@@ -131,6 +132,7 @@ public sealed class WEE_CountdownData
     public float Duration { get; set; } = 0.0f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public Color TimerColor { get; set; } = Color.red;
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }
 
@@ -146,13 +148,7 @@ public sealed class WEE_CleanupEnemiesData
 
     public void DoClear(AIG_CourseNode node)
     {
-        if (!SNet.IsMaster)
-            return;
-
-        if (node == null)
-            return;
-
-        if (node.m_enemiesInNode == null)
+        if (!SNet.IsMaster || node == null || node.m_enemiesInNode == null)
             return;
 
         List<EnemyAgent> enemylist = new();
@@ -170,26 +166,21 @@ public sealed class WEE_CleanupEnemiesData
                 _ => true
             };
 
-            if (clear)
+            if (!clear || ExcludeEnemyID.Contains(enemy.EnemyDataID))
+                continue;
+            if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID))
+                continue;
+
+            switch (Type)
             {
-                if (ExcludeEnemyID.Contains(enemy.EnemyDataID))
-                {
-                    continue;
-                }
+                case CleanUpType.Despawn:
+                    enemy.m_replicator.Despawn();
+                    break;
 
-                if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID)) continue;
-
-                switch (Type)
-                {
-                    case CleanUpType.Despawn:
-                        enemy.m_replicator.Despawn();
-                        break;
-
-                    case CleanUpType.Kill:
-                        enemy.Damage.IsImortal = false;
-                        enemy.Damage.BulletDamage(enemy.Damage.DamageMax, null, default, default, default);
-                        break;
-                }
+                case CleanUpType.Kill:
+                    enemy.Damage.IsImortal = false;
+                    enemy.Damage.BulletDamage(enemy.Damage.DamageMax, null, default, default, default);
+                    break;
             }
         }
     }
@@ -206,7 +197,7 @@ public sealed class WEE_ZoneLightData
     public ModifierType Type { get; set; } = ModifierType.RevertToOriginal;
     public uint LightDataID { get; set; }
     public float TransitionDuration { get; set; } = 0.5f;
-    public int Seed { get; set; } = 0; //Random on Zero
+    public int Seed { get; set; } = 0; // Random on 0
 
     public enum ModifierType : byte
     {
@@ -217,7 +208,7 @@ public sealed class WEE_ZoneLightData
 
 public sealed class WEE_SpawnHibernateData
 {
-    public int AreaIndex { get; set; } = -1; // -1 denotes 'random'
+    public int AreaIndex { get; set; } = -1; 
     public uint EnemyID { get; set; } = 0;
     public uint Count { get; set; } = 1;
     public Vector3 Position { get; set; } = Vector3.zero;
@@ -226,7 +217,7 @@ public sealed class WEE_SpawnHibernateData
 
 public sealed class WEE_SpawnScoutData
 {
-    public int AreaIndex { get; set; } = -1; // -1 denotes 'random'
+    public int AreaIndex { get; set; } = -1; 
     public eEnemyGroupType GroupType { get; set; }
     public eEnemyRoleDifficulty Difficulty { get; set; }
     public uint Count { get; set; } = 1;
@@ -237,6 +228,7 @@ public enum FilterMode
     Exclude,
     Include,
 }
+
 
 public sealed class WEE_AddTerminalCommand
 {
@@ -307,7 +299,7 @@ public sealed class WEE_TeleportPlayer
 
 public sealed class WEE_InfectPlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3};
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3};
     public float InfectionAmount { get; set; } = 0.0f;
     public bool InfectOverTime { get; set; } = false;
     public bool UseZone { get; set; } = false;
@@ -315,7 +307,7 @@ public sealed class WEE_InfectPlayer
 
 public sealed class WEE_DamagePlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
     public float DamageAmount { get; set; } = 0.0f;
     public bool DamageOverTime { get; set; } = false;
     public bool UseZone { get; set; } = false;
@@ -323,7 +315,7 @@ public sealed class WEE_DamagePlayer
 
 public sealed class WEE_RevivePlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new HashSet<SlotIndex> { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
 }
 
 public sealed class WEE_AdjustTimer
@@ -344,7 +336,14 @@ public sealed class WEE_CountupData
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
+}
+
+public struct EventsOnTimerProgress
+{
+    public float Progress { get; set; }
+    public WardenObjectiveEventData[] Events { get; set; }
 }
 
 public sealed class WEE_ShakeScreen

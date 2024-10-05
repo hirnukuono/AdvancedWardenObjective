@@ -18,7 +18,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
 
         if (!TryGetZoneEntranceSecDoor(zone, out var door))
         {
-            LogError("Cannot find Security Door!");
+            LogError("Cannot find security door!");
             return;
         }
 
@@ -30,8 +30,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
             LocalIndex = e.LocalIndex
         };
 
-        if (IsMaster)
-            WorldEventManager.ExecuteEvent(eventData);
+        WorldEventManager.ExecuteEvent(eventData);
 
         var locks = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
         if (locks != null) 

@@ -17,30 +17,25 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone) || zone == null) return;
+        if (!TryGetZone(e, out var zone) || zone == null) 
+            return;
 
         var sh = e.SpawnHibernates;
-
-        if (sh.Count == 1 && sh.Position != Vector3.zero) // spawn 1 enemies on specific position
+        if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
         {
-            if (!IsValidAreaIndex(sh.AreaIndex, zone)) return;
-
-            EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, sh.Position, Quaternion.Euler(sh.Rotation));
-        }
-        else
-        {
-            if (sh.AreaIndex != -1)
+            if (sh.Count == 1 && sh.Position != Vector3.zero) // spawn 1 enemy at a specific position
             {
-                if (!IsValidAreaIndex(sh.AreaIndex, zone)) return;
+                EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, sh.Position, Quaternion.Euler(sh.Rotation));
             }
-
-            CoroutineManager.StartCoroutine(DoSpawn(e, zone).WrapToIl2Cpp());
+            else
+            {
+                CoroutineManager.StartCoroutine(DoSpawn(sh, zone, e.Enabled).WrapToIl2Cpp());
+            }
         }
     }
 
-    static IEnumerator DoSpawn(WEE_EventData e, LG_Zone zone)
+    static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, bool enabled)
     {
-        var sh = e.SpawnHibernates;
         AgentMode mode = AgentMode.Hibernate;
         float spawnInterval = TimeToCompleteSpawn / sh.Count;
 
@@ -83,7 +78,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 }
             } while (!isValidPos && attempts++ < 5);
 
-            if (!isValidPos && !e.Enabled)
+            if (!isValidPos && !enabled)
                 continue;
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
@@ -93,13 +88,12 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         }
     }
 
-
     private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
     {
         var areas = zone.m_areas;
         if (areaIndex < 0 || areaIndex >= areas.Count)
         {
-            Logger.Error($"Invalid area index {areaIndex}");
+            Logger.Error($"[SpawnHibernateInZoneEvent] Invalid area index {areaIndex}");
             return false;
         }
 

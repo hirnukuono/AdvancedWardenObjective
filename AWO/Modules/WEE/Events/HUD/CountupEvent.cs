@@ -32,13 +32,14 @@ internal sealed class CountupEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
         string[] body = ParseCustomText(cu.CustomText.ToString(), duration);
+        bool hasProgressEvents = cu.EventsOnProgress.Count > 0;
 
         EntryPoint.TimerMods.SpeedModifier = cu.Speed;
         EntryPoint.TimerMods.CountupText = cu.CustomText;
         EntryPoint.TimerMods.TimerColor = cu.TimerColor;
 
         CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
-        GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
+        GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
         GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText.ToString();
         yield return new WaitForSeconds(0.25f);
 
@@ -58,11 +59,26 @@ internal sealed class CountupEvent : BaseEvent
             count += cu.Speed * Time.deltaTime;
             ModifyCountup(ref cu, ref count, duration, ref body);
 
+            if (hasProgressEvents)
+            {
+                float percentage = (float)Math.Round(count / duration, 2);
+                var eventsOnProgress = cu.EventsOnProgress.ToArray();
+                foreach (var progressEvents in eventsOnProgress.Where(x => (float)Math.Round(x.Progress, 2) == percentage).ToArray())
+                {
+                    foreach (var eventData in progressEvents.Events)
+                    {
+                        WorldEventManager.ExecuteEvent(eventData);
+                    }
+                    cu.EventsOnProgress.Remove(progressEvents);   
+                }
+                hasProgressEvents = cu.EventsOnProgress.Count > 0;
+            }
+
             yield return null;
         }
 
         CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
-        GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, isGlobal: true);
+        GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
 
         foreach (var eventData in cu.EventsOnDone)
             WorldEventManager.ExecuteEvent(eventData);

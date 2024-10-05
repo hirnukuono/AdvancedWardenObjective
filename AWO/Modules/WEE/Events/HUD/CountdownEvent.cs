@@ -1,4 +1,5 @@
 ﻿using AWO.Modules.WEE;
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -29,7 +30,8 @@ internal sealed class CountdownEvent : BaseEvent
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
-        var time = 0.0f;
+        float time = 0.0f;
+        bool hasProgressEvents = cd.EventsOnProgress.Count > 0;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
@@ -64,6 +66,21 @@ internal sealed class CountdownEvent : BaseEvent
             {
                 time -= EntryPoint.TimerMods.TimeModifier;
                 EntryPoint.TimerMods.TimeModifier = 0.0f;
+            }
+
+            if (hasProgressEvents)
+            {
+                float percentage = (float)Math.Round(time / duration, 2);
+                var eventsOnProgress = cd.EventsOnProgress.ToArray();
+                foreach (var progressEvents in eventsOnProgress.Where(x => (float)Math.Round(x.Progress, 2) == percentage).ToArray())
+                {
+                    foreach (var eventData in progressEvents.Events)
+                    {
+                        WorldEventManager.ExecuteEvent(eventData);
+                    }
+                    cd.EventsOnProgress.Remove(progressEvents);
+                }
+                hasProgressEvents = cd.EventsOnProgress.Count > 0;
             }
 
             yield return null;

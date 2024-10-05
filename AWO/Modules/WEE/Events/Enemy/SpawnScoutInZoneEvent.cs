@@ -14,16 +14,14 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e) 
     {
-        if (!TryGetZone(e, out var zone) || zone == null) return;
+        if (!TryGetZone(e, out var zone) || zone == null) 
+            return;
 
         var ss = e.SpawnScouts;
-        if (ss.AreaIndex != -1)
+        if (ss.AreaIndex != -1 && (ss.AreaIndex < 0 || ss.AreaIndex >= zone.m_areas.Count))
         {
-            if (ss.AreaIndex < 0 || ss.AreaIndex >= zone.m_areas.Count)
-            {
-                Logger.Error($"Invalid AreaIndex {ss.AreaIndex} for ZONE_{zone.Alias}");
-                return;
-            }
+            LogError($"Invalid AreaIndex {ss.AreaIndex} for ZONE_{zone.Alias}");
+            return;
         }
 
         CoroutineManager.StartCoroutine(DoSpawn(e, zone).WrapToIl2Cpp());
@@ -37,10 +35,9 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
         for (int SpawnCount = 0; SpawnCount < ss.Count; SpawnCount++)
         {
-            EnemyGroupRandomizer r = null;
-            if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out r) || r == null)
+            if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r) || r == null)
             {
-                Logger.Error($"Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
+                Logger.Error($"[SpawnScoutInZoneEvent] Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
                 yield break;
             }
 
@@ -49,11 +46,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
             var node = ss.AreaIndex == -1 ? zone.m_areas[RNG.Int0Positive % zone.m_areas.Count].m_courseNode : zone.m_areas[ss.AreaIndex].m_courseNode;
 
-            var scoutSpawnData = EnemyGroup.GetSpawnData(node.GetRandomPositionInside(), node, EnemyGroupType.Hibernating,
-            eEnemyGroupSpawnType.RandomInArea, randomGroup.persistentID, popPoints) with
-            {
-                respawn = false
-            };
+            var scoutSpawnData = EnemyGroup.GetSpawnData(node.GetRandomPositionInside(), node, EnemyGroupType.Hibernating, eEnemyGroupSpawnType.RandomInArea, randomGroup.persistentID, popPoints) with { respawn = false };
 
             EnemyGroup.Spawn(scoutSpawnData);
 

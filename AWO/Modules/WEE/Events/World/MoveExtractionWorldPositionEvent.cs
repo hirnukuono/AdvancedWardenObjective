@@ -1,7 +1,9 @@
 ﻿using AWO.Modules.WEE;
 using AWO.WEE.Replicators;
+using BepInEx;
 using ChainedPuzzles;
 using LevelGeneration;
+using UnityEngine;
 
 namespace AWO.WEE.Events.World;
 
@@ -78,16 +80,30 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        Logger.Error("Position Update");
+        LogDebug("Position updated");
 
         if (EntranceScanReplicator != null)
         {
-            EntranceScanReplicator.TryUpdatePosition(e.Position);
+            EntranceScanReplicator.TryUpdatePosition(GetExtractionPosition(e.Position, e.SpecialText));
         }
 
         if (ExitScanReplicator != null)
         {
-            ExitScanReplicator.TryUpdatePosition(e.Position);
+            ExitScanReplicator.TryUpdatePosition(GetExtractionPosition(e.Position, e.SpecialText));
         }
+    }
+
+    private static Vector3 GetExtractionPosition(Vector3 pos, string weObjectFilter)
+    {
+        if (pos != Vector3.zero) return pos;
+
+        if (weObjectFilter.IsNullOrWhiteSpace()) return Vector3.zero;
+
+        foreach (var weObject in WorldEventManager.Current.m_worldEventObjects)
+            if (weObject.gameObject.name == weObjectFilter)
+                return weObject.gameObject.transform.position;
+
+        Logger.Error($"[MoveExtractionWorldPositionEvent] Could not find WorldEventObjectFilter {weObjectFilter}");
+        return Vector3.zero;
     }
 }

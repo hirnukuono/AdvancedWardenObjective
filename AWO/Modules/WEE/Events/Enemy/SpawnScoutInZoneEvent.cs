@@ -30,8 +30,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
     static IEnumerator DoSpawn(WEE_EventData e, LG_Zone zone)
     {
         var ss = e.SpawnScouts;
-        
-        float SpawnInterval = TimeToCompleteSpawn / ss.Count;
+        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / ss.Count);
 
         for (int SpawnCount = 0; SpawnCount < ss.Count; SpawnCount++)
         {
@@ -50,7 +49,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
             EnemyGroup.Spawn(scoutSpawnData);
 
-            yield return new WaitForSeconds(SpawnInterval);
+            yield return spawnInterval;
         }
     }
 }

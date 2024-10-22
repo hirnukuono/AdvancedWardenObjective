@@ -37,7 +37,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
     static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, bool enabled)
     {
         AgentMode mode = AgentMode.Hibernate;
-        float spawnInterval = TimeToCompleteSpawn / sh.Count;
+        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / sh.Count);
 
         var rand = new System.Random();
         var areas = zone.m_areas;
@@ -84,7 +84,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
             Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);
 
-            yield return new WaitForSeconds(spawnInterval);
+            yield return spawnInterval;
         }
     }
 

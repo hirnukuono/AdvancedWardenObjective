@@ -40,6 +40,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.IOTStarted;
         float infectionPerSecond = e.InfectPlayer.InfectionAmount / e.Duration;
         float elapsed = 0.0f;
+        WaitForSeconds delay = new(1.0f);
 
         while (elapsed <= e.Duration)
         {
@@ -52,7 +53,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
 
             ApplyInfection(player, infectionPerSecond, e.InfectPlayer.UseZone, id);
             elapsed += Time.deltaTime;
-            yield return new WaitForSeconds(1.0f);
+            yield return delay;
         }
     }
 

@@ -9,6 +9,7 @@ using GTFO.API;
 using HarmonyLib;
 using LevelGeneration;
 using UnityEngine;
+using Random = System.Random;
 
 namespace AWO;
 
@@ -34,7 +35,7 @@ internal class EntryPoint : BasePlugin
         public static float SpeedModifier { get; set; }
         public static LocaleText CountupText { get; set; }
     }
-    
+    public static Random SessionSeed { get; set; } = new();
 
     public unsafe override void Load()
     {

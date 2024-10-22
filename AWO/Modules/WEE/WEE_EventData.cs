@@ -73,6 +73,7 @@ public sealed class WEE_EventData
     public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
     public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
     public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
+    public WEE_CustomHudText CustomHudText { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -197,7 +198,7 @@ public sealed class WEE_ZoneLightData
     public ModifierType Type { get; set; } = ModifierType.RevertToOriginal;
     public uint LightDataID { get; set; }
     public float TransitionDuration { get; set; } = 0.5f;
-    public int Seed { get; set; } = 0; // Random on 0
+    public int Seed { get; set; } = 0; // RandomAny on 0
 
     public enum ModifierType : byte
     {
@@ -260,7 +261,15 @@ public sealed class WEE_UnhideTerminalCommand
 
 public sealed class WEE_NestedEvent
 {
+    public NestedMode Type { get; set; } = NestedMode.ActivateAll;
+    public int MaxRandomEvents { get; set; } = -1;
+    public bool AllowRepeatsInRandom { get; set; } = false;
     public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public enum NestedMode : byte
+    {
+        ActivateAll,
+        RandomAny
+    }
 }
 
 public sealed class WEE_StartEventLoop
@@ -399,4 +408,10 @@ public sealed class WEE_PlayWaveDistantRoar
         Medium,
         Big
     }
+}
+
+public sealed class WEE_CustomHudText
+{
+    public LocaleText Title { get; set; } = LocaleText.Empty;
+    public LocaleText Body { get; set; } = LocaleText.Empty;
 }

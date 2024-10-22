@@ -46,6 +46,7 @@ internal sealed class StartEventLoop : BaseEvent
         bool repeatInf = repeatMax == -1;
         int index = sel.LoopIndex;
         int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        WaitForSeconds delay = new(sel.LoopDelay);
 
         while (repeatNum < repeatMax || repeatInf)
         {
@@ -72,7 +73,7 @@ internal sealed class StartEventLoop : BaseEvent
             foreach (var eventData in sel.EventsToActivate)
                 WorldEventManager.ExecuteEvent(eventData);
 
-            yield return new WaitForSeconds(sel.LoopDelay);
+            yield return delay;
             repeatNum++;
         }
         Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");

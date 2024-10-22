@@ -40,6 +40,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.DOTStarted;
         float damagePerSecond = e.DamagePlayer.DamageAmount / e.Duration;
         float elapsed = 0.0f;
+        WaitForSeconds delay = new(1.0f);
 
         while (elapsed <= e.Duration)
         {
@@ -52,7 +53,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
 
             ApplyDamage(player, damagePerSecond, e.DamagePlayer.UseZone, id);
             elapsed += Time.deltaTime;
-            yield return new WaitForSeconds(1.0f);
+            yield return delay;
         }
     }
 

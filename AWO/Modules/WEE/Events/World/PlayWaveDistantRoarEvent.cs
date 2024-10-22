@@ -1,5 +1,6 @@
 ﻿using AK;
 using AWO.WEE.Events;
+using BepInEx;
 using System.Collections;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         CellSoundPlayer csPlayer = new(Vector3.zero);
-        csPlayer.UpdatePosition(e.Position);
+        csPlayer.UpdatePosition(GetSoundPlayerPosition(e.Position, e.SpecialText));
 
         switch ((byte)e.WaveRoarSound.RoarSound)
         {
@@ -52,13 +53,13 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
 
         switch ((byte)e.WaveRoarSound.RoarSize)
         {
-            case 1:
+            case 0:
                 csPlayer.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, SWITCHES.ROAR_SIZE.SWITCH.SMALL);
                 break;
-            case 2:
+            case 1:
                 csPlayer.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, SWITCHES.ROAR_SIZE.SWITCH.MEDIUM);
                 break;
-            case 3:
+            case 2:
                 csPlayer.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, SWITCHES.ROAR_SIZE.SWITCH.BIG);
                 break;
         }
@@ -68,6 +69,20 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
         CoroutineManager.StartCoroutine(Cleanup(csPlayer).WrapToIl2Cpp());
     }
 
+    private static Vector3 GetSoundPlayerPosition(Vector3 pos, string weObjectFilter)
+    {
+        if (pos != Vector3.zero) return pos;
+
+        if (weObjectFilter.IsNullOrWhiteSpace()) return Vector3.zero;
+
+        foreach (var weObject in WorldEventManager.Current.m_worldEventObjects)
+            if (weObject.gameObject.name == weObjectFilter)
+                return weObject.gameObject.transform.position;
+
+        Logger.Error($"[PlayWaveDistantRoarEvent] Could not find WorldEventObjectFilter {weObjectFilter}");
+        return Vector3.zero;
+    }
+    
     static IEnumerator Cleanup(CellSoundPlayer csPlayer)
     {
         yield return new WaitForSeconds(10f);

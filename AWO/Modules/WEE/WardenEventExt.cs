@@ -50,7 +50,7 @@ public static class WardenEventExt
 
     internal static void HandleEvent(WEE_Type type, WardenObjectiveEventData e, float currentDuration)
     {
-        Logger.Debug($"we got type {type} on WardenEventExt event");
+        Logger.Debug($"We got Type {type} on WardenEventExt event");
 
         var weeData = e.GetWEEData();
         if (weeData != null)

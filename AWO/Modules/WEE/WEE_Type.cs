@@ -51,5 +51,6 @@ public enum WEE_Type
     PlaySubtitles = WEE_EnumInjector.ExtendedIndex + 10014,
     MultiProgression = WEE_EnumInjector.ExtendedIndex + 10015,
     PlayWaveRoarSound = WEE_EnumInjector.ExtendedIndex + 10016,
-    CustomHudText = WEE_EnumInjector.ExtendedIndex + 10017
+    CustomHudText = WEE_EnumInjector.ExtendedIndex + 10017,
+    SpecialHudTimer = WEE_EnumInjector.ExtendedIndex + 10018
 }

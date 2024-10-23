@@ -12,7 +12,6 @@ internal sealed class DamagePlayerEvent : BaseEvent
     protected override void TriggerMaster(WEE_EventData e)
     {
         var activeSlotIndices = new HashSet<int>(e.DamagePlayer.PlayerFilter.Select(filter => (int)filter));
-        EntryPoint.Coroutines.DOTStarted = Time.realtimeSinceStartup;
 
         if (!TryGetZone(e, out var zone))
         {
@@ -37,7 +36,6 @@ internal sealed class DamagePlayerEvent : BaseEvent
     private static IEnumerator DamageOverTime(WEE_EventData e, PlayerAgent player, int id)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float startTime = EntryPoint.Coroutines.DOTStarted;
         float damagePerSecond = e.DamagePlayer.DamageAmount / e.Duration;
         float elapsed = 0.0f;
         WaitForSeconds delay = new(1.0f);
@@ -46,8 +44,6 @@ internal sealed class DamagePlayerEvent : BaseEvent
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
                 yield break; // no longer in level, exit
-            if (startTime < EntryPoint.Coroutines.DOTStarted)
-                yield break; // new DamagePlayer event started, exit
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
                 yield break; // checkpoint was used, exit
 

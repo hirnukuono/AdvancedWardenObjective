@@ -25,8 +25,6 @@ internal class EntryPoint : BasePlugin
     {
         public static float CountdownStarted { get; set; }
         public static float TPFStarted { get; set; }
-        public static float IOTStarted { get; set; }
-        public static float DOTStarted { get; set; }
     }
     public struct TimerMods
     {

@@ -14,8 +14,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e) 
     {
-        if (!TryGetZone(e, out var zone) || zone == null) 
-            return;
+        if (!TryGetZone(e, out var zone) || zone == null) return;
 
         var ss = e.SpawnScouts;
         if (ss.AreaIndex != -1 && (ss.AreaIndex < 0 || ss.AreaIndex >= zone.m_areas.Count))

@@ -28,9 +28,13 @@ internal class SpawnNavMarkerEvent : BaseEvent
         }
 
         if (e.Enabled)
+        {
             marker.OnTrigger(null, true, true);
+        }
         else
+        {
             marker.OnTrigger(null, false, true);
+        }
     }
 
     private static Vector3 GetNavMarkerPosition(Vector3 pos, string weObjectFilter)

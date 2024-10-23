@@ -11,12 +11,9 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
     {
         foreach (var keyvalue in WOManager.Current.m_wardenObjectiveItem)
         {
-            if (keyvalue.Key.Layer != e.Layer)
-                continue;
-
+            if (keyvalue.Key.Layer != e.Layer) continue;
             var reactor = keyvalue.Value.TryCast<LG_WardenObjective_Reactor>();
-            if (reactor == null)
-                continue;
+            if (reactor == null) continue;
 
             var state = reactor.m_stateReplicator.State;
             switch (state.status)

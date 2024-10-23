@@ -17,8 +17,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone) || zone == null) 
-            return;
+        if (!TryGetZone(e, out var zone) || zone == null) return;
 
         var sh = e.SpawnHibernates;
         if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
@@ -78,8 +77,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 }
             } while (!isValidPos && attempts++ < 5);
 
-            if (!isValidPos && !enabled)
-                continue;
+            if (!isValidPos && !enabled) continue;
 
             Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);

@@ -28,7 +28,7 @@ internal sealed class NestedEvent : BaseEvent
         {
             eventList = new();
 
-            for (int i = 0; i < e.NestedEvent.MaxRandomEvents; i++)
+            for (int i = 0; i < e.NestedEvent.MaxRandomEvents && i < e.NestedEvent.EventsToActivate.Length; i++)
             {
                 int randIndex;
 

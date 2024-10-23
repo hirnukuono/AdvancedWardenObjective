@@ -11,7 +11,9 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
         EntryPoint.TimerMods.TimeModifier = GetDuration(e);
 
         if (e.AdjustTimer.Speed != 0.0f)
+        {
             EntryPoint.TimerMods.SpeedModifier = e.AdjustTimer.Speed;
+        }
 
         if (e.AdjustTimer.UpdateText)
         {

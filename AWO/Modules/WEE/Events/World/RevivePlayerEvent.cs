@@ -13,9 +13,7 @@ internal sealed class RevivePlayerEvent : BaseEvent
         var activeSlotIndices = new HashSet<int>(e.RevivePlayer.PlayerFilter.Select(filter => (int)filter));
 
         foreach (PlayerAgent player in PlayerManager.PlayerAgentsInLevel)
-        {
             if (activeSlotIndices.Contains(player.PlayerSlotIndex) && !player.Alive)
                 AgentReplicatedActions.PlayerReviveAction(player, player, player.Position);
-        }
     }
 }

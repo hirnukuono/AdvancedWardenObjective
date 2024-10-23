@@ -1,5 +1,4 @@
 ﻿using AWO.Modules.WEE;
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -31,7 +30,9 @@ internal sealed class CountdownEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float time = 0.0f;
-        bool hasProgressEvents = cd.EventsOnProgress.Count > 0;
+
+        List<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress);
+        bool hasProgressEvents = cachedProgressEvents.Count > 0;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
@@ -44,13 +45,11 @@ internal sealed class CountdownEvent : BaseEvent
             {
                 yield break;
             }
-
             if (startTime < EntryPoint.Coroutines.CountdownStarted)
             {
                 // someone has started a new countdown while we were stuck here, exit
                 yield break;
             }
-
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 // checkpoint has been used
@@ -59,28 +58,28 @@ internal sealed class CountdownEvent : BaseEvent
                 yield break;
             }
 
-            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
-            time += Time.deltaTime;
-            
-            if (EntryPoint.TimerMods.TimeModifier != 0.0f)
-            {
-                time -= EntryPoint.TimerMods.TimeModifier;
-                EntryPoint.TimerMods.TimeModifier = 0.0f;
-            }
-
             if (hasProgressEvents)
             {
-                float percentage = (float)Math.Round(time / duration, 2);
-                var eventsOnProgress = cd.EventsOnProgress.ToArray();
-                foreach (var progressEvents in eventsOnProgress.Where(x => (float)Math.Round(x.Progress, 2) == percentage).ToArray())
+                List<EventsOnTimerProgress> removeQ = new();
+                foreach (var progressEvents in cachedProgressEvents.Where(x => Math.Round(x.Progress, 2) == Math.Round(time / duration, 2)))
                 {
                     foreach (var eventData in progressEvents.Events)
                     {
                         WorldEventManager.ExecuteEvent(eventData);
                     }
-                    cd.EventsOnProgress.Remove(progressEvents);
+                    removeQ.Add(progressEvents);
                 }
-                hasProgressEvents = cd.EventsOnProgress.Count > 0;
+                removeQ.ForEach(y => cachedProgressEvents.Remove(y));
+                hasProgressEvents = cachedProgressEvents.Count > 0;
+            }
+
+            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
+            time += Time.deltaTime;
+
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f)
+            {
+                time -= EntryPoint.TimerMods.TimeModifier;
+                EntryPoint.TimerMods.TimeModifier = 0.0f;
             }
 
             yield return null;
@@ -88,6 +87,8 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, true);
         foreach (var eventData in cd.EventsOnDone)
+        {
             WorldEventManager.ExecuteEvent(eventData);
+        }
     }
 }

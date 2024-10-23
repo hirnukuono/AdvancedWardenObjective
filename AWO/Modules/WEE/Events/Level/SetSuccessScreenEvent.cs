@@ -10,9 +10,13 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         if (e.SuccessScreen.Type == 0)
+        {
             SetScreen(e.SuccessScreen.CustomSuccessScreen.ToString());
+        }
         else
+        {
             CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
+        }
     }
     
     private static void SetScreen(string pageResourcePath)

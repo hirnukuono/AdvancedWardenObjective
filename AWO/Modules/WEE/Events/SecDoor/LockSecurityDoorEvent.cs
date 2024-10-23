@@ -33,7 +33,9 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         WorldEventManager.ExecuteEvent(eventData);
 
         var locks = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
-        if (locks != null) 
+        if (locks != null)
+        {
             locks.m_message = e.SpecialText.ToString();
+        }
     }
 }

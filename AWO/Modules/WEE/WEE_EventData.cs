@@ -19,9 +19,9 @@ public sealed class WEE_EventData
         ConditionIndex = -1,
         IsTrue = false
     };
+    public eWardenObjectiveEventTrigger Trigger { get; set; } = eWardenObjectiveEventTrigger.None;
     public uint ChainPuzzle { get; set; } = 0u;
     public bool UseStaticBioscanPoints { get; set; } = false;
-    public eWardenObjectiveEventTrigger Trigger { get; set; } = eWardenObjectiveEventTrigger.None;
 
     // Common Fields
     public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
@@ -45,11 +45,11 @@ public sealed class WEE_EventData
     public WEE_UpdateFogData Fog { get; set; } = new();
 
     // Command Specific
+    public bool CleanUpEnemiesBehind { get; set; } = true;
     public WEE_ReactorEventData Reactor { get; set; } = new();
     public WEE_CountdownData Countdown { get; set; } = new();
-    public WEE_CleanupEnemiesData CleanupEnemies { get; set; } = new();
     public WEE_ZoneLightData SetZoneLight { get; set; } = new();
-    public bool CleanUpEnemiesBehind { get; set; } = true;
+    public WEE_CleanupEnemiesData CleanupEnemies { get; set; } = new();
     public WEE_SpawnHibernateData SpawnHibernates { get; set; } = new();
     public WEE_SpawnScoutData SpawnScouts { get; set; } = new();
 
@@ -74,6 +74,7 @@ public sealed class WEE_EventData
     public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
     public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
     public WEE_CustomHudText CustomHudText { get; set; } = new();
+    public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
 
     public WardenObjectiveEventData CreateDummyEventData()
     {
@@ -414,4 +415,15 @@ public sealed class WEE_CustomHudText
 {
     public LocaleText Title { get; set; } = LocaleText.Empty;
     public LocaleText Body { get; set; } = LocaleText.Empty;
+}
+
+public sealed class WEE_SpecialHudTimer
+{
+    public LocaleText Message { get; set; } = LocaleText.Empty;
+    public ePUIMessageStyle Style { get; set; } = ePUIMessageStyle.Default;
+    public int Priority { get; set; } = -2;
+    public bool ShowTimeInProgressBar { get; set; } = true;
+    public float Duration { get; set; } = 0.0f;
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
+    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
 }

@@ -13,7 +13,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {
-            LogError("LoopDelay must be > 1.0");
+            LogError("LoopDelay must be > 1.0 seconds");
             return;
         }
 
@@ -71,7 +71,9 @@ internal sealed class StartEventLoop : BaseEvent
             
             Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum}");
             foreach (var eventData in sel.EventsToActivate)
+            {
                 WorldEventManager.ExecuteEvent(eventData);
+            }
 
             yield return delay;
             repeatNum++;

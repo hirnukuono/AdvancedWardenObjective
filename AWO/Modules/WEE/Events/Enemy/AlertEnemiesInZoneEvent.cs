@@ -33,8 +33,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 
     private static void DoAlert(AIG_CourseNode node, bool enabled)
     {
-        if (node.m_enemiesInNode == null)
-            return;
+        if (node.m_enemiesInNode == null) return;
 
         if (enabled)
         {

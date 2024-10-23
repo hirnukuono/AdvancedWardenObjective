@@ -9,6 +9,9 @@ internal sealed class CountupEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countup;
 
+    private const string Tag = "[COUNTUP]";
+    private const string Max = "[CMAX]";
+
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
@@ -32,7 +35,9 @@ internal sealed class CountupEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
         string[] body = ParseCustomText(cu.CustomText.ToString(), duration);
-        bool hasProgressEvents = cu.EventsOnProgress.Count > 0;
+
+        List<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
+        bool hasProgressEvents = cachedProgressEvents.Count > 0;
 
         EntryPoint.TimerMods.SpeedModifier = cu.Speed;
         EntryPoint.TimerMods.CountupText = cu.CustomText;
@@ -46,33 +51,37 @@ internal sealed class CountupEvent : BaseEvent
         while (count <= duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+            {
                 yield break;
+            }
             if (startTime < EntryPoint.Coroutines.CountdownStarted)
+            {
                 yield break; // someone has started a new countup while we were stuck here, exit
+            }
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 GuiManager.PlayerLayer.m_objectiveTimer.gameObject.active = false;
                 yield break; // checkpoint has been used
             }
 
-            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
-            count += cu.Speed * Time.deltaTime;
-            ModifyCountup(ref cu, ref count, duration, ref body);
-
             if (hasProgressEvents)
             {
-                float percentage = (float)Math.Round(count / duration, 2);
-                var eventsOnProgress = cu.EventsOnProgress.ToArray();
-                foreach (var progressEvents in eventsOnProgress.Where(x => (float)Math.Round(x.Progress, 2) == percentage).ToArray())
+                List<EventsOnTimerProgress> removeQ = new();
+                foreach (var progressEvents in cachedProgressEvents.Where(x => Math.Round(x.Progress, 2) == Math.Round(count / duration, 2)))
                 {
                     foreach (var eventData in progressEvents.Events)
                     {
                         WorldEventManager.ExecuteEvent(eventData);
                     }
-                    cu.EventsOnProgress.Remove(progressEvents);   
+                    removeQ.Add(progressEvents);   
                 }
-                hasProgressEvents = cu.EventsOnProgress.Count > 0;
+                removeQ.ForEach(y => cachedProgressEvents.Remove(y));
+                hasProgressEvents = cachedProgressEvents.Count > 0;
             }
+
+            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
+            count += cu.Speed * Time.deltaTime;
+            ModifyCountup(ref cu, ref count, duration, ref body);
 
             yield return null;
         }
@@ -81,21 +90,20 @@ internal sealed class CountupEvent : BaseEvent
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
 
         foreach (var eventData in cu.EventsOnDone)
+        {
             WorldEventManager.ExecuteEvent(eventData);
+        }
     }
 
-    private static string[] ParseCustomText(string custom, float d)
+    private static string[] ParseCustomText(string custom, float duration)
     {
-        string tag = "[COUNTUP]";
-        string max = "[CMAX]";
-
-        if (!custom.Contains(tag))
+        if (!custom.Contains(Tag))
             return new string[] { string.Empty, string.Empty };
 
-        if (custom.Contains(max))
-            custom = custom.Replace(max, d.ToString());
+        if (custom.Contains(Max))
+            custom = custom.Replace(Max, duration.ToString());
 
-        return custom.Split(tag, 2);
+        return custom.Split(Tag, 2);
     }
 
     private static void ModifyCountup(ref WEE_CountupData cu, ref float count, float duration, ref string[] body)
@@ -107,7 +115,9 @@ internal sealed class CountupEvent : BaseEvent
         }
 
         if (EntryPoint.TimerMods.SpeedModifier != cu.Speed) // speed mod
+        {
             cu.Speed = EntryPoint.TimerMods.SpeedModifier;
+        }
 
         if (EntryPoint.TimerMods.CountupText != cu.CustomText) // text mod
         {
@@ -116,6 +126,8 @@ internal sealed class CountupEvent : BaseEvent
         }
 
         if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod
+        {
             cu.TimerColor = EntryPoint.TimerMods.TimerColor;
+        }
     }
 }

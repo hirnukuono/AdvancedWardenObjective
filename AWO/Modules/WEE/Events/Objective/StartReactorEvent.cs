@@ -11,12 +11,9 @@ internal sealed class StartReactorEvent : BaseEvent
     {
         foreach (var keyvalue in WOManager.Current.m_wardenObjectiveItem)
         {
-            if (keyvalue.Key.Layer != e.Layer)
-                continue;
-
+            if (keyvalue.Key.Layer != e.Layer) continue;
             var reactor = keyvalue.Value.TryCast<LG_WardenObjective_Reactor>();
-            if (reactor == null)
-                continue;
+            if (reactor == null) continue;
 
             var state = reactor.m_currentState;
             if (state.status == eReactorStatus.Inactive_Idle)
@@ -31,7 +28,6 @@ internal sealed class StartReactorEvent : BaseEvent
             }
             else
             {
-
                 LogError($"{Name} only works while idle state!");
             }
         }

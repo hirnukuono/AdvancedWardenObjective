@@ -37,8 +37,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
     {
         for (int i = 0; i < cp.NRofPuzzles(); i++)
         {
-            if (i == count && count > 0)
-                yield break;
+            if (i == count && count > 0) yield break;
 
             cp.OnPuzzleDone(i);
 
@@ -54,7 +53,9 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
             var basicCore = cp.m_chainedPuzzleCores[i].TryCast<CP_Bioscan_Core>();
             if (basicCore != null)
+            {
                 CoroutineManager.StartCoroutine(SolveBasicCore(basicCore).WrapToIl2Cpp());
+            }
 
             yield return new WaitForSeconds(RNG.Float01 * 0.35f);
         }
@@ -62,8 +63,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
     static IEnumerator SolveBasicCore(CP_Bioscan_Core basicCore)
     {
-        if (basicCore == null)
-            yield break;
+        if (basicCore == null) yield break;
 
         basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
         basicCore.m_spline.SetVisible(false);
@@ -75,11 +75,11 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
             yield return null;
 
-            basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP, isGlobal: true);
+            basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP, true);
             try
             {
                 var spline = basicCore.m_spline.TryCast<CP_Holopath_Spline>();
-                spline?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, isGlobal: true);
+                spline?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, true);
             }
             catch
             {

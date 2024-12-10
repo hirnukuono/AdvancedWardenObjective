@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using LevelGeneration;
+﻿using LevelGeneration;
 
-namespace AWO.WEE.Events.Objective;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class ForceCompleteReactorEvent : BaseEvent
 {

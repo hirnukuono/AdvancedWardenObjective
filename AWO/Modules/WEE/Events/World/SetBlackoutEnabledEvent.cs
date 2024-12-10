@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using AWO.Sessions;
+﻿using AWO.Sessions;
 
-namespace AWO.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class SetBlackoutEnabledEvent : BaseEvent
 {

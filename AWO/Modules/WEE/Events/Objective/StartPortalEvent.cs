@@ -1,28 +1,28 @@
-﻿using AWO.WEE.Events;
-using GameData;
-using LevelGeneration;
+﻿using GameData;
+using GTFO.API;
 using Player;
 
-namespace AWO.Modules.WEE.Events.Objective;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class StartPortalEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartPortalMachine;
 
+    protected override void OnSetup()
+    {
+        LevelAPI.OnLevelCleanup += OnLevelCleanup;
+    }
+
+    private void OnLevelCleanup()
+    {
+        EntryPoint.Portals.Clear();
+    }
+
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
+        if (!TryGetZone(e, out var zone)) return;
 
-        LG_DimensionPortal portalMachine;
-        try
-        {
-            portalMachine = EntryPoint.Portals[new GlobalZoneIndex(zone.DimensionIndex, zone.Layer.m_type, zone.LocalIndex)];
-        }
-        catch
+        if (!EntryPoint.Portals.TryGetValue(new(zone.DimensionIndex, zone.Layer.m_type, zone.LocalIndex), out var portalMachine))
         {
             LogError("Cannot find Portal!");
             return;
@@ -30,7 +30,7 @@ internal sealed class StartPortalEvent : BaseEvent
 
         portalMachine.m_targetDimension = e.Portal.TargetDimension;
         portalMachine.m_targetZone = e.Portal.TargetZone;
-        portalMachine.m_portalEventData = new WardenObjectiveEventData
+        portalMachine.m_portalEventData = new()
         {
             Type = eWardenObjectiveEventType.DimensionWarpTeam,
             DimensionIndex = portalMachine.m_targetDimension,

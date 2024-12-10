@@ -1,14 +1,13 @@
 ﻿using HarmonyLib;
 using SNetwork;
-using System;
 
-namespace AWO.Networking.Inject;
+namespace AWO.Networking.Patch;
 
 [HarmonyPatch(typeof(SNet_Capture))]
-internal static class Inject_SNet_Capture
+internal static class Patch_SNet_Capture
 {
-    public static event Action<eBufferType> OnBufferCapture;
-    public static event Action<eBufferType> OnBufferRecalled;
+    public static event Action<eBufferType>? OnBufferCapture;
+    public static event Action<eBufferType>? OnBufferRecalled;
 
     [HarmonyPatch(nameof(SNet_Capture.TriggerCapture))]
     [HarmonyPrefix]
@@ -23,10 +22,7 @@ internal static class Inject_SNet_Capture
     [HarmonyWrapSafe]
     static void Post_RecallBuffer(SNet_Capture __instance, eBufferType bufferType)
     {
-        if (__instance.IsRecalling)
-        {
-            return;
-        }
+        if (__instance.IsRecalling) return;
 
         OnBufferRecalled?.Invoke(bufferType);
     }

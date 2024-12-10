@@ -1,10 +1,8 @@
-﻿using AWO.Modules.WEE;
-using BepInEx.Unity.IL2CPP.Hook;
+﻿using BepInEx.Unity.IL2CPP.Hook;
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.Runtime;
-using System;
 
-namespace AWO.WEE.Detours;
+namespace AWO.Modules.WEE.Detours;
 
 internal static class Detour_ExecuteEvent
 {
@@ -18,46 +16,45 @@ internal static class Detour_ExecuteEvent
     public unsafe static void Patch()
     {
         var nested = typeof(WorldEventManager).GetNestedTypes();
-        Type executeEventType = null;
+        Type? executeEventType = null;
         foreach (var nestType in nested)
         {
-            
             var match = nestType?.Name?.Contains(nameof(WorldEventManager.DoExcecuteEvent), StringComparison.InvariantCulture) ?? false;
             if (match)
             {
                 executeEventType = nestType;
-                Logger.Debug($"Found Patch Type: {nestType.Name}");
+                Logger.Debug($"Found Patch Type: {nestType?.Name}");
                 break;
             }
         }
 
         if (executeEventType == null)
         {
-            Logger.Error($"Unable to find Generated IEnumerator!");
+            Logger.Error($"Unable to find generated IEnumerator!");
             return;
         }
 
         var clazz = Il2CppClassPointerStore.GetNativeClassPointer(executeEventType);
         if (clazz == IntPtr.Zero)
         {
-            Logger.Error($"Unable to Get Il2Cpp clazz ptr!");
+            Logger.Error($"Unable to get Il2Cpp Clazz Ptr!");
             return;
         }
 
-        var method = GetIl2CppMethod(clazz, "MoveNext", typeof(bool).FullName);
+        var method = GetIl2CppMethod(clazz, "MoveNext", typeof(bool).FullName!);
         if ((nint)method == 0)
         {
-            Logger.Error($"Unable to Find Method: MoveNext!");
+            Logger.Error($"Unable to find method: MoveNext!");
             return;
         }
         if (ExecuteEventContext.TrySetup(clazz))
         {
             _Detour = INativeDetour.CreateAndApply((nint)method, Detour, out _Original);
-            Logger.Debug("Detour has done Setup!");
+            Logger.Debug("Detour has finished setup!");
         }
         else
         {
-            Logger.Error($"Unable to Setup {nameof(ExecuteEventContext)}!");
+            Logger.Error($"Unable to setup {nameof(ExecuteEventContext)}!");
         }
     }
 
@@ -66,12 +63,19 @@ internal static class Detour_ExecuteEvent
         var context = new ExecuteEventContext(_this);
         var data = context.Data;
         var type = data.Type;
-        Logger.Debug($"we got type {data.Type} on an event");
+        Logger.Debug($"We got Type {(int)type} on a Warden Event");
+
         if (Enum.IsDefined(typeof(WEE_Type), (int)type))
         {
-            var extType = (WEE_Type)type;
-            Logger.Debug($"Found Extra WOE '{extType}' Aborting Original Call!");
-            WardenEventExt.HandleEvent(extType, context.Data, context.CurrentDuration);
+            Logger.Debug($"Found WardenEventExt for '{(WEE_Type)type}', aborting original call!");
+            WardenEventExt.HandleEvent((WEE_Type)type, data, context.CurrentDuration);
+            context.State = -1;
+            return IL2CPP_FALSE;
+        }
+        else if (VanillaEventOvr.HasOverride(type, data))
+        {
+            Logger.Debug($"Found valid VanillaEventOverride for '{type}', aborting original call!");
+            VanillaEventOvr.HandleEvent(type, data, context.CurrentDuration);
             context.State = -1;
             return IL2CPP_FALSE;
         }

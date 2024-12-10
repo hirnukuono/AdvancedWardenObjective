@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using LevelGeneration;
+﻿using LevelGeneration;
 
-namespace AWO.WEE.Events.Objective;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class StartReactorEvent : BaseEvent
 {
@@ -9,10 +8,10 @@ internal sealed class StartReactorEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        foreach (var keyvalue in WOManager.Current.m_wardenObjectiveItem)
+        foreach (var keyValue in WOManager.Current.m_wardenObjectiveItem)
         {
-            if (keyvalue.Key.Layer != e.Layer) continue;
-            var reactor = keyvalue.Value.TryCast<LG_WardenObjective_Reactor>();
+            if (keyValue.Key.Layer != e.Layer) continue;
+            var reactor = keyValue.Value.TryCast<LG_WardenObjective_Reactor>();
             if (reactor == null) continue;
 
             var state = reactor.m_currentState;
@@ -28,7 +27,7 @@ internal sealed class StartReactorEvent : BaseEvent
             }
             else
             {
-                LogError($"{Name} only works while idle state!");
+                LogError($"{Name} only works while in idle state!");
             }
         }
     }

@@ -1,9 +1,8 @@
-﻿using AWO.WEE.Events;
-using Player;
+﻿using Player;
 using System.Collections;
 using UnityEngine;
 
-namespace AWO.Modules.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class InfectPlayerEvent : BaseEvent
 {
@@ -13,15 +12,12 @@ internal sealed class InfectPlayerEvent : BaseEvent
     {
         var activeSlotIndices = new HashSet<int>(e.InfectPlayer.PlayerFilter.Select(filter => (int)filter));
 
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
+        if (!TryGetZone(e, out var zone)) return;
 
-        foreach (PlayerAgent player in PlayerManager.PlayerAgentsInLevel)
+        for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
-            if (!activeSlotIndices.Contains(player.PlayerSlotIndex) || player.Owner.IsBot)
+            PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
+            if (!activeSlotIndices.Contains(i) || player.Owner.IsBot)
                 continue; // Player not in PlayerFilter or is bot, continue
             if (player.CourseNode?.m_zone == null)
                 continue; // Node is null, continue
@@ -38,9 +34,9 @@ internal sealed class InfectPlayerEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float infectionPerSecond = e.InfectPlayer.InfectionAmount / e.Duration;
         float elapsed = 0.0f;
-        WaitForSeconds delay = new(1.0f);
+        WaitForSeconds delay = new(e.InfectPlayer.Interval);
 
-        while (elapsed <= e.Duration)
+        while (elapsed < e.Duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
                 yield break; // no longer in level, exit

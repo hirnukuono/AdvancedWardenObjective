@@ -1,13 +1,13 @@
-﻿using AWO.WEE.JsonInjects;
-using AWO.WEE.Detours;
-using AWO.WEE.Events;
-using AWO.WEE.Replicators;
+﻿using AWO.Modules.WEE.JsonInjects;
+using AWO.Modules.WEE.Detours;
+using AWO.Modules.WEE.Events;
+using AWO.Modules.WEE.Replicators;
 using GameData;
 using Il2CppInterop.Runtime.Injection;
+using InjectLib.JsonNETInjection;
 using Player;
 using System.Collections;
 using UnityEngine;
-using InjectLib.JsonNETInjection;
 
 namespace AWO.Modules.WEE;
 
@@ -23,10 +23,10 @@ public static class WardenEventExt
 
         foreach (var type in eventTypes)
         {
-            var instance = (BaseEvent)Activator.CreateInstance(type);
+            var instance = (BaseEvent)Activator.CreateInstance(type)!;
             if (_EventsToTrigger.TryGetValue(instance.EventType, out var existing))
             {
-                Logger.Error($"Duplicate {nameof(BaseEvent.EventType)} Detected!");
+                Logger.Error($"Duplicate {nameof(BaseEvent.EventType)} detected!");
                 Logger.Error($"With '{existing.Name}' and '{instance.Name}'");
                 continue;
             }
@@ -39,7 +39,6 @@ public static class WardenEventExt
     {
         ClassInjector.RegisterTypeInIl2Cpp<ScanPositionReplicator>();
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
-        //ClassInjector.RegisterTypeInIl2Cpp<MultiProgressionEvent.LocalToLayer>();
 
         JsonInjector.SetConverter(new EventTypeConverter());
         JsonInjector.AddHandler(new EventDataHandler());
@@ -50,16 +49,16 @@ public static class WardenEventExt
 
     internal static void HandleEvent(WEE_Type type, WardenObjectiveEventData e, float currentDuration)
     {
-        Logger.Debug($"We got Type {type} on WardenEventExt event");
+       // Logger.Debug($"We got Type {type} on WardenEventExt event");
 
         var weeData = e.GetWEEData();
         if (weeData != null)
         {
-            CoroutineManager.StartCoroutine(Handle(type, weeData, currentDuration).WrapToIl2Cpp(), null);
+            CoroutineManager.StartCoroutine(Handle(type, weeData, currentDuration).WrapToIl2Cpp());
         }
         else
         {
-            Logger.Error($"WardenEvent Type is Extension ({type}) But it's not registered to dataholder!");
+            Logger.Error($"WardenEvent Type is Extension ({type}), but it's not registered to dataholder!");
         }
     }
 
@@ -77,21 +76,25 @@ public static class WardenEventExt
         }
 
         WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel.ToLocalizedText());
-        if (e.DialogueID > 0u)
+
+        if (e.Type != WEE_Type.ForcePlayPlayerDialogue)
         {
-            PlayerDialogManager.WantToStartDialog(e.DialogueID, -1, false, false);
-        }
-        if (e.SoundID > 0u)
-        {
-            WOManager.Current.m_sound.Post(e.SoundID, true);
-            var line = e.SoundSubtitle.ToString();
-            if (!string.IsNullOrWhiteSpace(line))
+            if (e.DialogueID > 0u)
             {
-                GuiManager.PlayerLayer.ShowMultiLineSubtitle(line);
+                PlayerDialogManager.WantToStartDialog(e.DialogueID, -1, false, false);
+            }
+            if (e.SoundID > 0u)
+            {
+                WOManager.Current.m_sound.Post(e.SoundID, true);
+                string line = e.SoundSubtitle;
+                if (!string.IsNullOrWhiteSpace(line) && e.Type != WEE_Type.PlaySubtitles)
+                {
+                    GuiManager.PlayerLayer.ShowMultiLineSubtitle(line);
+                }
             }
         }
-
-        if (e.SubObjective.DoUpdate)
+        
+        if (e.SubObjective.DoUpdate && e.Type != WEE_Type.MultiProgression)
         {
             WOManager.UpdateSyncCustomSubObjective(e.SubObjective.CustomSubObjectiveHeader.ToLocalizedText(), e.SubObjective.CustomSubObjective.ToLocalizedText());
         }
@@ -109,6 +112,5 @@ public static class WardenEventExt
         {
             Logger.Error($"{type} does not exist in lookup!");
         }
-        yield break;
     }
 }

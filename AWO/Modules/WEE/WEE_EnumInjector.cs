@@ -1,7 +1,5 @@
 ﻿using GameData;
 using Il2CppInterop.Runtime.Injection;
-using System;
-using System.Collections.Generic;
 
 namespace AWO.Modules.WEE;
 

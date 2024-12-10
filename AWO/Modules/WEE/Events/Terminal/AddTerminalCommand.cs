@@ -1,60 +1,52 @@
-﻿using AWO.Modules.WEE;
-using ChainedPuzzles;
+﻿using ChainedPuzzles;
 using GameData;
+using GTFO.API.Extensions;
 using LevelGeneration;
-using Localization;
-using Il2CppGeneric = Il2CppSystem.Collections.Generic;
 
-namespace AWO.WEE.Events.Terminal;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class AddTerminalCommand : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AddTerminalCommand;
+
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Zone is missing?");
-            return;
-        }
+        if (!TryGetZone(e, out var zone)) return;
 
         var term = zone.TerminalsSpawnedInZone[e.AddTerminalCommand.TerminalIndex];
-        int num = 50 + e.AddTerminalCommand.CommandNumber;
-        if (term.m_command.m_commandsPerEnum.ContainsKey((TERM_Command)num))
+        TERM_Command c_num = (TERM_Command)(50 + e.AddTerminalCommand.CommandNumber);
+        if (term.m_command.m_commandsPerEnum.ContainsKey(c_num))
         {
-            LogError("Command with index has already been added to terminal!");
+            LogError($"A command with index {c_num} is already present on terminal!");
             return;
         }
 
-        Il2CppGeneric.List<WardenObjectiveEventData> eventlist = new();
-        foreach (var asd in e.AddTerminalCommand.CommandEvents) eventlist.Add(asd);
+        Il2CppSystem.Collections.Generic.List<WardenObjectiveEventData> eventList = e.AddTerminalCommand.CommandEvents.ToIl2Cpp();
 
-        Il2CppGeneric.List<TerminalOutput> outputlist = new();
-        foreach (var asd in e.AddTerminalCommand.PostCommandOutputs) outputlist.Add(asd);
+        term.m_command.m_commandsPerEnum.Add(c_num, e.AddTerminalCommand.Command.ToLower());
+        term.m_command.m_commandsPerString.Add(e.AddTerminalCommand.Command.ToLower(), c_num);
+        term.m_command.m_commandHelpStrings.Add(c_num, new() { UntranslatedText = e.AddTerminalCommand.CommandDesc });
+        term.m_command.m_commandEventMap.Add(c_num, eventList);
 
-        LocalizedText desc = new() { UntranslatedText = e.AddTerminalCommand.CommandDesc.ToString() };
-
-        term.m_command.m_commandsPerEnum.Add((TERM_Command)num, e.AddTerminalCommand.Command.ToLower());
-        term.m_command.m_commandsPerString.Add(e.AddTerminalCommand.Command.ToLower(), (TERM_Command)num);
-        term.m_command.m_commandHelpStrings.Add((TERM_Command)num, desc);
-        term.m_command.m_commandEventMap.Add((TERM_Command)num, eventlist);
-
-        for (int j = 0; j < eventlist.Count; j++)
+        for (int i = 0; i < eventList.Count; i++)
         {
-            WardenObjectiveEventData wardenObjectiveEventData = eventlist[j];
-            if (wardenObjectiveEventData.ChainPuzzle != 0)
+            WardenObjectiveEventData eventData = eventList[i];
+            if (eventData.ChainPuzzle != 0)
             {
-                ChainedPuzzleDataBlock block = GameDataBlockBase<ChainedPuzzleDataBlock>.GetBlock(wardenObjectiveEventData.ChainPuzzle);
-                if (block != null)
+                var block = GameDataBlockBase<ChainedPuzzleDataBlock>.GetBlock(eventData.ChainPuzzle);
+                if (block == null || !block.internalEnabled)
                 {
-                    ChainedPuzzleInstance chainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, term.SpawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, wardenObjectiveEventData.UseStaticBioscanPoints);
-                    term.SetChainPuzzleForCommand((TERM_Command)num, j, chainPuzzle);
+                    LogError("Failed to find enabled ChainedPuzzleDataBlock!");
+                    return;
                 }
+
+                var chainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, term.SpawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, eventData.UseStaticBioscanPoints);
+                term.SetChainPuzzleForCommand(c_num, i, chainPuzzle);
             }
         }
 
-        term.m_command.m_commandPostOutputMap.Add((TERM_Command)num, outputlist);
-        term.TrySyncSetCommandShow((TERM_Command)num);
-        term.TrySyncSetCommandRule((TERM_Command)num, e.AddTerminalCommand.SpecialCommandRule);
+        term.m_command.m_commandPostOutputMap.Add(c_num, e.AddTerminalCommand.PostCommandOutputs.ToIl2Cpp());
+        term.TrySyncSetCommandShow(c_num);
+        term.TrySyncSetCommandRule(c_num, e.AddTerminalCommand.SpecialCommandRule);
     }
 }

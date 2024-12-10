@@ -1,127 +1,164 @@
-﻿using AWO.WEE.Events;
-using BepInEx;
-using FluffyUnderware.DevTools.Extensions;
+﻿using BepInEx;
+using GTFO.API;
 using LevelGeneration;
 using Player;
-using System.Collections;
-using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace AWO.Modules.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class MultiProgressionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MultiProgression;
+    public readonly static Dictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = new()
+    {
+        { LG_LayerType.MainLayer, new() },
+        { LG_LayerType.SecondaryLayer, new() },
+        { LG_LayerType.ThirdLayer, new() }
+    };
+    private static PUI_GameObjectives ObjHud => GuiManager.PlayerLayer.WardenObjectives;
+
+    public class LocalMPData
+    {
+        public PUI_ProgressionObjective ProgObj { get; private set; }
+        public int Index { get; private set; }
+        public string Header => ProgObj.m_header.text;
+        public string Body => ProgObj.m_text.text;
+        public int Priority { get; private set; }
+        public bool IsHidden { get; set; } = false;
+
+        public LocalMPData(PUI_ProgressionObjective a, int b, int c)
+        {
+            ProgObj = a;
+            Index = b;
+            Priority = c;
+        }
+    }
+
+    protected override void OnSetup()
+    {
+        LevelAPI.OnEnterLevel += (() => WOManager.OnLocalPlayerEnterNewLayerCallback += (Action<PlayerAgent, LG_LayerType>)LocalToLayer);
+        LevelAPI.OnLevelCleanup += OnLevelCleanup;
+    }
+
+    private void LocalToLayer(PlayerAgent player, LG_LayerType layer)
+    {
+        foreach (var localMP in TrackedMPs[layer])
+        {
+            if (localMP.IsHidden)
+            {
+                SetMultiProgression(localMP.Index, localMP.Header, localMP.Body, localMP.Priority);
+                localMP.IsHidden = false;
+            }
+        }
+
+        foreach (var otherLayers in TrackedMPs.Keys.Where(key => key != layer))
+        {
+            foreach (var nonLocalMP in TrackedMPs[otherLayers])
+            {
+                if (!nonLocalMP.IsHidden)
+                {
+                    ObjHud.RemoveProgressionObjective(nonLocalMP.Index);
+                    nonLocalMP.IsHidden = true;
+                }
+            }
+        }
+    }
+
+    private static void OnLevelCleanup()
+    {
+        TrackedMPs.Values.ToList().ForEach(list => list.Clear());
+    }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        // McBased
-        CoroutineManager.StartCoroutine(ApplyProgression(e).WrapToIl2Cpp());
-    }
-
-    static IEnumerator ApplyProgression(WEE_EventData e)
-    {
-        PUI_GameObjectives wo = GuiManager.PlayerLayer.m_wardenObjective;
-
         foreach (var sub in e.MultiProgression)
         {
-            int num = (int)sub.Index + 100;
+            int key = (int)sub.Index + 100;
+            var (header, body) = SetAndStyleSubObjective(sub);
+            bool isInVanillaMap = ObjHud.m_progressionObjectiveMap.ContainsKey(key);
+            bool isInTrackedMap = TrackedMPs.Values.Any(list => list.Any(localMP => localMP.Index == key));
 
-            string body = sub.CustomSubObjective.ToString().IsNullOrWhiteSpace() ? string.Empty : wo.StyleSubObjText(WOManager.ReplaceFragmentsInString(sub.Layer, WOManager.GetCurrentChainIndex(sub.Layer), sub.CustomSubObjective.ToString(), true), PUI_GameObjectives.SubObjectiveStyleType.Normal, 5);
-            string header = FormatHeader(wo, sub, ref body);
-
-            if (!wo.m_progressionObjectiveMap.ContainsKey(num))
+            if (!isInVanillaMap && !isInTrackedMap) // add new MP
             {
-                PUI_ProgressionObjective prog = Object.Instantiate(wo.m_progressionObjectivePrefab, wo.m_progressionObjectivesParent);
-                wo.m_progressionObjectives.Add(prog);
-                wo.m_progressionObjectiveMap[num] = prog;
-                wo.m_progressionObjectivePriorityMap[prog] = 1;
+                LogDebug($"Adding new SubObjective with Index: {sub.Index}, IsLayerIndependent: {sub.IsLayerIndependent}");
+                var prog = SetMultiProgression(key, header, body, sub.Priority);
+
+                if (!sub.IsLayerIndependent)
+                {
+                    TrackedMPs[sub.Layer].Add(new(prog, key, sub.Priority));
+                }
+            }
+            else if (!header.IsNullOrWhiteSpace()) // update MP text
+            {
+                PUI_ProgressionObjective? prog = isInVanillaMap
+                    ? ObjHud.m_progressionObjectiveMap[key]
+                    : TrackedMPs.Values.SelectMany(list => list).FirstOrDefault(localMP => localMP.Index == key)?.ProgObj;
+                if (prog == null)
+                {
+                    LogError("Failed to find a SubObjective to update text for!");
+                    return;
+                }
+                LogDebug($"Updating text for SubObjective with Index: {sub.Index}");
+
                 prog.m_header.text = header;
                 prog.m_text.text = body;
-                //if (sub.LocalToLayer)
-                    //prog.gameObject.AddComponent<LocalToLayer>().Attach(sub.Layer, prog
-                prog.ResizeAccordingToText();
-                CoroutineManager.BlinkIn(prog.gameObject);
-                CoroutineManager.BlinkIn(prog.Header, 0.1f);
-                CoroutineManager.BlinkIn(prog.SubObjective, 0.5f);
-            }
-            else if (!header.IsNullOrWhiteSpace())
-            {
-                PUI_ProgressionObjective prog = wo.m_progressionObjectiveMap[num];
-                prog.m_header.text = header;
-                prog.m_text.text = body;
                 prog.ResizeAccordingToText();
                 CoroutineManager.BlinkIn(prog.Header, 0.1f);
-                CoroutineManager.BlinkIn(prog.SubObjective, 0.5f);
+                CoroutineManager.BlinkIn(prog.SubObjective, 0.3f);
+                CoroutineManager.StartCoroutine(ObjHud.DoUpdateObjectiveLayoutAfterTime(CoroutineManager.BlinkDuration));
             }
-            else
+            else // remove MP
             {
-                wo.RemoveProgressionObjective(num);
+                LogDebug($"Removing SubObjective with Index: {sub.Index}");
+                ObjHud.RemoveProgressionObjective(key);
+                TrackedMPs.Values.ToList().ForEach(list => list.RemoveAll(localMP => localMP.Index == key));
             }
-
-            yield return null;
         }
     }
 
-    private static string FormatHeader(PUI_GameObjectives wo, WEE_SubObjectiveData sub, ref string body)
+    public static PUI_ProgressionObjective SetMultiProgression(int key, string header, string body, int priority)
     {
-        string header = sub.CustomSubObjectiveHeader.ToString();
+        PUI_ProgressionObjective prog = UnityEngine.Object.Instantiate(ObjHud.m_progressionObjectivePrefab, ObjHud.m_progressionObjectivesParent);
 
-        if (header.IsNullOrWhiteSpace())
-        {
-            header = sub.CustomSubObjective.ToString();
-            body = string.Empty;
-        }
+        ObjHud.m_progressionObjectives.Add(prog);
+        ObjHud.m_progressionObjectiveMap[key] = prog;
+        ObjHud.m_progressionObjectivePriorityMap[prog] = priority;
 
-        return wo.StyleMainObjText
+        prog.m_header.text = header;
+        prog.m_text.text = body;
+        prog.ResizeAccordingToText();
+
+        CoroutineManager.BlinkIn(prog.gameObject);
+        CoroutineManager.BlinkIn(prog.Header, 0.1f);
+        CoroutineManager.BlinkIn(prog.SubObjective, 0.5f);
+
+        ObjHud.UpdateObjectivesLayout();
+        CoroutineManager.StartCoroutine(ObjHud.DoUpdateObjectiveLayoutAfterTime(CoroutineManager.BlinkDuration));
+
+        return prog;
+    }
+
+    private static (string, string) SetAndStyleSubObjective(WEE_SubObjectiveData sub)
+    {
+        string header = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? sub.CustomSubObjective : sub.CustomSubObjectiveHeader;
+        string body = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? string.Empty : sub.CustomSubObjective;
+
+        header = StyleText(header, sub.Layer, sub.OverrideTag, true);
+        body = StyleText(body, sub.Layer, string.Empty, false);
+
+        return (header, body);
+    }
+
+    private static string StyleText(string text, LG_LayerType layer, string tag, bool isHeader)
+    {
+        string styledText = WOManager.ReplaceFragmentsInString
         (
-            WOManager.ReplaceFragmentsInString(sub.Layer, WOManager.GetCurrentChainIndex(sub.Layer), header, true),
-            false,
-            sub.OverrideTag
+            layer,
+            WOManager.GetCurrentChainIndex(layer),
+            text
         );
+
+        return isHeader
+            ? ObjHud.StyleMainObjText(styledText, false, tag)
+            : ObjHud.StyleSubObjText(styledText, PUI_GameObjectives.SubObjectiveStyleType.Normal);
     }
-
-    /*public class LocalToLayer : MonoBehaviour
-    {
-        public LG_LayerType Layer;
-        private LG_LayerType previousLayer;
-        public PUI_ProgressionObjective Progression;
-        private bool Initialized;
-        public bool HasVisitedLayer = false;
-
-        public void Attach(LG_LayerType Layer, PUI_ProgressionObjective Progression)
-        {
-            this.Layer = Layer;
-            this.Progression = Progression;
-            Initialized = true;
-            previousLayer = PlayerManager.GetLocalPlayerAgent().CourseNode.LayerType;
-        }
-
-        public void Update()
-        {
-            if (!Initialized) return;
-
-            LG_LayerType currentLayer = PlayerManager.GetLocalPlayerAgent().CourseNode.LayerType;
-
-            if (currentLayer != previousLayer)
-            {
-                if (currentLayer != Layer && HasVisitedLayer)
-                {
-                    CoroutineManager.BlinkOut(Progression.Header, 0.1f);
-                    CoroutineManager.BlinkOut(Progression.SubObjective, 0.5f);
-                }
-                else if (currentLayer == Layer && HasVisitedLayer)
-                {
-                    CoroutineManager.BlinkIn(Progression.Header, 0.1f);
-                    CoroutineManager.BlinkIn(Progression.SubObjective, 0.5f);
-                }
-                else
-                {
-                    HasVisitedLayer = true;
-                }
-
-                previousLayer = currentLayer;
-            }
-        }
-    }*/
 }

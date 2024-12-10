@@ -1,8 +1,7 @@
-﻿using AWO.Modules.WEE;
-using LevelGeneration;
+﻿using LevelGeneration;
 using SNetwork;
 
-namespace AWO.WEE.Events.Level;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class ForceCompleteLevelEvent : BaseEvent
 {

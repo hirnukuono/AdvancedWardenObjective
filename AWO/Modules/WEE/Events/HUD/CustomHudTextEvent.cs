@@ -1,8 +1,7 @@
 ﻿using AK;
-using AWO.Modules.WEE;
 using UnityEngine;
 
-namespace AWO.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class CustomHudTextEvent : BaseEvent
 {
@@ -16,8 +15,8 @@ internal sealed class CustomHudTextEvent : BaseEvent
         if (e.Enabled)
         {    
             CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
-            GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = e.CustomHudText.Title.ToString();
-            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = e.CustomHudText.Body.ToString();
+            GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = e.CustomHudText.Title;
+            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = e.CustomHudText.Body;
         }
         else
         {

@@ -1,8 +1,7 @@
 ﻿using AIGraph;
-using AWO.Modules.WEE;
 using LevelGeneration;
 
-namespace AWO.WEE.Events.SecDoor;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class CloseSecurityDoorEvent : BaseEvent
 {
@@ -10,13 +9,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
-
-        if (!TryGetZoneEntranceSecDoor(zone, out var door))
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
         {
             LogError("Cannot find security door!");
             return;

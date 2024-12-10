@@ -1,5 +1,6 @@
-﻿using AWO.WEE.Events;
+﻿using GameData;
 using GTFO.API;
+using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
 
@@ -8,6 +9,16 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartEventLoop;
+
+    protected override void OnSetup()
+    {
+        LevelAPI.OnLevelCleanup += OnLevelCleanup;
+    }
+
+    private void OnLevelCleanup()
+    {
+        EntryPoint.ActiveEventLoops.Clear();
+    }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -28,14 +39,7 @@ internal sealed class StartEventLoop : BaseEvent
             EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
             LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
             CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
-            LevelAPI.OnLevelCleanup += OnLevelCleanup;
         }
-    }
-
-    private void OnLevelCleanup()
-    {
-        Logger.Debug("[StartEventLoop] Cleaning up active EventLoops...");
-        EntryPoint.ActiveEventLoops.Clear();
     }
 
     static IEnumerator DoLoop(WEE_EventData e)
@@ -70,10 +74,7 @@ internal sealed class StartEventLoop : BaseEvent
             }
             
             Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum}");
-            foreach (var eventData in sel.EventsToActivate)
-            {
-                WorldEventManager.ExecuteEvent(eventData);
-            }
+            WOManager.CheckAndExecuteEventsOnTrigger(sel.EventsToActivate.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
 
             yield return delay;
             repeatNum++;

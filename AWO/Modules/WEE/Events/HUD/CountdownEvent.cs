@@ -1,8 +1,11 @@
-﻿using AWO.Modules.WEE;
+﻿using FluffyUnderware.Curvy.Utils;
+using GameData;
+using GTFO.API.Extensions;
+using Il2CppSystem.Linq;
 using System.Collections;
 using UnityEngine;
 
-namespace AWO.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class CountdownEvent : BaseEvent
 {
@@ -12,17 +15,8 @@ internal sealed class CountdownEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
-        CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, GetDuration(e)).WrapToIl2Cpp());
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.Countdown.Duration != 0.0f)
-            return e.Countdown.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-       
-        return e.Countdown.Duration;
+        float duration = ResolveFieldFallback(e.Duration, e.Countdown.Duration);
+        CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoCountdown(WEE_CountdownData cd, float duration)
@@ -36,7 +30,7 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cd.TimerText.ToString());
+        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cd.TimerText);
         GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
 
         while (time <= duration)
@@ -60,17 +54,12 @@ internal sealed class CountdownEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                List<EventsOnTimerProgress> removeQ = new();
-                foreach (var progressEvents in cachedProgressEvents.Where(x => Math.Round(x.Progress, 2) == Math.Round(time / duration, 2)))
+                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(time / duration)))
                 {
-                    foreach (var eventData in progressEvents.Events)
-                    {
-                        WorldEventManager.ExecuteEvent(eventData);
-                    }
-                    removeQ.Add(progressEvents);
+                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    progressEvents.SetActivated();
                 }
-                removeQ.ForEach(y => cachedProgressEvents.Remove(y));
-                hasProgressEvents = cachedProgressEvents.Count > 0;
+                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
             }
 
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
@@ -86,9 +75,6 @@ internal sealed class CountdownEvent : BaseEvent
         }
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, true);
-        foreach (var eventData in cd.EventsOnDone)
-        {
-            WorldEventManager.ExecuteEvent(eventData);
-        }
+        WOManager.CheckAndExecuteEventsOnTrigger(cd.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 }

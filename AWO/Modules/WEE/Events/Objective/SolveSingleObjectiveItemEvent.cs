@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
+﻿namespace AWO.Modules.WEE.Events;
 
-namespace AWO.WEE.Events.Objective;
-
+[Obsolete]
 internal sealed class SolveSingleObjectiveItemEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SolveSingleObjectiveItem;

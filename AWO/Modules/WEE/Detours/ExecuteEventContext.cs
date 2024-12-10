@@ -1,9 +1,8 @@
 ﻿using GameData;
 using Il2CppInterop.Runtime;
-using System;
 using System.Runtime.InteropServices;
 
-namespace AWO.WEE.Detours;
+namespace AWO.Modules.WEE.Detours;
 
 internal sealed class ExecuteEventContext
 {
@@ -22,7 +21,7 @@ internal sealed class ExecuteEventContext
         {
             var ptr = _BasePtr + DataFieldOffset;
             nint objPtr = *(nint*)ptr.ToPointer();
-            return objPtr != 0 ? new WardenObjectiveEventData(objPtr) : null;
+            return objPtr != 0 ? new WardenObjectiveEventData(objPtr) : null!;
         }
         set
         {
@@ -87,7 +86,7 @@ internal sealed class ExecuteEventContext
         while ((field = IL2CPP.il2cpp_class_get_fields(ClazzPtr, ref iter)) != IntPtr.Zero)
         {
             var fieldName = Marshal.PtrToStringAnsi(IL2CPP.il2cpp_field_get_name(field));
-            if (fieldName.Contains("_state", StringComparison.InvariantCultureIgnoreCase))
+            if (fieldName is not null && fieldName.Contains("_state", StringComparison.InvariantCultureIgnoreCase))
             {
                 Logger.Debug($"Found State Field: '{fieldName}'");
                 Field_state_Ptr = field;

@@ -1,14 +1,7 @@
-﻿using AK;
-using AWO.Modules.WEE;
-using ChainedPuzzles;
-using Enemies;
-using GameData;
+﻿using ChainedPuzzles;
 using LevelGeneration;
-using SNetwork;
-using System.Collections;
-using UnityEngine;
 
-namespace AWO.WEE.Events.SecDoor;
+namespace AWO.Modules.WEE.Events;
 
 internal class SolveSecurityDoorAlarmEvent : BaseEvent
 {
@@ -16,22 +9,15 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
-
-        if (!TryGetZoneEntranceSecDoor(zone, out var door))
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
         {
             LogError("Cannot find security door!");
             return;
         }
+
         var status = door.LastStatus;
 
-        if (status == eDoorStatus.Open || status == eDoorStatus.Unlocked || status == eDoorStatus.Opening) return;
-
-        if (status != eDoorStatus.Closed_LockedWithChainedPuzzle || status != eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
+        if (status == eDoorStatus.Closed_LockedWithChainedPuzzle || status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
         {
             var state = door.m_locks.ChainedPuzzleToSolve.m_stateReplicator.State;
             state.status = eChainedPuzzleStatus.Solved;

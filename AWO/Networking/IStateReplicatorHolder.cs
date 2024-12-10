@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace AWO.Networking;
+﻿namespace AWO.Networking;
 
 public interface IStateReplicatorHolder<S> where S : struct
 {

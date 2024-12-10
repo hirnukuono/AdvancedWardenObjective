@@ -1,8 +1,6 @@
-﻿using AWO.Modules.WEE;
-using LevelGeneration;
-using SNetwork;
+﻿using LevelGeneration;
 
-namespace AWO.WEE.Events.Terminal;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class UnhideTerminalCommand : BaseEvent
 {
@@ -10,30 +8,26 @@ internal sealed class UnhideTerminalCommand : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Zone is missing?");
-            return;
-        }
+        if (!TryGetZone(e, out var zone)) return;
 
         var term = zone.TerminalsSpawnedInZone[e.UnhideTerminalCommand.TerminalIndex];
-        TERM_Command tempcommand = TERM_Command.None;
-        if (e.UnhideTerminalCommand.CommandNumber == 1) tempcommand = TERM_Command.UniqueCommand1;
-        if (e.UnhideTerminalCommand.CommandNumber == 2) tempcommand = TERM_Command.UniqueCommand2;
-        if (e.UnhideTerminalCommand.CommandNumber == 3) tempcommand = TERM_Command.UniqueCommand3;
-        if (e.UnhideTerminalCommand.CommandNumber == 4) tempcommand = TERM_Command.UniqueCommand4;
-        if (e.UnhideTerminalCommand.CommandNumber == 5) tempcommand = TERM_Command.UniqueCommand5;
-        if (e.UnhideTerminalCommand.CommandNumber > 5)
-            if (term.m_command.m_commandsPerEnum.ContainsKey((TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber)))
-                tempcommand = (TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber);
-
-        if (e.UnhideTerminalCommand.CommandEnum != 0) tempcommand = e.UnhideTerminalCommand.CommandEnum;
-
-        if (SNet.IsMaster && tempcommand != TERM_Command.None)
+        TERM_Command command = e.UnhideTerminalCommand.CommandNumber switch
         {
-            term.TrySyncSetCommandShow(tempcommand);
-            // if (SNet.IsMaster) if (e.WardenIntel != "") WorldEventManager.ExecuteEvent(new() { Type = 0, WardenIntel = e.WardenIntel });
-            LogDebug($"Command {tempcommand} should be visible now");
+            1 => TERM_Command.UniqueCommand1,
+            2 => TERM_Command.UniqueCommand2,
+            3 => TERM_Command.UniqueCommand3,
+            4 => TERM_Command.UniqueCommand4,
+            5 => TERM_Command.UniqueCommand5,
+            > 5 when term.m_command.m_commandsPerEnum.ContainsKey((TERM_Command)(50 + e.
+            UnhideTerminalCommand.CommandNumber)) => (TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber),
+            > 0 => e.UnhideTerminalCommand.CommandEnum,
+            _ => TERM_Command.None
+        };
+
+        if (command != TERM_Command.None)
+        {
+            term.TrySyncSetCommandShow(command);
+            LogDebug($"Command {command} should be visible now");
         }
     }
 }

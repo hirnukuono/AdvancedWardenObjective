@@ -1,6 +1,4 @@
-﻿using AWO.WEE.Events;
-
-namespace AWO.Modules.WEE.Events;
+﻿namespace AWO.Modules.WEE.Events;
 
 internal sealed class StopEventLoop : BaseEvent
 {

@@ -4,23 +4,24 @@ using HarmonyLib;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 
-namespace AWO.WEE.Inject;
+namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch(typeof(MainMenuGuiLayer), "AddPage")]
-public static class Inject_AddPage
+[HarmonyPatch]
+internal static class Patch_AddPage
 {
     private static bool McBased = false;
 
-    public static bool Prefix(MainMenuGuiLayer __instance, eCM_MenuPage pageEnum, string pageResourcePath, ref CM_PageBase __result)
+    [HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.AddPage))]
+    private static bool Prefix(MainMenuGuiLayer __instance, eCM_MenuPage pageEnum, string pageResourcePath, ref CM_PageBase __result)
     {
         if (GameStateManager.Current.m_currentStateName == eGameStateName.Startup)
             return true;
-        if (!pageResourcePath.Contains('/'))
+        else if (!pageResourcePath.Contains('/'))
             return true;
 
         if (pageEnum == eCM_MenuPage.CMP_EXPEDITION_SUCCESS && !McBased)
         {
-            Logger.Debug("Credits to McBreezy for CustomSuccessScreens");
+            Logger.Info("Credits to McBreezy for CustomSuccessScreens");
             McBased = true;
         }
 

@@ -1,6 +1,5 @@
 ﻿using GTFO.API;
 using SNetwork;
-using System;
 using System.Runtime.InteropServices;
 
 namespace AWO.Networking;
@@ -39,7 +38,7 @@ public static class StatePayloads
         return highestSizeCap;
     }
 
-    public static IReplicatorEvent<S> CreateEvent<S>(Size size, string eventName, OnReceiveDel<S> onReceiveCallback) where S : struct
+    public static IReplicatorEvent<S>? CreateEvent<S>(Size size, string eventName, OnReceiveDel<S> onReceiveCallback) where S : struct
     {
         return size switch
         {
@@ -105,14 +104,14 @@ public interface IReplicatorEvent<S> where S : struct
 
 public class ReplicatorPayloadWrapper<S, P> : IReplicatorEvent<S> where S : struct where P : struct, IStatePayload
 {
-    public string Name { get; private set; }
+    public string Name { get; private set; } = string.Empty;
     public bool IsRegistered { get; private set; } = false;
 
-    public static IReplicatorEvent<S> Create(string eventName, OnReceiveDel<S> onReceiveCallback)
+    public static IReplicatorEvent<S>? Create(string eventName, OnReceiveDel<S> onReceiveCallback)
     {
         var wrapper = new ReplicatorPayloadWrapper<S, P>();
         wrapper.Register(eventName, onReceiveCallback);
-        return wrapper.IsRegistered ? wrapper : (IReplicatorEvent<S>)null;
+        return wrapper.IsRegistered ? wrapper : null as IReplicatorEvent<S>;
     }
 
     public void Register(string eventName, OnReceiveDel<S> onReceiveCallback)

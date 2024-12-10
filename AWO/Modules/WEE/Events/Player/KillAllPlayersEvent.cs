@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using Player;
+﻿using Player;
 
-namespace AWO.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class KillAllPlayersEvent : BaseEvent
 {

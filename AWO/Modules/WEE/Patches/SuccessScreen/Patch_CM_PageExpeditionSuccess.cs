@@ -3,12 +3,13 @@ using HarmonyLib;
 using Localization;
 using SNetwork;
 
-namespace AWO.WEE.Inject;
+namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch(typeof(CM_PageExpeditionSuccess), "Update")]
-internal static class Inject_CM_PageExpeditionSuccess
+[HarmonyPatch]
+internal static class Patch_CM_PageExpeditionSuccess
 {
-    public static void Prefix(CM_PageExpeditionSuccess __instance)
+    [HarmonyPatch(typeof(CM_PageExpeditionSuccess), nameof(CM_PageExpeditionSuccess.Update))]
+    private static void Prefix(CM_PageExpeditionSuccess __instance)
     {
         if (SNet.IsMaster)
             __instance.m_btnLeaveExpedition.SetText(Text.Get(913u));

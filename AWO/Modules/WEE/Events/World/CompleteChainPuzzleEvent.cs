@@ -1,11 +1,10 @@
 ﻿using AK;
-using AWO.Modules.WEE;
 using ChainedPuzzles;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
-using Il2CppCPInstanceList = Il2CppSystem.Collections.Generic.List<ChainedPuzzles.ChainedPuzzleInstance>;
 
-namespace AWO.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal class CompleteChainPuzzleEvent : BaseEvent
 {
@@ -13,81 +12,69 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        var cp = GetCPInstance(ChainedPuzzleManager.Current.m_instances, e.ChainPuzzle);
-
-        if (cp == null || !cp.IsActive || cp.IsSolved)
+        if (!TryGetCPInstance(e.ChainPuzzle, out var puzzleInstance) || !puzzleInstance.IsActive || puzzleInstance.IsSolved)
         {
-            LogError("An active ChainedPuzzle was not found");
+            LogError($"An active ChainedPuzzle with index {e.ChainPuzzle} was not found!");
             return;
         }
         
-        CoroutineManager.StartCoroutine(SolvePuzzleCores(cp, e.Count).WrapToIl2Cpp());
+        CoroutineManager.StartCoroutine(SolvePuzzleCores(puzzleInstance, e.Count).WrapToIl2Cpp());
     }
 
-    private static ChainedPuzzleInstance? GetCPInstance(Il2CppCPInstanceList m_instances, uint ID)
+    private static bool TryGetCPInstance(uint ID, [NotNullWhen(true)] out ChainedPuzzleInstance? puzzleInstance)
     {
-        foreach (var instance in m_instances)
+        foreach (var instance in ChainedPuzzleManager.Current.m_instances)
+        {
             if (instance.Data.persistentID == ID)
-                return instance;
+            {
+                puzzleInstance = instance;
+                return true;
+            }
+        }
 
-        return null;
+        puzzleInstance = null;
+        return false;
     }
 
-    static IEnumerator SolvePuzzleCores(ChainedPuzzleInstance cp, int count)
+    static IEnumerator SolvePuzzleCores(ChainedPuzzleInstance puzzleInstance, int count)
     {
-        for (int i = 0; i < cp.NRofPuzzles(); i++)
+        for (int i = 0; i < puzzleInstance.NRofPuzzles(); i++)
         {
             if (i == count && count > 0) yield break;
 
-            cp.OnPuzzleDone(i);
+            puzzleInstance.OnPuzzleDone(i);
 
-            var clusterCore = cp.m_chainedPuzzleCores[i].TryCast<CP_Cluster_Core>();
+            var clusterCore = puzzleInstance.m_chainedPuzzleCores[i].TryCast<CP_Cluster_Core>();
             if (clusterCore != null)
             {
-                if (IsMaster)
-                {
-                    clusterCore.m_sync.SetStateData(eClusterStatus.Finished, 1.0f);
-                }
+                clusterCore.m_sync.SetStateData(eClusterStatus.Finished, 1.0f);
                 continue;
             }
 
-            var basicCore = cp.m_chainedPuzzleCores[i].TryCast<CP_Bioscan_Core>();
+            var basicCore = puzzleInstance.m_chainedPuzzleCores[i].TryCast<CP_Bioscan_Core>();
             if (basicCore != null)
             {
                 CoroutineManager.StartCoroutine(SolveBasicCore(basicCore).WrapToIl2Cpp());
             }
 
-            yield return new WaitForSeconds(RNG.Float01 * 0.35f);
+            yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);
         }
     }
 
     static IEnumerator SolveBasicCore(CP_Bioscan_Core basicCore)
     {
-        if (basicCore == null) yield break;
-
         basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
-        basicCore.m_spline.SetVisible(false);
+        basicCore.m_spline?.SetVisible(false);
 
-        if (IsMaster)
-        {
-            basicCore.m_playerScanner.ResetScanProgression(1.0f);
-            basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1.0f);
+        basicCore.m_playerScanner.ResetScanProgression(1.0f);
+        basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1.0f);
 
-            yield return null;
+        yield return null;
 
-            basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP, true);
-            try
-            {
-                var spline = basicCore.m_spline.TryCast<CP_Holopath_Spline>();
-                spline?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP, true);
-            }
-            catch
-            {
-                Logger.Warn("[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
-            }
-        }
-
-        yield return new WaitForSeconds(RNG.Float01 * 0.35f);
+        basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP);
+        basicCore.m_spline?.TryCast<CP_Holopath_Spline>();
+        
+        yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);
 
         CoroutineManager.BlinkOut(basicCore.gameObject);
     }

@@ -1,11 +1,10 @@
-﻿using AWO.WEE.Events;
-using Enemies;
+﻿using Enemies;
 using GameData;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
 
-namespace AWO.Modules.WEE.Events.Enemy;
+namespace AWO.Modules.WEE.Events;
 internal class SpawnScoutInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnScoutInZone;
@@ -14,26 +13,25 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e) 
     {
-        if (!TryGetZone(e, out var zone) || zone == null) return;
+        if (!TryGetZone(e, out var zone)) return;
 
         var ss = e.SpawnScouts;
-        if (ss.AreaIndex != -1 && (ss.AreaIndex < 0 || ss.AreaIndex >= zone.m_areas.Count))
+        if (ss.AreaIndex == -1 || IsValidAreaIndex(ss.AreaIndex, zone))
         {
-            LogError($"Invalid AreaIndex {ss.AreaIndex} for ZONE_{zone.Alias}");
-            return;
-        }
+            Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
+            int count = ResolveFieldFallback(e.Count, ss.Count);
 
-        CoroutineManager.StartCoroutine(DoSpawn(e, zone).WrapToIl2Cpp());
+            CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
+        }
     }
 
-    static IEnumerator DoSpawn(WEE_EventData e, LG_Zone zone)
+    static IEnumerator DoSpawn(WEE_SpawnScoutData ss, LG_Zone zone, Vector3 pos, int count)
     {
-        var ss = e.SpawnScouts;
-        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / ss.Count);
+        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
 
-        for (int SpawnCount = 0; SpawnCount < ss.Count; SpawnCount++)
+        for (int SpawnCount = 0; SpawnCount < count; SpawnCount++)
         {
-            if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r) || r == null)
+            if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r))
             {
                 Logger.Error($"[SpawnScoutInZoneEvent] Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
                 yield break;
@@ -42,9 +40,17 @@ internal class SpawnScoutInZoneEvent : BaseEvent
             EnemyGroupDataBlock randomGroup = r.GetRandomGroup(Builder.SessionSeedRandom.Value());
             float popPoints = randomGroup.MaxScore * Builder.SessionSeedRandom.Range(1f, 1.2f);
 
-            var node = ss.AreaIndex == -1 ? zone.m_areas[RNG.Int0Positive % zone.m_areas.Count].m_courseNode : zone.m_areas[ss.AreaIndex].m_courseNode;
+            var node = ss.AreaIndex == -1 ? zone.m_areas[MasterRand.Next(zone.m_areas.Count)].m_courseNode : zone.m_areas[ss.AreaIndex].m_courseNode;
 
-            var scoutSpawnData = EnemyGroup.GetSpawnData(node.GetRandomPositionInside(), node, EnemyGroupType.Hibernating, eEnemyGroupSpawnType.RandomInArea, randomGroup.persistentID, popPoints) with { respawn = false };
+            var scoutSpawnData = EnemyGroup.GetSpawnData
+            (
+                pos == Vector3.zero ? node.GetRandomPositionInside() : pos, 
+                node, 
+                EnemyGroupType.Hibernating, 
+                eEnemyGroupSpawnType.RandomInArea, 
+                randomGroup.persistentID, 
+                popPoints
+            ) with { respawn = false };
 
             EnemyGroup.Spawn(scoutSpawnData);
 

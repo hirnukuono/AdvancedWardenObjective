@@ -1,20 +1,20 @@
-﻿using AWO.WEE.Events;
-using AIGraph;
+﻿using AIGraph;
 using LevelGeneration;
 using Player;
+using SNetwork;
 using System.Collections;
 using UnityEngine;
 using Il2CppPlayerList = Il2CppSystem.Collections.Generic.List<Player.PlayerAgent>;
 
-namespace AWO.Modules.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class TeleportPlayerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.TeleportPlayer;
 
-    private class TPData
+    public class TPData
     {
-        public SlotIndex SlotIndex { get; set; }
+        public PlayerIndex PlayerIndex { get; set; }
         public Vector3 Position { get; set; }
         public int LookDir { get; set; }
         public eDimensionIndex LastDim { get; set; }
@@ -22,9 +22,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         public Vector3 LastLookDir { get; set; }
         public List<IWarpableObject> ItemsToWarp { get; set; }
 
-        public TPData(SlotIndex a, Vector3 b, int c, eDimensionIndex d, Vector3 e, Vector3 f, List<IWarpableObject> g)
+        public TPData(PlayerIndex a, Vector3 b, int c, eDimensionIndex d, Vector3 e, Vector3 f, List<IWarpableObject> g)
         {
-            SlotIndex = a;
+            PlayerIndex = a;
             Position = b;
             LookDir = c;
             LastDim = d;
@@ -36,23 +36,24 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        var itemAssignment = AssignWarpables(e, PlayerManager.PlayerAgentsInLevel);
+        var itemAssignment = AssignWarpables(e.TeleportPlayer, PlayerManager.PlayerAgentsInLevel);
         var slotPlayerData = new Dictionary<int, TPData>
         {
-            { 0, new TPData(SlotIndex.P0, e.TeleportPlayer.Player0Position, e.TeleportPlayer.P0LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[0]) },
-            { 1, new TPData(SlotIndex.P1, e.TeleportPlayer.Player1Position, e.TeleportPlayer.P1LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[1]) },
-            { 2, new TPData(SlotIndex.P2, e.TeleportPlayer.Player2Position, e.TeleportPlayer.P2LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[2]) },
-            { 3, new TPData(SlotIndex.P3, e.TeleportPlayer.Player3Position, e.TeleportPlayer.P3LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[3]) }
+            { 0, new TPData(PlayerIndex.P0, e.TeleportPlayer.Player0Position, e.TeleportPlayer.P0LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[0]) },
+            { 1, new TPData(PlayerIndex.P1, e.TeleportPlayer.Player1Position, e.TeleportPlayer.P1LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[1]) },
+            { 2, new TPData(PlayerIndex.P2, e.TeleportPlayer.Player2Position, e.TeleportPlayer.P2LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[2]) },
+            { 3, new TPData(PlayerIndex.P3, e.TeleportPlayer.Player3Position, e.TeleportPlayer.P3LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[3]) }
         };
         var activeSlotIndices = new HashSet<int>(e.TeleportPlayer.PlayerFilter.Select(filter => (int)filter));
         EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
 
-        foreach (PlayerAgent player in PlayerManager.PlayerAgentsInLevel)
+        for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
-            if (!activeSlotIndices.Contains(player.PlayerSlotIndex))
-                continue; // Player not in PlayerFilter, continue
-            if (!slotPlayerData.TryGetValue(player.PlayerSlotIndex, out var playerData))
-                continue;
+            PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
+            if (!activeSlotIndices.Contains(i))
+                continue; // Player not in PlayerFilter
+            if (!slotPlayerData.TryGetValue(i, out var playerData))
+                continue; // Player not in SlotIndex
 
             if (e.TeleportPlayer.FlashTeleport)
             {
@@ -66,33 +67,35 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
     }
 
-    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_EventData e, Il2CppPlayerList lobby)
+    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
     {
-        var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
-        var warpables = Dimension.WarpableObjects;
+        var itemAssignment = new Dictionary<int, List<IWarpableObject>>()
+        {
+            { 0, new List<IWarpableObject>() },
+            { 1, new List<IWarpableObject>() },
+            { 2, new List<IWarpableObject>() },
+            { 3, new List<IWarpableObject>() }
+        };
 
-        for (int i = 0; i < 4; i++)
-            itemAssignment[i] = new List<IWarpableObject>();
-
-        foreach (var item in warpables)
+        foreach (var item in Dimension.WarpableObjects)
         {
             var sentry = item.TryCast<SentryGunInstance>();
-            if (sentry != null && e.TeleportPlayer.WarpSentries)
+            if (sentry != null && tp.WarpSentries)
             {
                 itemAssignment[lobby.IndexOf(sentry.Owner)].Add(item);
                 continue;
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if (bigPickup == null || e.TeleportPlayer.FlashTeleport || !e.TeleportPlayer.WarpBigPickups)
+            if (bigPickup == null || tp.FlashTeleport || !tp.WarpBigPickups)
                 continue; 
             if (!bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor || !bigPickup.CanWarp)
                 continue; // warp only BPUs on the floor, otherwise continue
 
-            if (e.TeleportPlayer.SendBPUsToHost)
-                itemAssignment[0].Add(item);
-            else if (lobby.Count == e.TeleportPlayer.PlayerFilter.Count)
-                itemAssignment[RNG.Int0Positive % lobby.Count].Add(item);
+            if (HasMaster && tp.SendBPUsToHost)
+                itemAssignment[SNet.Master.PlayerSlotIndex()].Add(item);
+            else if (lobby.Count == tp.PlayerFilter.Count)
+                itemAssignment[MasterRand.Next(lobby.Count)].Add(item);
         }
 
         return itemAssignment;
@@ -120,7 +123,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     private static void Teleport(WEE_EventData e, PlayerAgent player, TPData playerData)
     {
-        Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : default;
+        Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : playerData.LastLookDir;
 
         if (player.Owner.IsBot)
             player.TryWarpTo(e.DimensionIndex, playerData.Position, Vector3.forward);

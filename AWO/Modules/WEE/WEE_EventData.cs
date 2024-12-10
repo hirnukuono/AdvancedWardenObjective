@@ -5,6 +5,7 @@ using Enemies;
 using GameData;
 using LevelGeneration;
 using SNetwork;
+using System.Text.Json.Serialization;
 using UnityEngine;
 
 namespace AWO.Modules.WEE;
@@ -35,9 +36,10 @@ public sealed class WEE_EventData
     public LocaleText SoundSubtitle { get; set; } = LocaleText.Empty;
     public uint DialogueID { get; set; } = 0u;
     public int Count { get; set; } = 0;
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = true; // different default value than vanilla!
     public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
+    public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = (LocaleText)value; }
 
 
     // Common Updater
@@ -68,6 +70,7 @@ public sealed class WEE_EventData
     public WEE_RevivePlayer RevivePlayer { get; set; } = new();
     public WEE_AdjustTimer AdjustTimer { get; set; } = new();
     public WEE_CountupData Countup { get; set; } = new();
+    public WEE_NavMarkerData NavMarker { get; set; } = new();
     public WEE_ShakeScreen CameraShake { get; set; } = new();
     public WEE_StartPortalMachine Portal { get; set; } = new();
     public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
@@ -75,24 +78,13 @@ public sealed class WEE_EventData
     public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
     public WEE_CustomHudText CustomHudText { get; set; } = new();
     public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
-
-    public WardenObjectiveEventData CreateDummyEventData()
-    {
-        return new()
-        {
-            Type = (eWardenObjectiveEventType)(int)Type,
-            ChainPuzzle = ChainPuzzle,
-            UseStaticBioscanPoints = UseStaticBioscanPoints,
-            Trigger = Trigger,
-            Condition = Condition
-        };
-    }
+    public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
 }
 
 public sealed class WEE_UpdateFogData
 {
     public bool DoUpdate { get; set; } = false;
-    public uint FogSetting { get; set; }
+    public uint FogSetting { get; set; } = 0u;
     public float FogTransitionDuration { get; set; }
 }
 
@@ -101,11 +93,10 @@ public sealed class WEE_SubObjectiveData
     public bool DoUpdate { get; set; } = false;
     public LocaleText CustomSubObjectiveHeader { get; set; } = LocaleText.Empty;
     public LocaleText CustomSubObjective { get; set; } = LocaleText.Empty;
-
-    // AMAWO Addon:
     public uint Index { get; set; } = 0u;
-    // public bool LocalToLayer { get; set; } = false;
-    public LG_LayerType Layer /*{ get; set; }*/ = LG_LayerType.MainLayer;
+    public int Priority { get; set; } = 1;
+    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
+    public bool IsLayerIndependent { get; set; } = true;
     public LocaleText OverrideTag { get; set; } = LocaleText.Empty;
 }
 
@@ -123,19 +114,13 @@ public sealed class WEE_ReactorEventData
     }
 }
 
-public sealed class WEE_DoorInteractionData
-{
-    public bool LockdownState { get; set; }
-    public string LockdownMessage { get; set; }
-}
-
 public sealed class WEE_CountdownData
 {
     public float Duration { get; set; } = 0.0f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public Color TimerColor { get; set; } = Color.red;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
 }
 
 public sealed class WEE_CleanupEnemiesData
@@ -153,12 +138,12 @@ public sealed class WEE_CleanupEnemiesData
         if (!SNet.IsMaster || node == null || node.m_enemiesInNode == null)
             return;
 
-        List<EnemyAgent> enemylist = new();
-        enemylist.Clear();
+        // need to cache enemies, because can't cleanup while iterating + it's in Il2Cpp land
+        List<EnemyAgent> cachedEnemies = new();
+        cachedEnemies.Clear();
 
-        foreach (EnemyAgent enemy in node.m_enemiesInNode) enemylist.Add(enemy);
-
-        foreach (EnemyAgent enemy in enemylist)
+        foreach (EnemyAgent enemy in node.m_enemiesInNode) cachedEnemies.Add(enemy);
+        foreach (EnemyAgent enemy in cachedEnemies)
         {
             bool clear = enemy.AI.Mode switch
             {
@@ -168,10 +153,8 @@ public sealed class WEE_CleanupEnemiesData
                 _ => true
             };
 
-            if (!clear || ExcludeEnemyID.Contains(enemy.EnemyDataID))
-                continue;
-            if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID))
-                continue;
+            if (!clear || ExcludeEnemyID.Contains(enemy.EnemyDataID)) continue;
+            if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID)) continue;
 
             switch (Type)
             {
@@ -197,9 +180,10 @@ public sealed class WEE_CleanupEnemiesData
 public sealed class WEE_ZoneLightData
 {
     public ModifierType Type { get; set; } = ModifierType.RevertToOriginal;
-    public uint LightDataID { get; set; }
+    public uint LightDataID { get; set; } = 0u;
     public float TransitionDuration { get; set; } = 0.5f;
-    public int Seed { get; set; } = 0; // RandomAny on 0
+    public int Seed { get; set; } = 0; // Random seed on 0
+    public bool DisregardFlicker { get; set; } = false;
 
     public enum ModifierType : byte
     {
@@ -211,8 +195,8 @@ public sealed class WEE_ZoneLightData
 public sealed class WEE_SpawnHibernateData
 {
     public int AreaIndex { get; set; } = -1; 
-    public uint EnemyID { get; set; } = 0;
-    public uint Count { get; set; } = 1;
+    public uint EnemyID { get; set; } = 0u;
+    public int Count { get; set; } = 1;
     public Vector3 Position { get; set; } = Vector3.zero;
     public Vector3 Rotation { get; set; } = Vector3.zero;
 }
@@ -222,13 +206,7 @@ public sealed class WEE_SpawnScoutData
     public int AreaIndex { get; set; } = -1; 
     public eEnemyGroupType GroupType { get; set; }
     public eEnemyRoleDifficulty Difficulty { get; set; }
-    public uint Count { get; set; } = 1;
-}
-
-public enum FilterMode
-{
-    Exclude,
-    Include,
+    public int Count { get; set; } = 1;
 }
 
 
@@ -236,18 +214,18 @@ public sealed class WEE_AddTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0;
     public int CommandNumber { get; set; } = 6;
-    public string Command { get; set; } = "";
+    public string Command { get; set; } = string.Empty;
     public LocaleText CommandDesc { get; set; } = LocaleText.Empty;
     public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
-    public WardenObjectiveEventData[] CommandEvents { get; set; } = Array.Empty<WardenObjectiveEventData>();
-    public TerminalOutput[] PostCommandOutputs { get; set; } = Array.Empty<TerminalOutput>();
+    public List<TerminalOutput> PostCommandOutputs { get; set; } = new();
+    public List<WardenObjectiveEventData> CommandEvents { get; set; } = new();
 }
 
 public sealed class WEE_HideTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0; 
     public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
-    public int CommandNumber { get; set; } = new();
+    public int CommandNumber { get; set; } = 0;
     public bool DeleteCommand { get; set; } = false;
 }
 
@@ -255,8 +233,7 @@ public sealed class WEE_UnhideTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0; 
     public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
-
-    public int CommandNumber { get; set; } = new();
+    public int CommandNumber { get; set; } = 0;
 }
 
 
@@ -265,7 +242,7 @@ public sealed class WEE_NestedEvent
     public NestedMode Type { get; set; } = NestedMode.ActivateAll;
     public int MaxRandomEvents { get; set; } = -1;
     public bool AllowRepeatsInRandom { get; set; } = false;
-    public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
     public enum NestedMode : byte
     {
         ActivateAll,
@@ -278,10 +255,10 @@ public sealed class WEE_StartEventLoop
     public int LoopIndex { get; set; } = 0;
     public float LoopDelay { get; set; } = 1.0f;
     public int LoopCount { get; set; } = -1;
-    public WardenObjectiveEventData[] EventsToActivate { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
 }
 
-public enum SlotIndex : byte
+public enum PlayerIndex : byte
 {
     P0,
     P1,
@@ -291,7 +268,7 @@ public enum SlotIndex : byte
 
 public sealed class WEE_TeleportPlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new();
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new();
     public bool PlayWarpAnimation { get; set; } = true;
     public bool FlashTeleport { get; set; } = false;
     public bool WarpSentries { get; set; } = true;
@@ -309,23 +286,25 @@ public sealed class WEE_TeleportPlayer
 
 public sealed class WEE_InfectPlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3};
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3};
     public float InfectionAmount { get; set; } = 0.0f;
     public bool InfectOverTime { get; set; } = false;
+    public float Interval { get; set; } = 1.0f;
     public bool UseZone { get; set; } = false;
 }
 
 public sealed class WEE_DamagePlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
     public float DamageAmount { get; set; } = 0.0f;
     public bool DamageOverTime { get; set; } = false;
+    public float Interval { get; set; } = 1.0f;
     public bool UseZone { get; set; } = false;
 }
 
 public sealed class WEE_RevivePlayer
 {
-    public HashSet<SlotIndex> PlayerFilter { get; set; } = new() { SlotIndex.P0, SlotIndex.P1, SlotIndex.P2, SlotIndex.P3 };
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
 }
 
 public sealed class WEE_AdjustTimer
@@ -347,13 +326,25 @@ public sealed class WEE_CountupData
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
 }
 
 public struct EventsOnTimerProgress
 {
     public float Progress { get; set; }
-    public WardenObjectiveEventData[] Events { get; set; }
+    public List<WardenObjectiveEventData> Events { get; set; }
+
+    [JsonIgnore]
+    public bool HasBeenActivated { get; private set; }
+    public void SetActivated() => HasBeenActivated = true;
+}
+
+public sealed class WEE_NavMarkerData
+{
+    public NavMarkerOption Style { get; set; } = NavMarkerOption.Waypoint | NavMarkerOption.Distance;
+    public LocaleText Title { get; set; } = LocaleText.Empty;
+    public Color Color { get; set; } = new(0.701f, 0.435f, 0.964f, 1.0f);
+    public bool UsePin { get; set; } = true;
 }
 
 public sealed class WEE_ShakeScreen
@@ -376,7 +367,6 @@ public sealed class WEE_SetSuccessScreen
     public ScreenType Type { get; set; } = ScreenType.SetSuccessScreen;
     public WinScreen CustomSuccessScreen { get; set; } = WinScreen.Empty;
     public eCM_MenuPage FakeEndScreen { get; set; } = eCM_MenuPage.CMP_EXPEDITION_SUCCESS;
-    public float Duration { get; set; } = 0.0f;
     public enum ScreenType : byte
     {
         SetSuccessScreen,
@@ -386,9 +376,9 @@ public sealed class WEE_SetSuccessScreen
 
 public sealed class WEE_PlayWaveDistantRoar
 {
-    public WaveRoarSound RoarSound { get; set; }
-    public WaveRoarSize RoarSize { get; set; }
-    public bool IsOutside {  get; set; }
+    public WaveRoarSound RoarSound { get; set; } = WaveRoarSound.Striker;
+    public WaveRoarSize RoarSize { get; set; } = WaveRoarSize.Small;
+    public bool IsOutside { get; set; } = false;
     public enum WaveRoarSound : byte
     {
         Striker,
@@ -425,5 +415,25 @@ public sealed class WEE_SpecialHudTimer
     public bool ShowTimeInProgressBar { get; set; } = true;
     public float Duration { get; set; } = 0.0f;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public WardenObjectiveEventData[] EventsOnDone { get; set; } = Array.Empty<WardenObjectiveEventData>();
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+}
+
+public sealed class WEE_ForcePlayerDialogue
+{
+    public DialogueType Type { get; set; } = DialogueType.Closest;
+    public PlayerIndex CharacterID { get; set; } = PlayerIndex.P0;
+    public PlayerIntensityState IntensityState { get; set; } = PlayerIntensityState.Exploration;
+    public enum DialogueType : byte
+    {
+        Closest,
+        Specific, 
+        Random
+    }
+    public enum PlayerIntensityState : byte
+    {
+        Exploration, 
+        Stealth,
+        Encounter,
+        Combat
+    }
 }

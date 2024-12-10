@@ -1,9 +1,11 @@
 ﻿using AK;
-using AWO.Modules.WEE;
+using FluffyUnderware.Curvy.Utils;
+using GameData;
+using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
 
-namespace AWO.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class CountupEvent : BaseEvent
 {
@@ -16,17 +18,8 @@ internal sealed class CountupEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
-        CoroutineManager.StartCoroutine(DoCountup(e.Countup, GetDuration(e)).WrapToIl2Cpp());
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.Countup.Duration != 0.0f)
-            return e.Countup.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-
-        return e.Countup.Duration;
+        float duration = ResolveFieldFallback(e.Duration, e.Countup.Duration);
+        CoroutineManager.StartCoroutine(DoCountup(e.Countup, duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoCountup(WEE_CountupData cu, float duration)
@@ -34,7 +27,7 @@ internal sealed class CountupEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
-        string[] body = ParseCustomText(cu.CustomText.ToString(), duration);
+        string[] body = ParseCustomText(cu.CustomText, duration);
 
         List<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
@@ -45,7 +38,7 @@ internal sealed class CountupEvent : BaseEvent
 
         CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
-        GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText.ToString();
+        GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText;
         yield return new WaitForSeconds(0.25f);
 
         while (count <= duration)
@@ -66,17 +59,12 @@ internal sealed class CountupEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                List<EventsOnTimerProgress> removeQ = new();
-                foreach (var progressEvents in cachedProgressEvents.Where(x => Math.Round(x.Progress, 2) == Math.Round(count / duration, 2)))
+                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(count / duration)))
                 {
-                    foreach (var eventData in progressEvents.Events)
-                    {
-                        WorldEventManager.ExecuteEvent(eventData);
-                    }
-                    removeQ.Add(progressEvents);   
+                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    progressEvents.SetActivated();
                 }
-                removeQ.ForEach(y => cachedProgressEvents.Remove(y));
-                hasProgressEvents = cachedProgressEvents.Count > 0;
+                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
             }
 
             GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
@@ -88,11 +76,7 @@ internal sealed class CountupEvent : BaseEvent
 
         CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
-
-        foreach (var eventData in cu.EventsOnDone)
-        {
-            WorldEventManager.ExecuteEvent(eventData);
-        }
+        WOManager.CheckAndExecuteEventsOnTrigger(cu.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 
     private static string[] ParseCustomText(string custom, float duration)
@@ -122,7 +106,7 @@ internal sealed class CountupEvent : BaseEvent
         if (EntryPoint.TimerMods.CountupText != cu.CustomText) // text mod
         {
             cu.CustomText = EntryPoint.TimerMods.CountupText;
-            body = ParseCustomText(cu.CustomText.ToString(), duration);
+            body = ParseCustomText(cu.CustomText, duration);
         }
 
         if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod

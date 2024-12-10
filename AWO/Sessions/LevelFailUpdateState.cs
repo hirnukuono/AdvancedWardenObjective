@@ -1,7 +1,6 @@
 ﻿using AWO.Networking;
-using AWO.Networking.CommonReplicator.Inject;
+using GTFO.API;
 using LevelGeneration;
-using System;
 
 namespace AWO.Sessions;
 
@@ -19,24 +18,29 @@ internal struct LevelFailCheck
 
 internal sealed class LevelFailUpdateState
 {
-    private static StateReplicator<LevelFailCheck> _Replicator;
+    private static StateReplicator<LevelFailCheck>? _Replicator;
+    public static bool LevelFailAllowed { get; private set; } = true;
+    public static bool LevelFailWhenAnyPlayerDown { get; private set; } = false;
 
     internal static void AssetLoaded()
     {
-        if (_Replicator != null)
-            return;
+        if (_Replicator != null) return;
 
-        _Replicator = StateReplicator<LevelFailCheck>.Create(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent);
+        if (!StateReplicator<LevelFailCheck>.TryCreate(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent, out var replicator))
+        {
+            Logger.Error("Failed to create LevelFailUpdateState Replicator!");
+            return;
+        }
+
+        _Replicator = replicator;
         LG_Factory.add_OnFactoryBuildStart(new Action(() =>
         {
             _Replicator.ClearAllRecallSnapshot();
-            _Replicator.SetState(new()
-            {
-                mode = LevelFailMode.Default
-            });
+            _Replicator.SetState(new() { mode = LevelFailMode.Default });
         }));
+
         _Replicator.OnStateChanged += OnStateChanged;
-        LevelEvents.OnLevelCleanup += LevelCleanup;
+        LevelAPI.OnLevelCleanup += LevelCleanup;
     }
 
     private static void LevelCleanup()
@@ -46,7 +50,7 @@ internal sealed class LevelFailUpdateState
 
     public static void SetFailAllowed(bool allowed)
     {
-        _Replicator.SetState(new()
+        _Replicator?.SetState(new()
         {
             mode = allowed ? LevelFailMode.Default : LevelFailMode.Never
         });
@@ -54,7 +58,7 @@ internal sealed class LevelFailUpdateState
 
     public static void SetFailWhenAnyPlayerDown(bool enabled)
     {
-        _Replicator.SetState(new()
+        _Replicator?.SetState(new()
         {
             mode = enabled ? LevelFailMode.AnyPlayerDown : LevelFailMode.Default
         });
@@ -65,18 +69,18 @@ internal sealed class LevelFailUpdateState
         switch (state.mode)
         {
             case LevelFailMode.Default:
-                Inject_LevelFailCheck.LevelFailAllowed = true;
-                Inject_LevelFailCheck.LevelFailWhenAnyPlayerDown = false;
+                LevelFailAllowed = true;
+                LevelFailWhenAnyPlayerDown = false;
                 break;
 
             case LevelFailMode.Never:
-                Inject_LevelFailCheck.LevelFailAllowed = false;
-                Inject_LevelFailCheck.LevelFailWhenAnyPlayerDown = false;
+                LevelFailAllowed = false;
+                LevelFailWhenAnyPlayerDown = false;
                 break;
 
             case LevelFailMode.AnyPlayerDown:
-                Inject_LevelFailCheck.LevelFailAllowed = true;
-                Inject_LevelFailCheck.LevelFailWhenAnyPlayerDown = true;
+                LevelFailAllowed = true;
+                LevelFailWhenAnyPlayerDown = true;
                 break;
         }
     }

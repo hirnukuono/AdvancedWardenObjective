@@ -1,8 +1,8 @@
-﻿using AWO.WEE.Events;
-using Player;
+﻿using Player;
 using UnityEngine;
 
-namespace AWO.Modules.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
+
 internal sealed class ShakeScreenEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.ShakeScreen;
@@ -14,22 +14,12 @@ internal sealed class ShakeScreenEvent : BaseEvent
         effect.transform.localPosition = Vector3.zero;
 
         effect.Radius = e.CameraShake.Radius;
-        effect.Duration = GetDuration(e);
+        effect.Duration = ResolveFieldFallback(e.Duration, e.CameraShake.Duration);
         effect.Amplitude = e.CameraShake.Amplitude;
         effect.Frequency = e.CameraShake.Frequency;
         effect.directional = e.CameraShake.Directional;
         effect.PlayOnEnable = true;
 
         effect.Play();
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.CameraShake.Duration != 0.0f)
-            return e.CameraShake.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-
-        return e.CameraShake.Duration;
     }
 }

@@ -1,22 +1,21 @@
-﻿using AWO.Modules.WEE;
+﻿using AWO.API;
 using AWO.Networking;
 using BepInEx.Unity.IL2CPP.Utils;
 using GameData;
 using LevelGeneration;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace AWO.WEE.Replicators;
+namespace AWO.Modules.WEE.Replicators;
 
-internal struct ZoneLightState
+public struct ZoneLightState
 {
     public uint lightData;
     public int lightSeed;
     public float duration;
 }
 
-internal struct LightTransitionData
+public struct LightTransitionData
 {
     public float startIntensity;
     public float endIntensity;
@@ -33,15 +32,18 @@ internal struct LightTransitionData
     }
 }
 
-internal class LightWorker
+public class LightWorker
 {
-    public LG_Zone OwnerZone;
-    public LG_Light Light;
-    public Color OrigColor;
+    public LG_Zone OwnerZone = new();
+    public LG_Light Light = new();
+    public int InstanceID;
+    public Color OrigColor; 
     public bool OrigEnabled;
     public float PrefabIntensity;
     public float OrigIntensity;
-    public Coroutine LightAnimationRoutine;
+    public Coroutine LightAnimationRoutine = new();
+    public Coroutine LightTransitionRoutine = new();
+    //public bool ExcludeFromZoneLightJob = false;
 
     public void ApplyLightSetting(LightSettingsDataBlock lightDB, float duration, int seed, int subseed)
     {
@@ -57,7 +59,7 @@ internal class LightWorker
         {
             if (!rand.MeetProbability(setting.Chance))
             {
-                OwnerZone.StartCoroutine(LightTransition(new()
+                LightTransitionRoutine = OwnerZone.StartCoroutine(LightTransition(new()
                 {
                     startColor = Light.m_color,
                     endColor = Color.black,
@@ -71,7 +73,7 @@ internal class LightWorker
                 var mode = (rand.MeetProbability(setting.ChanceBroken))
                     ? LightTransitionData.Mode.Flickering : LightTransitionData.Mode.Enabled;
 
-                OwnerZone.StartCoroutine(LightTransition(new()
+                LightTransitionRoutine = OwnerZone.StartCoroutine(LightTransition(new()
                 {
                     startColor = Light.m_color,
                     endColor = setting.Color,
@@ -86,13 +88,13 @@ internal class LightWorker
 
     private IEnumerator LightTransition(LightTransitionData data, float duration)
     {
-        var time = 0.0f;
+        float time = 0.0f;
         var yielder = new WaitForFixedUpdate();
         while (time <= duration)
         {
             time += Time.fixedDeltaTime;
 
-            var progress = time / duration;
+            float progress = time / duration;
             Light.ChangeColor(Color.Lerp(data.startColor, data.endColor, progress));
             Light.ChangeIntensity(Mathf.Lerp(data.startIntensity, data.endIntensity, progress));
             yield return yielder;
@@ -132,7 +134,7 @@ internal class LightWorker
                     while (time <= duration)
                     {
                         time += Time.fixedDeltaTime;
-                        var intensity = Mathf.PerlinNoise(Time.time * speed, 0.0f);
+                        float intensity = Mathf.PerlinNoise(Time.time * speed, 0.0f);
                         Light.ChangeIntensity(OrigIntensity * intensity);
                         yield return yielder;
                     }
@@ -141,8 +143,8 @@ internal class LightWorker
                 case 1:
                     while (time <= duration)
                     {
-                        var offDuration = rand.NextFloat01() * 0.5f;
-                        var onDuration = rand.NextFloat01() * 0.5f;
+                        float offDuration = rand.NextFloat() * 0.5f;
+                        float onDuration = rand.NextFloat() * 0.5f;
 
                         Light.SetEnabled(false);
                         yield return new WaitForSeconds(offDuration);
@@ -154,7 +156,6 @@ internal class LightWorker
                     }
                     break;
             }
-
         }
     }
 
@@ -174,17 +175,23 @@ internal class LightWorker
     }
 }
 
-internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
+public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
 {
-    public StateReplicator<ZoneLightState> Replicator { get; private set; }
-    public LightWorker[] LightsInZone;
+    [HideFromIl2Cpp]
+    public StateReplicator<ZoneLightState> Replicator { get; private set; } = new();
+    [HideFromIl2Cpp]
+    public LightWorker[] LightsInZone { get; private set; } = Array.Empty<LightWorker>();
+    public bool IsSetup { get; private set; } = false;
 
     public void Setup(LG_Zone zone)
     {
-        Replicator = StateReplicator<ZoneLightState>.Create((uint)zone.ID + 1 /*Zone ID can be start with 0*/, new()
+        /*Zone ID can be start with 0*/
+        if (!StateReplicator<ZoneLightState>.TryCreate((uint)zone.ID + 1, new() { lightData = 0u }, LifeTimeType.Session, out var replicator, this))
         {
-            lightData = 0u
-        }, LifeTimeType.Session, this);
+            Logger.Error("Failed to create ZoneLightReplicator!");
+            return;
+        }
+        Replicator = replicator;
 
         var workers = new List<LightWorker>();
         foreach (var nodes in zone.m_courseNodes)
@@ -195,11 +202,13 @@ internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolde
                 {
                     OwnerZone = zone,
                     Light = light,
+                    InstanceID = light.GetInstanceID(),
                     PrefabIntensity = light.m_intensity,
                 });
             }
         }
         LightsInZone = workers.ToArray();
+        IsSetup = true;
     }
 
     public void Setup_UpdateLightSetting()
@@ -209,6 +218,7 @@ internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolde
             worker.OrigColor = worker.Light.m_color;
             worker.OrigIntensity = worker.Light.m_intensity;
             worker.OrigEnabled = worker.Light.gameObject.active;
+            //LightAPI.LightsInLevelMap.TryAdd(worker.Light.GetInstanceID(), LightsInZone);
         }
     }
 
@@ -217,18 +227,15 @@ internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolde
         Replicator?.Unload();
     }
 
+    [HideFromIl2Cpp]
     public void SetLightSetting(WEE_ZoneLightData data)
     {
-        if (Replicator == null)
-            return;
-
-        if (Replicator.IsInvalid)
-            return;
+        if (Replicator == null || Replicator.IsInvalid) return;
 
         var seed = data.Seed;
         if (seed == 0)
         {
-            seed = RNG.Int;
+            seed = EntryPoint.SessionRand.Next(int.MinValue, int.MaxValue);
         }
 
         Replicator.SetState(new ZoneLightState()
@@ -241,16 +248,9 @@ internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolde
 
     public void RevertLightData()
     {
-        if (Replicator == null)
-            return;
+        if (Replicator == null || Replicator.IsInvalid) return;
 
-        if (Replicator.IsInvalid)
-            return;
-
-        Replicator.SetState(new ZoneLightState()
-        {
-            lightData = 0
-        });
+        Replicator.SetState(new ZoneLightState() { lightData = 0 });
     }
 
     public void OnStateChange(ZoneLightState oldState, ZoneLightState state, bool isRecall)
@@ -259,17 +259,22 @@ internal sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolde
         {
             for (int i = 0; i < LightsInZone.Length; i++)
             {
+                //if (LightsInZone[i].ExcludeFromZoneLightJob) continue;
                 LightsInZone[i].Revert();
             }
         }
         else
         {
             var block = LightSettingsDataBlock.GetBlock(state.lightData);
-            if (block == null)
+            if (block == null || !block.internalEnabled)
+            {
+                Logger.Error("Failed to find enabled LightSettingsDataBlock!");
                 return;
+            }
 
             for (int i = 0; i < LightsInZone.Length; i++)
             {
+                //if (LightsInZone[i].ExcludeFromZoneLightJob) continue;
                 LightsInZone[i].ApplyLightSetting(block, isRecall ? 0.0f : state.duration, state.lightSeed, i);
             }
         }

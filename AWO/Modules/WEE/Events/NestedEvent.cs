@@ -1,5 +1,6 @@
-﻿using AWO.WEE.Events;
-using GameData;
+﻿using GameData;
+using GTFO.API.Extensions;
+using NestedType = AWO.Modules.WEE.WEE_NestedEvent.NestedMode;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -7,34 +8,21 @@ internal sealed class NestedEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.NestedEvent;
 
-    protected override void OnSetup()
-    {
-        LevelEvents.OnLevelBuildDoneLate += PostFactoryDone;
-    }
-
-    private void PostFactoryDone()
-    {
-        int seed = RundownManager.GetActiveExpeditionData().sessionSeed;
-        EntryPoint.SessionSeed = new(seed);
-        Logger.Info($"SessionSeed {seed}");
-    }
-
     protected override void TriggerCommon(WEE_EventData e)
     {
-        int length = e.NestedEvent.EventsToActivate.Length;
+        int count = e.NestedEvent.EventsToActivate.Count;
         List<WardenObjectiveEventData> eventList;
 
-        if ((byte)e.NestedEvent.Type == 1)
+        if (e.NestedEvent.Type == NestedType.RandomAny)
         {
             eventList = new();
 
-            for (int i = 0; i < e.NestedEvent.MaxRandomEvents && i < e.NestedEvent.EventsToActivate.Length; i++)
+            for (int i = 0; i < e.NestedEvent.MaxRandomEvents && i < e.NestedEvent.EventsToActivate.Count; i++)
             {
                 int randIndex;
-
                 do
                 {
-                    randIndex = EntryPoint.SessionSeed.Next(length);
+                    randIndex = SessionRand.Next(count);
                 }
                 while (!e.NestedEvent.AllowRepeatsInRandom && eventList.Contains(e.NestedEvent.EventsToActivate[randIndex]));
 
@@ -43,12 +31,9 @@ internal sealed class NestedEvent : BaseEvent
         }
         else
         {
-            eventList = new(e.NestedEvent.EventsToActivate);
+            eventList = e.NestedEvent.EventsToActivate;
         }
 
-        foreach (var eventData in eventList)
-        {
-            WorldEventManager.ExecuteEvent(eventData);
-        }
+        WOManager.CheckAndExecuteEventsOnTrigger(eventList.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 }

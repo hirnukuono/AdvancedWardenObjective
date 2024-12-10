@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using LevelGeneration;
+﻿using LevelGeneration;
 
-namespace AWO.WEE.Events.SecDoor;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
 {
@@ -9,26 +8,18 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
-        if (!TryGetZoneEntranceSecDoor(zone, out var door))
-        {
-            LogError("Cannot find security door!");
-            return;
-        }
+        string doorDebug = door.Gate.m_linksTo.m_zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting);
 
         if (door.m_locks.ChainedPuzzleToSolve != null)
         {
-            door.m_sync.AttemptDoorInteraction(eDoorInteractionType.ActivateChainedPuzzle, 0.0f, 0.0f, default, null);
-            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} alarm triggered!");
+            door.m_sync.AttemptDoorInteraction(eDoorInteractionType.ActivateChainedPuzzle);
+            LogDebug($"{doorDebug} alarm triggered!");
         }
         else
         {
-            LogDebug($"{zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting)} does not have any ChainedPuzzles to activate");
+            LogDebug($"{doorDebug} does not have any ChainedPuzzles to activate");
         }
     }
 }

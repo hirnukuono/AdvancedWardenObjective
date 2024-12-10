@@ -1,10 +1,10 @@
-﻿using AWO.Networking.Inject;
+﻿using GTFO.API;
 using SNetwork;
-using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using static AWO.Networking.Patch.Patch_SNet_Capture;
 
 namespace AWO.Networking;
 
@@ -18,10 +18,10 @@ public sealed partial class StateReplicator<S> where S : struct
     public static readonly int StateSize;
     public static readonly StatePayloads.Size StateSizeType;
 
-    private static readonly IReplicatorEvent<S> _C_RequestEvent;
-    private static readonly IReplicatorEvent<S> _H_SetStateEvent;
-    private static readonly IReplicatorEvent<S> _H_SetRecallStateEvent;
-    private static readonly ReplicatorHandshake _Handshake;
+    private static readonly IReplicatorEvent<S>? _C_RequestEvent;
+    private static readonly IReplicatorEvent<S>? _H_SetStateEvent;
+    private static readonly IReplicatorEvent<S>? _H_SetRecallStateEvent;
+    private static readonly ReplicatorHandshake? _Handshake;
 
     private static readonly Dictionary<uint, StateReplicator<S>> _Replicators = new();
 
@@ -43,11 +43,12 @@ public sealed partial class StateReplicator<S> where S : struct
         _H_SetStateEvent = StatePayloads.CreateEvent<S>(StateSizeType, HostSetStateEventName, HostSetStateEventCallback);
         _H_SetRecallStateEvent = StatePayloads.CreateEvent<S>(StateSizeType, HostSetRecallStateEventName, HostSetRecallStateEventCallback);
         _Handshake = ReplicatorHandshake.Create($"{Name}-{HashName}");
-        _Handshake.OnClientSyncRequested += ClientSyncRequested;
+        if (_Handshake is not null)
+            _Handshake.OnClientSyncRequested += ClientSyncRequested;
 
-        Inject_SNet_Capture.OnBufferCapture += BufferStored;
-        Inject_SNet_Capture.OnBufferRecalled += BufferRecalled;
-        LevelEvents.OnLevelCleanup += LevelCleanedUp;
+        OnBufferCapture += BufferStored;
+        OnBufferRecalled += BufferRecalled;
+        LevelAPI.OnLevelCleanup += LevelCleanedUp;
     }
 
     private static void ClientSyncRequested(SNet_Player requestedPlayer)
@@ -83,24 +84,24 @@ public sealed partial class StateReplicator<S> where S : struct
     {
         UnloadSessionReplicator();
     }
-
-    private StateReplicator() { }
-
-    public static StateReplicator<S> Create(uint replicatorID, S startState, LifeTimeType lifeTime, IStateReplicatorHolder<S> holder = null)
+    
+    public static bool TryCreate(uint replicatorID, S startState, LifeTimeType lifeTime, [NotNullWhen(true)] out StateReplicator<S>? replicator, IStateReplicatorHolder<S>? holder = null)
     {
         if (replicatorID == 0u)
         {
             Logger.Error("Replicator ID 0 is reserved for empty!");
-            return null;
+            replicator = null;
+            return false;
         }
 
         if (_Replicators.ContainsKey(replicatorID))
         {
             Logger.Error("Replicator ID has already assigned!");
-            return null;
+            replicator = null;
+            return false;
         }
 
-        var replicator = new StateReplicator<S>
+        replicator = new StateReplicator<S>
         {
             ID = replicatorID,
             LifeTime = lifeTime,
@@ -114,17 +115,18 @@ public sealed partial class StateReplicator<S> where S : struct
         }
         else if (lifeTime == LifeTimeType.Session)
         {
-            _Handshake.UpdateCreated(replicatorID);
+            _Handshake?.UpdateCreated(replicatorID);
         }
         else
         {
             Logger.Error($"LifeTime is invalid!: {lifeTime}");
-            return null;
+            replicator = null;
+            return false;
         }
 
 
         _Replicators[replicatorID] = replicator;
-        return replicator;
+        return replicator is not null;
     }
 
     public static void UnloadSessionReplicator()
@@ -144,7 +146,7 @@ public sealed partial class StateReplicator<S> where S : struct
             _Replicators.Remove(id);
         }
 
-        _Handshake.Reset();
+        _Handshake?.Reset();
     }
 
     private static void ClientRequestEventCallback(ulong sender, uint replicatorID, S newState)

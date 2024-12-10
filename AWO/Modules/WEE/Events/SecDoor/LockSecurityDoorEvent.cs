@@ -1,8 +1,6 @@
-﻿using AWO.Modules.WEE;
-using GameData;
-using LevelGeneration;
+﻿using GameData;
 
-namespace AWO.WEE.Events.SecDoor;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class LockSecurityDoorEvent : BaseEvent
 {
@@ -10,13 +8,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Cannot find zone!");
-            return;
-        }
-
-        if (!TryGetZoneEntranceSecDoor(zone, out var door))
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
         {
             LogError("Cannot find security door!");
             return;
@@ -29,13 +21,12 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
             DimensionIndex = e.DimensionIndex,
             LocalIndex = e.LocalIndex
         };
-
         WorldEventManager.ExecuteEvent(eventData);
 
-        var locks = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
-        if (locks != null)
+        var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
+        if (intMessage != null)
         {
-            locks.m_message = e.SpecialText.ToString();
+            intMessage.m_message = e.SpecialText;
         }
     }
 }

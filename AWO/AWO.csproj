@@ -25,4 +25,14 @@
 
 	<Import Project="Dependencies.props" />
 
+	<ItemGroup>
+	  <Compile Remove="Modules\WOE\**" />
+	  <EmbeddedResource Remove="Modules\WOE\**" />
+	  <None Remove="Modules\WOE\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="CustomFields\WODataBlockFields.cs" />
+	</ItemGroup>
+
 </Project>

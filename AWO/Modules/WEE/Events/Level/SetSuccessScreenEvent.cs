@@ -1,21 +1,22 @@
-﻿using AWO.WEE.Events;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
+using ScreenType = AWO.Modules.WEE.WEE_SetSuccessScreen.ScreenType;
 
-namespace AWO.Modules.WEE.Events.Level;
+namespace AWO.Modules.WEE.Events;
 internal sealed class SetSuccessScreenEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetSuccessScreen;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (e.SuccessScreen.Type == 0)
+        switch (e.SuccessScreen.Type)
         {
-            SetScreen(e.SuccessScreen.CustomSuccessScreen.ToString());
-        }
-        else
-        {
-            CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
+            case ScreenType.SetSuccessScreen:
+                SetScreen(e.SuccessScreen.CustomSuccessScreen);
+                break;
+            case ScreenType.FlashFakeScreen:
+                CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
+                break;
         }
     }
     
@@ -46,22 +47,12 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         FocusStateManager.MapToggleAllowed = false;
         FocusStateManager.MenuToggleAllowed = false;
 
-        yield return new WaitForSeconds(GetDuration(e));
+        yield return new WaitForSeconds(e.Duration);
 
         Logger.Debug("[SetSuccessScreen] Disabling fake end screen... Enabled map and menu toggle");
         FocusStateManager.ExitMenu();
         FocusStateManager.ChangeState(eFocusState.FPS, force: true);
         FocusStateManager.MapToggleAllowed = true;
         FocusStateManager.MenuToggleAllowed = true;
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.SuccessScreen.Duration != 0.0f)
-            return e.SuccessScreen.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-
-        return e.SuccessScreen.Duration;
     }
 }

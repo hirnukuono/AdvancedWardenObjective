@@ -1,14 +1,13 @@
 ﻿using Agents;
 using AIGraph;
-using AWO.WEE.Events;
 using Enemies;
 using LevelGeneration;
 using Player;
 using System.Collections;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
-namespace AWO.Modules.WEE.Events.Enemy;
+namespace AWO.Modules.WEE.Events;
+
 internal class SpawnHibernateInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnHibernateInZone;
@@ -17,33 +16,35 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone) || zone == null) return;
+        if (!TryGetZone(e, out var zone)) return;
 
         var sh = e.SpawnHibernates;
+        Vector3 pos = GetPositionFallback(ResolveFieldFallback(e.Position, sh.Position, false), e.SpecialText, false);
+        int count = ResolveFieldFallback(e.Count, sh.Count);
+
         if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
         {
-            if (sh.Count == 1 && sh.Position != Vector3.zero) // spawn 1 enemy at a specific position
+            if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
             {
-                EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, sh.Position, Quaternion.Euler(sh.Rotation));
+                EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));
             }
             else
             {
-                CoroutineManager.StartCoroutine(DoSpawn(sh, zone, e.Enabled).WrapToIl2Cpp());
+                CoroutineManager.StartCoroutine(DoSpawn(sh, zone, count, e.Enabled).WrapToIl2Cpp());
             }
         }
     }
 
-    static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, bool enabled)
+    static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, int count, bool enabled)
     {
         AgentMode mode = AgentMode.Hibernate;
-        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / sh.Count);
+        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
 
-        var rand = new System.Random();
         var areas = zone.m_areas;
 
-        for (int spawnCount = 0; spawnCount < sh.Count; spawnCount++)
+        for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
-            AIG_CourseNode spawnNode = sh.AreaIndex != -1 ? areas[sh.AreaIndex].m_courseNode : areas[rand.Next(0, areas.Count)].m_courseNode;
+            AIG_CourseNode spawnNode = sh.AreaIndex != -1 ? areas[sh.AreaIndex].m_courseNode : areas[MasterRand.Next(areas.Count)].m_courseNode;
             Vector3 pos;
             int attempts = 0;
             bool isValidPos;
@@ -79,22 +80,10 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
             if (!isValidPos && !enabled) continue;
 
-            Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+            Quaternion rotation = Quaternion.Euler(0, MasterRand.NextRange(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);
 
             yield return spawnInterval;
         }
-    }
-
-    private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
-    {
-        var areas = zone.m_areas;
-        if (areaIndex < 0 || areaIndex >= areas.Count)
-        {
-            Logger.Error($"[SpawnHibernateInZoneEvent] Invalid area index {areaIndex}");
-            return false;
-        }
-
-        return true;
     }
 }

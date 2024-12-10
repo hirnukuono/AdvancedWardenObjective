@@ -1,16 +1,12 @@
 ﻿using AWO.CustomFields;
 using AWO.Jsons.ManagedJson;
-using AWO.Modules.WEE;
 using GameData;
 using Il2CppJsonNet.Linq;
 using InjectLib.FieldInjection;
 using InjectLib.JsonNETInjection.Supports;
 using InjectLib.JsonNETInjection.Handler;
-using System;
-using System.Text.Json;
-using JSON = GTFO.API.JSON.JsonSerializer;
 
-namespace AWO.WEE.JsonInjects;
+namespace AWO.Modules.WEE.JsonInjects;
 internal class EventDataHandler : Il2CppJsonReferenceTypeHandler<WardenObjectiveEventData>
 {
     public override void OnRead(in Il2CppSystem.Object result, in JToken jToken)

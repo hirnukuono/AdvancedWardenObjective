@@ -1,22 +1,25 @@
-﻿using AWO.Modules.WEE;
-using BepInEx.Core.Logging.Interpolation;
+﻿using BepInEx.Core.Logging.Interpolation;
 using LevelGeneration;
 using Player;
 using SNetwork;
+using System.Diagnostics.CodeAnalysis;
+using UnityEngine;
 
-namespace AWO.WEE.Events;
+namespace AWO.Modules.WEE.Events;
 
 internal abstract class BaseEvent
 {
     public string Name { get; private set; } = string.Empty;
-    protected PlayerAgent LocalPlayer { get; private set; }
+    protected PlayerAgent LocalPlayer { get; private set; } = new();
     protected static bool IsMaster => SNet.IsMaster;
     protected static bool HasMaster => SNet.HasMaster;
+    public static System.Random MasterRand { get; } = new(Guid.NewGuid().GetHashCode());
+    public static System.Random SessionRand => EntryPoint.SessionRand;
     public abstract WEE_Type EventType { get; }
 
     public void Setup()
     {
-        Name = GetType().Name;
+        Name = GetType().Name;    
         OnSetup();
     }
 
@@ -24,20 +27,20 @@ internal abstract class BaseEvent
     {
         if (!PlayerManager.HasLocalPlayerAgent())
         {
-            Logger.Error($"Doesn't have LocalPlayer while triggering {Name} wtf?");
+            Logger.Error($"Doesn't have LocalPlayer while triggering {Name}, wtf?");
             return;
         }
 
         LocalPlayer = PlayerManager.GetLocalPlayerAgent();
         TriggerCommon(e);
 
-        if (SNet.IsMaster) TriggerMaster(e);
+        if (IsMaster) TriggerMaster(e);
         else TriggerClient(e);
     }
 
     protected virtual void OnSetup() { }
     protected virtual void TriggerCommon(WEE_EventData e) { }
-    protected virtual void TriggerClient(WEE_EventData e) { }
+    protected virtual void TriggerClient(WEE_EventData e) { } // :c
     protected virtual void TriggerMaster(WEE_EventData e) { }
 
     protected void LogInfo(string msg) => Logger.Info($"[{Name}] {msg}");
@@ -76,18 +79,17 @@ internal abstract class BaseEvent
         }
     }
 
-    public bool TryGetZone(WEE_EventData e, out LG_Zone zone)
+    public bool TryGetZone(WEE_EventData e, [NotNullWhen(true)] out LG_Zone? zone)
     {
-        if (!Builder.Current.m_currentFloor.TryGetZoneByLocalIndex(e.DimensionIndex, e.Layer, e.LocalIndex, out zone))
+        if (Builder.CurrentFloor.TryGetZoneByLocalIndex(e.DimensionIndex, e.Layer, e.LocalIndex, out zone))
         {
-            LogError("Unable to Find Zone from Event Data");
-            zone = null;
-            return false;
+            return true;
         }
-        return true;
+        LogError("Unable to find zone from EventData!");
+        return false;
     }
 
-    public bool TryGetZoneEntranceSecDoor(WEE_EventData e, out LG_SecurityDoor door)
+    public bool TryGetZoneEntranceSecDoor(WEE_EventData e, [NotNullWhen(true)] out LG_SecurityDoor? door)
     {
         if (TryGetZone(e, out var zone))
         {
@@ -97,30 +99,64 @@ internal abstract class BaseEvent
         return false;
     }
 
-    public bool TryGetZoneEntranceSecDoor(LG_Zone zone, out LG_SecurityDoor door)
+    public bool TryGetZoneEntranceSecDoor(LG_Zone zone, [NotNullWhen(true)] out LG_SecurityDoor? door)
     {
-        if (zone == null)
+        door = zone?.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>();
+        if (door != null)
+        { 
+            return true;
+        }
+        LogError("Unable to find entrance/source security door for zone!");
+        return false;
+    }
+
+    public bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
+    {
+        var areas = zone.m_areas;
+        if (areaIndex < 0 || areaIndex >= areas.Count)
         {
-            LogError("Zone was Null!");
-            door = null;
+            LogError($"Invalid area index ({areaIndex}) for local index {zone.LocalIndex}");
             return false;
         }
 
-        if (zone.m_sourceGate == null)
+        return true;
+    }
+
+    public S ResolveFieldFallback<S>(S value, S nested, bool debug = true) where S : struct
+    {
+        if (!EqualityComparer<S>.Default.Equals(nested, default))
         {
-            LogError("Entrace Gate is Null!");
-            door = null;
-            return false;
+            return nested;
+        }
+        else if (!EqualityComparer<S>.Default.Equals(value, default))
+        {
+            return value;
         }
 
-        if (zone.m_sourceGate.SpawnedDoor == null)
+        if (debug)
         {
-            LogError("SpawnedDoor is Null!");
-            door = null;
-            return false;
+            LogWarning($"Both legacy-nested and field {nameof(value)} are default {typeof(S)}");
         }
 
-        door = zone.m_sourceGate.SpawnedDoor.TryCast<LG_SecurityDoor>();
-        return door != null;
+        return default!;
+    }
+
+    public Vector3 GetPositionFallback(Vector3 position, string weObjectFilter, bool debug = true)
+    {
+        if (position != Vector3.zero)
+        {
+            return position;
+        }
+        else if (WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(weObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject))
+        {
+            return weObject.gameObject.transform.position;
+        }
+
+        if (debug)
+        {
+            LogWarning($"Position is zero, or could not find WorldEventObjectFilter {weObjectFilter}");
+        }
+
+        return Vector3.zero;
     }
 }

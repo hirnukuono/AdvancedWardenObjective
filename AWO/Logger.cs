@@ -6,7 +6,7 @@ namespace AWO;
 
 internal static class Logger
 {
-    private static readonly ManualLogSource _Logger;
+    private readonly static ManualLogSource _Logger;
 
     static Logger()
     {
@@ -14,7 +14,7 @@ internal static class Logger
         BepInEx.Logging.Logger.Sources.Add(_Logger);
     }
 
-    private static string Format(object msg) => msg.ToString();
+    private static string Format(object msg) => msg.ToString()!;
     public static void Info(BepInExInfoLogInterpolatedStringHandler handler) => _Logger.LogInfo(handler);
     public static void Info(string str) => _Logger.LogMessage(str);
     public static void Info(object data) => _Logger.LogMessage(Format(data));

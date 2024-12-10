@@ -1,8 +1,7 @@
-﻿using AWO.WEE.Events;
-using Agents;
+﻿using Agents;
 using Player;
 
-namespace AWO.Modules.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class RevivePlayerEvent : BaseEvent
 {
@@ -12,8 +11,13 @@ internal sealed class RevivePlayerEvent : BaseEvent
     {
         var activeSlotIndices = new HashSet<int>(e.RevivePlayer.PlayerFilter.Select(filter => (int)filter));
 
-        foreach (PlayerAgent player in PlayerManager.PlayerAgentsInLevel)
-            if (activeSlotIndices.Contains(player.PlayerSlotIndex) && !player.Alive)
+        for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
+        {
+            PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
+            if (activeSlotIndices.Contains(i) && !player.Alive)
+            {
                 AgentReplicatedActions.PlayerReviveAction(player, player, player.Position);
+            }
+        }
     }
 }

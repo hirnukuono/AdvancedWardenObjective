@@ -1,7 +1,6 @@
-﻿using AWO.Modules.WEE;
-using SNetwork;
+﻿using SNetwork;
 
-namespace AWO.WEE.Events.Level;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class SaveCheckpointEvent : BaseEvent
 {

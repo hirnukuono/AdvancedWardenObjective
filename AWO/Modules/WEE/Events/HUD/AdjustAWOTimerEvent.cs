@@ -1,6 +1,4 @@
-﻿using AWO.WEE.Events;
-
-namespace AWO.Modules.WEE.Events.HUD;
+﻿namespace AWO.Modules.WEE.Events;
 
 internal sealed class AdjustAWOTimerEvent : BaseEvent
 {
@@ -8,7 +6,7 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        EntryPoint.TimerMods.TimeModifier = GetDuration(e);
+        EntryPoint.TimerMods.TimeModifier = ResolveFieldFallback(e.Duration, e.AdjustTimer.Duration);
 
         if (e.AdjustTimer.Speed != 0.0f)
         {
@@ -20,15 +18,5 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
             EntryPoint.TimerMods.CountupText = e.AdjustTimer.CustomText;
             EntryPoint.TimerMods.TimerColor = e.AdjustTimer.TimerColor;
         }
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.AdjustTimer.Duration != 0.0f)
-            return e.AdjustTimer.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-
-        return e.AdjustTimer.Duration;
     }
 }

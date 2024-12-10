@@ -1,8 +1,10 @@
-﻿using AWO.Modules.WEE;
+﻿using FluffyUnderware.Curvy.Utils;
+using GameData;
+using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
 
-namespace AWO.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class SpecialHudTimerEvent : BaseEvent
 {
@@ -13,17 +15,8 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        CoroutineManager.StartCoroutine(DoInteractionHud(e.SpecialHudTimer, GetDuration(e)).WrapToIl2Cpp());
-    }
-
-    private static float GetDuration(WEE_EventData e)
-    {
-        if (e.SpecialHudTimer.Duration != 0.0f)
-            return e.SpecialHudTimer.Duration;
-        else if (e.Duration != 0.0f)
-            return e.Duration;
-
-        return e.SpecialHudTimer.Duration;
+        float duration = ResolveFieldFallback(e.Duration, e.SpecialHudTimer.Duration);
+        CoroutineManager.StartCoroutine(DoInteractionHud(e.SpecialHudTimer, duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoInteractionHud(WEE_SpecialHudTimer hud, float duration)
@@ -77,17 +70,12 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             
             if (hasProgressEvents)
             {
-                List<EventsOnTimerProgress> removeQ = new();
-                foreach (var progressEvents in cachedProgressEvents.Where(x => Math.Round(x.Progress, 2) == Math.Round(percentage, 2)))
+                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(time / duration)))
                 {
-                    foreach (var eventData in progressEvents.Events)
-                    {
-                        WorldEventManager.ExecuteEvent(eventData);
-                    }
-                    removeQ.Add(progressEvents);
+                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    progressEvents.SetActivated();
                 }
-                removeQ.ForEach(y => cachedProgressEvents.Remove(y));
-                hasProgressEvents = cachedProgressEvents.Count > 0;
+                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
             }
 
             yield return null;
@@ -98,10 +86,6 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         GuiManager.InteractionLayer.MessageVisible = false;
         GuiManager.InteractionLayer.MessageTimerVisible = false;
-
-        foreach (var eventData in hud.EventsOnDone)
-        {
-            WorldEventManager.ExecuteEvent(eventData);
-        }
+        WOManager.CheckAndExecuteEventsOnTrigger(hud.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 }

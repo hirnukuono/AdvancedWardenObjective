@@ -1,10 +1,9 @@
 ﻿using Agents;
 using AIGraph;
-using AWO.Modules.WEE;
 using LevelGeneration;
 using Player;
 
-namespace AWO.WEE.Events.Enemy;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 {
@@ -12,11 +11,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone))
-        {
-            LogError("Zone is missing?");
-            return;
-        }
+        if (!TryGetZone(e, out var zone)) return;
 
         if (e.SpecialNumber == -1)
         {
@@ -46,24 +41,12 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 
         foreach (var enemy in node.m_enemiesInNode)
         {
-            PlayerManager.TryGetLocalPlayerAgent(out PlayerAgent minae);
+            PlayerManager.TryGetClosestAlivePlayerAgent(enemy.CourseNode, out PlayerAgent minae);
             AgentMode mode = AgentMode.Agressive;
             enemy.AI.SetStartMode(mode);
             enemy.AI.ModeChange();
             enemy.AI.m_mode = mode;
             enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
         }
-    }
-
-    private static bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
-    {
-        var areas = zone.m_areas;
-        if (areaIndex < 0 || areaIndex >= areas.Count)
-        {
-            Logger.Error($"[AlertEnemiesInZoneEvent] Invalid area index {areaIndex}");
-            return false;
-        }
-
-        return true;
     }
 }

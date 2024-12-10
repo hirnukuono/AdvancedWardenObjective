@@ -5,7 +5,7 @@ using Il2CppInterop.Runtime.InteropTypes.Fields;
 using LevelGeneration;
 using UnityEngine;
 
-namespace AWO.WEE.Replicators;
+namespace AWO.Modules.WEE.Replicators;
 
 internal struct ScanPositionState
 {
@@ -27,7 +27,13 @@ internal sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHo
             position = scan.transform.position,
             nodeID = scan.CourseNode.NodeID
         };
-        Replicator = StateReplicator<ScanPositionState>.Create(id, defaultState, LifeTimeType.Session, this);
+
+        if (!StateReplicator<ScanPositionState>.TryCreate(id, defaultState, LifeTimeType.Session, out var replicator, this))
+        {
+            Logger.Error("Failed to create ScanPositionReplicator!");
+            return;
+        }
+        Replicator = replicator;
     }
 
     public void TryUpdatePosition(Vector3 position)

@@ -9,15 +9,17 @@ namespace AWO.Modules.WEE.Patches;
 [HarmonyPatch]
 internal static class Patch_AddPage
 {
-    private static bool McBased = false;
+    public static bool McBased = false;
 
     [HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.AddPage))]
-    private static bool Prefix(MainMenuGuiLayer __instance, eCM_MenuPage pageEnum, string pageResourcePath, ref CM_PageBase __result)
+    [HarmonyPrefix]
+    [HarmonyWrapSafe]
+    private static bool Pre_AddPage(MainMenuGuiLayer __instance, eCM_MenuPage pageEnum, string pageResourcePath, ref CM_PageBase __result)
     {
-        if (GameStateManager.Current.m_currentStateName == eGameStateName.Startup)
+        if (GameStateManager.Current.m_currentStateName == eGameStateName.Startup || !pageResourcePath.Contains('/'))
+        {
             return true;
-        else if (!pageResourcePath.Contains('/'))
-            return true;
+        }
 
         if (pageEnum == eCM_MenuPage.CMP_EXPEDITION_SUCCESS && !McBased)
         {

@@ -19,12 +19,13 @@ internal static class BlackoutState
     {
         if (_Replicator != null) return;
 
-        if (!StateReplicator<BlackoutStatus>.TryCreate(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent, out var replicator))
+        /*if (!StateReplicator<BlackoutStatus>.TryCreate(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent, out var replicator))
         {
             Logger.Error("Failed to create BlackoutState Replicator!");
             return;
         }
-        _Replicator = replicator;
+        _Replicator = replicator;*/
+        _Replicator = StateReplicator<BlackoutStatus>.Create(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent);
 
         _Replicator.OnStateChanged += OnStateChanged;
         LevelAPI.OnLevelCleanup += LevelCleanup;
@@ -65,8 +66,7 @@ internal static class BlackoutState
                 interact.SetActive(isNormal);
             }
 
-            var guixSceneLink = terminal.GetComponent<GUIX_VirtualSceneLink>();
-            if (guixSceneLink != null && guixSceneLink.m_virtualScene != null)
+            if (terminal.gameObject.TryAndGetComponent(out GUIX_VirtualSceneLink guixSceneLink) && guixSceneLink.m_virtualScene != null)
             {
                 var virtCam = guixSceneLink.m_virtualScene.virtualCamera;
                 float nearClip = isNormal ? 0.3f : 0.0f;

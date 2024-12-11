@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using BepInEx;
+using HarmonyLib;
 
 namespace AWO.Modules.TerminalSerialLookup;
 
@@ -6,9 +7,11 @@ namespace AWO.Modules.TerminalSerialLookup;
 internal static class Patch_IncomingFragments
 {
     [HarmonyPatch(typeof(WOManager), nameof(WOManager.ReplaceFragmentsInString))]
-    private static void Postfix(ref string __result)
+    [HarmonyPostfix]
+    [HarmonyWrapSafe]
+    private static void Post_ReplaceFragments(ref string __result)
     {
-        if (HasBracketPair(__result))
+        if (!__result.IsNullOrWhiteSpace() && HasBracketPair(__result))
         {
             __result = SerialLookupManager.ParseTextFragments(__result);
         }

@@ -1,5 +1,6 @@
 ﻿using GTFO.API;
 using SNetwork;
+using System.Collections.Generic;
 
 namespace AWO.Networking;
 
@@ -7,12 +8,12 @@ public sealed class ReplicatorHandshake
 {
     public delegate void ClientRequestedSyncDel(SNet_Player requestedPlayer);
 
-    public event ClientRequestedSyncDel? OnClientSyncRequested;
+    public event ClientRequestedSyncDel OnClientSyncRequested;
     public string EventName { get; private set; }
     public bool IsReadyToSync { get; private set; }
     private readonly Dictionary<uint, Data> _Lookup = new();
 
-    public static ReplicatorHandshake? Create(string guid)
+    public static ReplicatorHandshake Create(string guid)
     {
         if (string.IsNullOrWhiteSpace(guid))
             return null;

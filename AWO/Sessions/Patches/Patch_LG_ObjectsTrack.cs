@@ -20,7 +20,7 @@ internal static class Patch_LG_ObjectsTrack
     }
 
     [HarmonyPostfix]
-    private static void TrackObject(Component __instance)
+    private static void Post_TrackObject(Component __instance)
     {
         LG_Objects.AddToTrackedList(__instance);
     }

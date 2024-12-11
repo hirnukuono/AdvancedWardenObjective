@@ -7,7 +7,8 @@ namespace AWO.Modules.WEE.Patches;
 internal static class Patch_LG_DimensionPortal
 {
     [HarmonyPatch(typeof(LG_DimensionPortal), nameof(LG_DimensionPortal.Setup))]
-    private static void Postfix(LG_DimensionPortal __instance)
+    [HarmonyPostfix]
+    private static void Post_Setup(LG_DimensionPortal __instance)
     {
         EntryPoint.Portals.Add(new(__instance.SpawnNode.m_dimension.DimensionIndex, __instance.SpawnNode.LayerType, __instance.SpawnNode.m_zone.LocalIndex), __instance);
     }

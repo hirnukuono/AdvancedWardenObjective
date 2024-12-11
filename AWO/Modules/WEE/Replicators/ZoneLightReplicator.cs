@@ -34,15 +34,15 @@ public struct LightTransitionData
 
 public class LightWorker
 {
-    public LG_Zone OwnerZone = new();
-    public LG_Light Light = new();
+    public LG_Zone OwnerZone;
+    public LG_Light Light;
     public int InstanceID;
     public Color OrigColor; 
     public bool OrigEnabled;
     public float PrefabIntensity;
     public float OrigIntensity;
-    public Coroutine LightAnimationRoutine = new();
-    public Coroutine LightTransitionRoutine = new();
+    public Coroutine LightAnimationRoutine;
+    public Coroutine LightTransitionRoutine;
     //public bool ExcludeFromZoneLightJob = false;
 
     public void ApplyLightSetting(LightSettingsDataBlock lightDB, float duration, int seed, int subseed)
@@ -178,20 +178,23 @@ public class LightWorker
 public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
 {
     [HideFromIl2Cpp]
-    public StateReplicator<ZoneLightState> Replicator { get; private set; } = new();
-    [HideFromIl2Cpp]
-    public LightWorker[] LightsInZone { get; private set; } = Array.Empty<LightWorker>();
+    public StateReplicator<ZoneLightState> Replicator { get; private set; }
+    public LightWorker[] LightsInZone;
     public bool IsSetup { get; private set; } = false;
 
     public void Setup(LG_Zone zone)
     {
         /*Zone ID can be start with 0*/
-        if (!StateReplicator<ZoneLightState>.TryCreate((uint)zone.ID + 1, new() { lightData = 0u }, LifeTimeType.Session, out var replicator, this))
+        /*if (!StateReplicator<ZoneLightState>.TryCreate((uint)zone.ID + 1, new() { lightData = 0u }, LifeTimeType.Session, out var replicator, this))
         {
             Logger.Error("Failed to create ZoneLightReplicator!");
             return;
         }
-        Replicator = replicator;
+        Replicator = replicator;*/
+        Replicator = StateReplicator<ZoneLightState>.Create((uint)zone.ID + 1 /*Zone ID can be start with 0*/, new()
+        {
+            lightData = 0u
+        }, LifeTimeType.Session, this);
 
         var workers = new List<LightWorker>();
         foreach (var nodes in zone.m_courseNodes)

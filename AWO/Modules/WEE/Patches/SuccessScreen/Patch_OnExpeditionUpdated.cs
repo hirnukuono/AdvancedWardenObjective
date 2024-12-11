@@ -4,10 +4,13 @@ using HarmonyLib;
 
 namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.OnExpeditionUpdated))]
+[HarmonyPatch]
 internal static class Patch_OnExpeditionUpdated
 {
-    private static void Prefix(ExpeditionInTierData expeditionInTierData, out string? __state)
+    [HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.OnExpeditionUpdated))]
+    [HarmonyPrefix]
+    [HarmonyWrapSafe]
+    private static void Pre_ExpeditionUpdated(ExpeditionInTierData expeditionInTierData, out string? __state)
     {
         if (WinScreen.VanillaPaths.Contains(expeditionInTierData.SpecialOverrideData.CustomSuccessScreen))
         {
@@ -19,9 +22,12 @@ internal static class Patch_OnExpeditionUpdated
         expeditionInTierData.SpecialOverrideData.CustomSuccessScreen = null;
     }
 
-    private static void Postfix(MainMenuGuiLayer __instance, string? __state)
+    [HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.OnExpeditionUpdated))]
+    [HarmonyPostfix]
+    [HarmonyWrapSafe]
+    private static void Post_ExpeditionUpdated(MainMenuGuiLayer __instance, string? __state)
     {
-        if (__state?.Contains('/') == true)
+        if (!string.IsNullOrEmpty(__state) && __state.Contains('/'))
         {
             __instance.PageCustomExpeditionSuccess = __instance.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, __state);
             Logger.Debug($"Successfully loaded modded CustomSuccessScreen");

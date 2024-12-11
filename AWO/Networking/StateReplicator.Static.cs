@@ -1,6 +1,5 @@
 ﻿using GTFO.API;
 using SNetwork;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,10 +17,10 @@ public sealed partial class StateReplicator<S> where S : struct
     public static readonly int StateSize;
     public static readonly StatePayloads.Size StateSizeType;
 
-    private static readonly IReplicatorEvent<S>? _C_RequestEvent;
-    private static readonly IReplicatorEvent<S>? _H_SetStateEvent;
-    private static readonly IReplicatorEvent<S>? _H_SetRecallStateEvent;
-    private static readonly ReplicatorHandshake? _Handshake;
+    private static readonly IReplicatorEvent<S> _C_RequestEvent;
+    private static readonly IReplicatorEvent<S> _H_SetStateEvent;
+    private static readonly IReplicatorEvent<S> _H_SetRecallStateEvent;
+    private static readonly ReplicatorHandshake _Handshake;
 
     private static readonly Dictionary<uint, StateReplicator<S>> _Replicators = new();
 
@@ -43,8 +42,7 @@ public sealed partial class StateReplicator<S> where S : struct
         _H_SetStateEvent = StatePayloads.CreateEvent<S>(StateSizeType, HostSetStateEventName, HostSetStateEventCallback);
         _H_SetRecallStateEvent = StatePayloads.CreateEvent<S>(StateSizeType, HostSetRecallStateEventName, HostSetRecallStateEventCallback);
         _Handshake = ReplicatorHandshake.Create($"{Name}-{HashName}");
-        if (_Handshake is not null)
-            _Handshake.OnClientSyncRequested += ClientSyncRequested;
+        _Handshake.OnClientSyncRequested += ClientSyncRequested;
 
         OnBufferCapture += BufferStored;
         OnBufferRecalled += BufferRecalled;
@@ -84,24 +82,24 @@ public sealed partial class StateReplicator<S> where S : struct
     {
         UnloadSessionReplicator();
     }
-    
-    public static bool TryCreate(uint replicatorID, S startState, LifeTimeType lifeTime, [NotNullWhen(true)] out StateReplicator<S>? replicator, IStateReplicatorHolder<S>? holder = null)
+
+    private StateReplicator() { }
+
+    public static StateReplicator<S> Create(uint replicatorID, S startState, LifeTimeType lifeTime, IStateReplicatorHolder<S> holder = null)
     {
         if (replicatorID == 0u)
         {
             Logger.Error("Replicator ID 0 is reserved for empty!");
-            replicator = null;
-            return false;
+            return null;
         }
 
         if (_Replicators.ContainsKey(replicatorID))
         {
             Logger.Error("Replicator ID has already assigned!");
-            replicator = null;
-            return false;
+            return null;
         }
 
-        replicator = new StateReplicator<S>
+        var replicator = new StateReplicator<S>
         {
             ID = replicatorID,
             LifeTime = lifeTime,
@@ -115,18 +113,17 @@ public sealed partial class StateReplicator<S> where S : struct
         }
         else if (lifeTime == LifeTimeType.Session)
         {
-            _Handshake?.UpdateCreated(replicatorID);
+            _Handshake.UpdateCreated(replicatorID);
         }
         else
         {
             Logger.Error($"LifeTime is invalid!: {lifeTime}");
-            replicator = null;
-            return false;
+            return null;
         }
 
 
         _Replicators[replicatorID] = replicator;
-        return replicator is not null;
+        return replicator;
     }
 
     public static void UnloadSessionReplicator()
@@ -146,7 +143,7 @@ public sealed partial class StateReplicator<S> where S : struct
             _Replicators.Remove(id);
         }
 
-        _Handshake?.Reset();
+        _Handshake.Reset();
     }
 
     private static void ClientRequestEventCallback(ulong sender, uint replicatorID, S newState)

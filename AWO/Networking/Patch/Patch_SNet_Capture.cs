@@ -11,6 +11,7 @@ internal static class Patch_SNet_Capture
 
     [HarmonyPatch(nameof(SNet_Capture.TriggerCapture))]
     [HarmonyPrefix]
+    [HarmonyWrapSafe]
     static void Pre_TriggerCapture(SNet_Capture __instance)
     {
         var type = __instance.PrimedBufferType;
@@ -22,7 +23,7 @@ internal static class Patch_SNet_Capture
     [HarmonyWrapSafe]
     static void Post_RecallBuffer(SNet_Capture __instance, eBufferType bufferType)
     {
-        if (__instance.IsRecalling) return;
+        if (__instance.IsRecalling) return; 
 
         OnBufferRecalled?.Invoke(bufferType);
     }

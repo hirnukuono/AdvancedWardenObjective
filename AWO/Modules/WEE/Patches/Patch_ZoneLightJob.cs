@@ -4,10 +4,13 @@ using LevelGeneration;
 
 namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch(typeof(LG_BuildZoneLightsJob), nameof(LG_BuildZoneLightsJob.Build))]
+[HarmonyPatch]
 internal static class Patch_ZoneLightJob
 {
-    private static void Prefix(LG_BuildZoneLightsJob __instance, out ZoneLightReplicator? __state)
+    [HarmonyPatch(typeof(LG_BuildZoneLightsJob), nameof(LG_BuildZoneLightsJob.Build))]
+    [HarmonyPrefix]
+    [HarmonyWrapSafe]
+    private static void Pre_ZoneBuild(LG_BuildZoneLightsJob __instance, out ZoneLightReplicator? __state)
     {
         var zone = __instance.m_zone;
         if (zone == null)
@@ -23,7 +26,10 @@ internal static class Patch_ZoneLightJob
         }
     }
 
-    private static void Postfix(bool __result, ZoneLightReplicator? __state)
+    [HarmonyPatch(typeof(LG_BuildZoneLightsJob), nameof(LG_BuildZoneLightsJob.Build))]
+    [HarmonyPostfix]
+    [HarmonyWrapSafe]
+    private static void Post_ZoneBuild(bool __result, ZoneLightReplicator? __state)
     {
         if (!__result) return;
 

@@ -1,4 +1,6 @@
 ﻿using SNetwork;
+using System;
+using System.Collections.Generic;
 
 namespace AWO.Networking;
 
@@ -14,7 +16,7 @@ public sealed partial class StateReplicator<S> where S : struct
     public bool IsInvalid => ID == 0u;
     public uint ID { get; private set; }
     public LifeTimeType LifeTime { get; private set; }
-    public IStateReplicatorHolder<S>? Holder { get; private set; }
+    public IStateReplicatorHolder<S> Holder { get; private set; }
     public S State { get; private set; }
     public bool ClientSendStateAllowed { get; set; } = true;
     public bool CanSendToClient => SNet.IsInLobby && SNet.IsMaster;
@@ -22,7 +24,7 @@ public sealed partial class StateReplicator<S> where S : struct
 
     private readonly Dictionary<eBufferType, S> _RecallStateSnapshots = new();
 
-    public event Action<S, S, bool>? OnStateChanged;
+    public event Action<S, S, bool> OnStateChanged;
 
     public void SetState(S state)
     {
@@ -46,7 +48,7 @@ public sealed partial class StateReplicator<S> where S : struct
         {
             _Replicators.Remove(ID);
             _RecallStateSnapshots.Clear();
-            _Handshake?.UpdateDestroyed(ID);
+            _Handshake.UpdateDestroyed(ID);
             ID = 0u;
         }
     }
@@ -58,12 +60,12 @@ public sealed partial class StateReplicator<S> where S : struct
 
         if (CanSendToClient)
         {
-            _H_SetStateEvent?.Invoke(ID, newState);
+            _H_SetStateEvent.Invoke(ID, newState);
             Internal_ChangeState(newState, false);
         }
         else if (CanSendToHost)
         {
-            _C_RequestEvent?.Invoke(ID, newState, SNet.Master);
+            _C_RequestEvent.Invoke(ID, newState, SNet.Master);
         }
     }
 
@@ -90,7 +92,7 @@ public sealed partial class StateReplicator<S> where S : struct
             return;
         }
 
-        _H_SetRecallStateEvent?.Invoke(ID, State, target);
+        _H_SetRecallStateEvent.Invoke(ID, State, target);
     }
 
     public void ClearAllRecallSnapshot()
@@ -118,7 +120,7 @@ public sealed partial class StateReplicator<S> where S : struct
         {
             if (_RecallStateSnapshots.TryGetValue(type, out var savedState))
             {
-                _H_SetRecallStateEvent?.Invoke(ID, savedState);
+                _H_SetRecallStateEvent.Invoke(ID, savedState);
                 Internal_ChangeState(savedState, isRecall: true);
             }
             else

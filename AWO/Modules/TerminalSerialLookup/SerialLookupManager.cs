@@ -1,4 +1,5 @@
-﻿using GTFO.API;
+﻿using BepInEx;
+using GTFO.API;
 using LevelGeneration;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,6 +23,7 @@ public static class SerialLookupManager
 
         foreach (var serial in LG_LevelInteractionManager.GetAllTerminalInterfaces())
         {
+            if (serial?.Key.IsNullOrWhiteSpace() != true || serial?.Value?.SpawnNode == null) continue;
             int split = serial.Key.LastIndexOf('_');
             if (split == -1) continue;
             string itemName = serial.Key.Substring(0, split);

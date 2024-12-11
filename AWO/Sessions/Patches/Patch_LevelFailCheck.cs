@@ -7,8 +7,9 @@ namespace AWO.Sessions.Patches;
 internal static class Patch_LevelFailCheck
 {
     [HarmonyPatch(typeof(WOManager), nameof(WOManager.CheckExpeditionFailed))]
+    [HarmonyPostfix]
     [HarmonyAfter]
-    private static void Postfix(ref bool __result)
+    private static void Post_CheckLevelFail(ref bool __result)
     {
         if (!LevelFailUpdateState.LevelFailAllowed)
         {

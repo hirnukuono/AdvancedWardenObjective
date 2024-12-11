@@ -70,7 +70,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             
             if (hasProgressEvents)
             {
-                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(time / duration)))
+                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(percentage)))
                 {
                     WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
                     progressEvents.SetActivated();

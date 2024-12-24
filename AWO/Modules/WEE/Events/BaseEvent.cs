@@ -40,7 +40,7 @@ internal abstract class BaseEvent
 
     protected virtual void OnSetup() { }
     protected virtual void TriggerCommon(WEE_EventData e) { }
-    protected virtual void TriggerClient(WEE_EventData e) { } // client only events when
+    protected virtual void TriggerClient(WEE_EventData e) { }
     protected virtual void TriggerMaster(WEE_EventData e) { }
 
     protected void LogInfo(string msg) => Logger.Info($"[{Name}] {msg}");

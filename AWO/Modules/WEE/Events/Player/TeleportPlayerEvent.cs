@@ -56,27 +56,22 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                 3 => (tp.Player3Position, tp.P3LookDir),
                 _ => (player.Position, 4)
             };
-            var playerData = new TPData((PlayerIndex)i, pos, dir, player.DimensionIndex, player.Position, CamDirIfNotBot(player), itemAssignment[i] ?? new());
+            var playerData = new TPData((PlayerIndex)i, pos, dir, player.DimensionIndex, player.Position, Vector3.zero, itemAssignment.GetOrAddNew(i));
 
             if (tp.FlashTeleport)
             {        
                 EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
+                playerData.LastLookDir = CamDirIfNotBot(player);
                 CoroutineManager.StartCoroutine(FlashBack(e.Duration, player, playerData, tp.PlayWarpAnimation).WrapToIl2Cpp());
             }
 
-            Teleport(e.DimensionIndex, player, playerData, tp.PlayWarpAnimation);
+            DoTeleport(e.DimensionIndex, player, playerData, tp.PlayWarpAnimation);
         }
     }
 
     private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
     {
-        var itemAssignment = new Dictionary<int, List<IWarpableObject>>()
-        {
-            { 0, new() },
-            { 1, new() },
-            { 2, new() },
-            { 3, new() }
-        };
+        var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
 
         foreach (var item in Dimension.WarpableObjects)
         {
@@ -128,10 +123,10 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
 
         Logger.Debug("[TeleportPlayerEvent] Warping players back...");
-        Teleport(playerData.LastDim, player, playerData, playAnim);
+        DoTeleport(playerData.LastDim, player, playerData, playAnim);
     }
 
-    private static void Teleport(eDimensionIndex dim, PlayerAgent player, TPData playerData, bool playAnim)
+    private static void DoTeleport(eDimensionIndex dim, PlayerAgent player, TPData playerData, bool playAnim)
     {
         Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : playerData.LastLookDir;
 
@@ -139,13 +134,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         {
             player.TryWarpTo(dim, playerData.Position, Vector3.forward);
         }
-        else if (playAnim)
-        {
-            player.Sync.SendSyncWarp(dim, playerData.Position, lookDirV3, PlayerAgent.WarpOptions.All);
-        }
         else
         {
-            player.Sync.SendSyncWarp(dim, playerData.Position, lookDirV3, PlayerAgent.WarpOptions.PlaySounds);
+            player.Sync.SendSyncWarp(dim, playerData.Position, lookDirV3, playAnim ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
         }
 
         foreach (var item in playerData.ItemsToWarp)

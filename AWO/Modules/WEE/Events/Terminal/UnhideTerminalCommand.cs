@@ -11,22 +11,22 @@ internal sealed class UnhideTerminalCommand : BaseEvent
         if (!TryGetTerminalFromZone(e, e.UnhideTerminalCommand.TerminalIndex, out var term)) return;
 
         TERM_Command c_num = (TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber);
-        TERM_Command command = e.UnhideTerminalCommand.CommandNumber switch
-        {
-            1 => TERM_Command.UniqueCommand1,
-            2 => TERM_Command.UniqueCommand2,
-            3 => TERM_Command.UniqueCommand3,
-            4 => TERM_Command.UniqueCommand4,
-            5 => TERM_Command.UniqueCommand5,
-            > 5 when term.m_command.m_commandsPerEnum.ContainsKey(c_num) => c_num,
-            0 => e.UnhideTerminalCommand.CommandEnum,
-            _ => TERM_Command.None
-        };
+        TERM_Command command;
 
-        if (command != TERM_Command.None)
+        if (e.UnhideTerminalCommand.CommandNumber == 0 && e.UnhideTerminalCommand.CommandEnum != TERM_Command.None)
         {
-            term.TrySyncSetCommandShow(command);
-            //LogDebug($"Command {command} should be visible now");
+            command = e.UnhideTerminalCommand.CommandEnum;
         }
+        else if (term.m_command.m_commandsPerEnum.ContainsKey(c_num))
+        {
+            command = c_num;
+        }
+        else
+        {
+            LogError($"No TERM_Command given, or (num {e.HideTerminalCommand.CommandNumber} -- enum {(int)e.HideTerminalCommand.CommandEnum}) does not exist in terminal!");
+            return;
+        }
+        
+        term.TrySyncSetCommandShow(command);
     }
 }

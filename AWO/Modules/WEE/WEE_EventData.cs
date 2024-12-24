@@ -142,12 +142,7 @@ public sealed class WEE_CleanupEnemiesData
         if (!SNet.IsMaster || node == null || node.m_enemiesInNode == null)
             return;
 
-        // need to cache enemies, because can't cleanup while iterating + it's in Il2Cpp land
-        List<EnemyAgent> cachedEnemies = new();
-        cachedEnemies.Clear();
-
-        foreach (EnemyAgent enemy in node.m_enemiesInNode) cachedEnemies.Add(enemy);
-        foreach (EnemyAgent enemy in cachedEnemies)
+        foreach (EnemyAgent enemy in node.m_enemiesInNode.ToArray())
         {
             bool clear = enemy.AI.Mode switch
             {
@@ -158,7 +153,7 @@ public sealed class WEE_CleanupEnemiesData
             };
 
             if (!clear || ExcludeEnemyID.Contains(enemy.EnemyDataID)) continue;
-            if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID)) continue;
+            else if (IncludeOnlyID.Length > 0 && !IncludeOnlyID.Contains(enemy.EnemyDataID)) continue;
 
             switch (Type)
             {

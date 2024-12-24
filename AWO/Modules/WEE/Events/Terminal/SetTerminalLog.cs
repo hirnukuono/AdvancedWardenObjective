@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using BepInEx;
+using GameData;
 using GTFO.API;
 using LogEventType = AWO.Modules.WEE.WEE_SetTerminalLog.LogEventType;
 
@@ -29,6 +30,11 @@ internal sealed class SetTerminalLog : BaseEvent
             if (term.GetLocalLogs().ContainsKey(eLog.FileName.ToUpper()))
             {
                 LogError($"A log file with filename {eLog.FileName.ToUpper()} is already present on terminal!");
+                return;
+            }
+            else if (eLog.FileContent.ToString().IsNullOrWhiteSpace())
+            {
+                LogError("FileContent cannot be empty.");
                 return;
             }
             

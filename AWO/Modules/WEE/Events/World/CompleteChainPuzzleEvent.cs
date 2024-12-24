@@ -64,7 +64,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
     static IEnumerator SolveBasicCore(CP_Bioscan_Core basicCore)
     {
         basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
-        basicCore.m_spline?.SetVisible(false);
+        basicCore.m_spline.SetVisible(false);
 
         basicCore.m_playerScanner.ResetScanProgression(1.0f);
         basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1.0f);
@@ -72,8 +72,16 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         yield return null;
 
         basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP);
-        basicCore.m_spline?.TryCast<CP_Holopath_Spline>();
-        
+
+        try
+        {
+            basicCore.m_spline.TryCast<CP_Holopath_Spline>()?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
+        }
+        catch
+        {
+            //Logger.Warn("[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
+        }
+
         yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);
 
         CoroutineManager.BlinkOut(basicCore.gameObject);

@@ -76,7 +76,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                         }
                     }
                 }
-            } while (!isValidPos && attempts++ < 5);
+            } while (!isValidPos && ++attempts < 5);
 
             if (!isValidPos && !enabled) continue;
 

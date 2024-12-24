@@ -23,7 +23,6 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
             var doorstate = door.m_sync.GetCurrentSyncState();
             doorstate.status = eDoorStatus.Unlocked;
             door.m_sync.SetStateUnsynced(doorstate);
-            return;
         }
     }
 }

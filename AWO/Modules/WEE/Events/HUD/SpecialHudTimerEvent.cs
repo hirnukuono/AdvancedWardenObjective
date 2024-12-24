@@ -15,7 +15,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        float duration = ResolveFieldFallback(e.Duration, e.SpecialHudTimer.Duration);
+        float duration = ResolveFieldsFallback(e.Duration, e.SpecialHudTimer.Duration);
         CoroutineManager.StartCoroutine(DoInteractionHud(e.SpecialHudTimer, duration).WrapToIl2Cpp());
     }
 

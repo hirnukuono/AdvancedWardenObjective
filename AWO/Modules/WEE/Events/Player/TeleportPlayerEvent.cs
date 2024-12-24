@@ -45,7 +45,6 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             { 3, new TPData(PlayerIndex.P3, e.TeleportPlayer.Player3Position, e.TeleportPlayer.P3LookDir, 0, Vector3.zero, Vector3.zero, itemAssignment[3]) }
         };
         var activeSlotIndices = new HashSet<int>(e.TeleportPlayer.PlayerFilter.Select(filter => (int)filter));
-        EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
 
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
@@ -56,7 +55,8 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                 continue; // Player not in SlotIndex
 
             if (e.TeleportPlayer.FlashTeleport)
-            {
+            {        
+                EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
                 playerData.LastDim = player.DimensionIndex;
                 playerData.LastPosition = player.Position;
                 playerData.LastLookDir = !player.Owner.IsBot ? player.FPSCamera.CameraRayDir : Vector3.forward;
@@ -69,20 +69,14 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
     {
-        var itemAssignment = new Dictionary<int, List<IWarpableObject>>()
-        {
-            { 0, new List<IWarpableObject>() },
-            { 1, new List<IWarpableObject>() },
-            { 2, new List<IWarpableObject>() },
-            { 3, new List<IWarpableObject>() }
-        };
+        var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
 
         foreach (var item in Dimension.WarpableObjects)
         {
             var sentry = item.TryCast<SentryGunInstance>();
             if (sentry != null && tp.WarpSentries)
             {
-                itemAssignment[lobby.IndexOf(sentry.Owner)].Add(item);
+                itemAssignment.GetOrAddNew(lobby.IndexOf(sentry.Owner)).Add(item);
                 continue;
             }
 
@@ -93,9 +87,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                 continue; // warp only BPUs on the floor, otherwise continue
 
             if (HasMaster && tp.SendBPUsToHost)
-                itemAssignment[SNet.Master.PlayerSlotIndex()].Add(item);
+                itemAssignment.GetOrAddNew(SNet.Master.PlayerSlotIndex()).Add(item);
             else if (lobby.Count == tp.PlayerFilter.Count)
-                itemAssignment[MasterRand.Next(lobby.Count)].Add(item);
+                itemAssignment.GetOrAddNew(MasterRand.Next(lobby.Count)).Add(item);
         }
 
         return itemAssignment;

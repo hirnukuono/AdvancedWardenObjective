@@ -8,9 +8,9 @@ internal sealed class UnhideTerminalCommand : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetTerminalFromZone(e, e.UnhideTerminalCommand.TerminalIndex, out var term)) return;
 
-        var term = zone.TerminalsSpawnedInZone[e.UnhideTerminalCommand.TerminalIndex];
+        TERM_Command c_num = (TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber);
         TERM_Command command = e.UnhideTerminalCommand.CommandNumber switch
         {
             1 => TERM_Command.UniqueCommand1,
@@ -18,8 +18,7 @@ internal sealed class UnhideTerminalCommand : BaseEvent
             3 => TERM_Command.UniqueCommand3,
             4 => TERM_Command.UniqueCommand4,
             5 => TERM_Command.UniqueCommand5,
-            > 5 when term.m_command.m_commandsPerEnum.ContainsKey((TERM_Command)(50 + e.
-            UnhideTerminalCommand.CommandNumber)) => (TERM_Command)(50 + e.UnhideTerminalCommand.CommandNumber),
+            > 5 when term.m_command.m_commandsPerEnum.ContainsKey(c_num) => c_num,
             > 0 => e.UnhideTerminalCommand.CommandEnum,
             _ => TERM_Command.None
         };
@@ -27,7 +26,7 @@ internal sealed class UnhideTerminalCommand : BaseEvent
         if (command != TERM_Command.None)
         {
             term.TrySyncSetCommandShow(command);
-            LogDebug($"Command {command} should be visible now");
+            //LogDebug($"Command {command} should be visible now");
         }
     }
 }

@@ -9,11 +9,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door))
-        {
-            LogError("Cannot find security door!");
-            return;
-        }
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
         var state = door.m_sync.GetCurrentSyncState();
         if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)

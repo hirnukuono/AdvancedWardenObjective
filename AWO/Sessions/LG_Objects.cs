@@ -12,11 +12,11 @@ public static class LG_Objects
     {
         TrackedTypes = new()
         {
-            { typeof(LG_ComputerTerminal), new HashSet<Component>() },
-            { typeof(LG_LabDisplay), new HashSet<Component>() },
-            { typeof(LG_DoorButton), new HashSet<Component>() },
-            { typeof(LG_WeakLock), new HashSet<Component>() },
-            { typeof(LG_HSUActivator_Core), new HashSet<Component>() }
+            { typeof(LG_ComputerTerminal), new() },
+            { typeof(LG_DoorButton), new() },
+            { typeof(LG_HSUActivator_Core), new() },
+            { typeof(LG_LabDisplay), new() },
+            { typeof(LG_WeakLock), new() }
         };
 
         LevelAPI.OnLevelCleanup += Clear;

@@ -8,11 +8,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door))
-        {
-            LogError("Cannot find security door!");
-            return;
-        }
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
         var eventData = new WardenObjectiveEventData
         {

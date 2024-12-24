@@ -32,7 +32,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         try
         {
             menuGUI.PageCustomExpeditionSuccess = menuGUI.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, pageResourcePath);
-            Logger.Warn($"[SetSuccessScreen] CustomSuccessScreen changed to {pageResourcePath}");
+            Logger.Warn($"[SetSuccessScreen] CustomSuccessScreen should now be changed to {pageResourcePath}");
         }
         catch
         {

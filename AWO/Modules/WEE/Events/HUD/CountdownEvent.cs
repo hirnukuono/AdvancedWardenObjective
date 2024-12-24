@@ -15,7 +15,7 @@ internal sealed class CountdownEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
-        float duration = ResolveFieldFallback(e.Duration, e.Countdown.Duration);
+        float duration = ResolveFieldsFallback(e.Duration, e.Countdown.Duration);
         CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, duration).WrapToIl2Cpp());
     }
 

@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using GTFO.API;
+﻿using GTFO.API;
 using LevelGeneration;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,8 +7,9 @@ namespace AWO.Modules.TerminalSerialLookup;
 
 public static class SerialLookupManager
 {
-    public readonly static Dictionary<string, Dictionary<(int, int, int), IList<String>>> SerialMap = new();
+    public readonly static Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
     private const string Pattern = @"\[(?<ItemName>.+?)_(?<Dimension>\d+)_(?<Layer>\d+)_(?<Zone>\d+)(_(?<InstanceIndex>\d+))?\]";
+    private const string Zone = "ZONE";
 
     internal static void Init()
     {
@@ -23,7 +23,7 @@ public static class SerialLookupManager
 
         foreach (var serial in LG_LevelInteractionManager.GetAllTerminalInterfaces())
         {
-            if (serial?.Key.IsNullOrWhiteSpace() != true || serial?.Value?.SpawnNode == null) continue;
+            if (serial?.Value.SpawnNode == null) continue;
             int split = serial.Key.LastIndexOf('_');
             if (split == -1) continue;
             string itemName = serial.Key.Substring(0, split);
@@ -34,35 +34,18 @@ public static class SerialLookupManager
             int zone = (int)serial.Value.SpawnNode.m_zone.LocalIndex;
             var globalIndex = (dimension, layer, zone);
 
-            GetValueOrCreateInMap(itemName, globalIndex).Add(serialNumber);
+            SerialMap.GetOrAddNew(itemName).GetOrAddNew(globalIndex).Add(serialNumber);
             count++;
         }
 
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
             var globalZoneIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
-            GetValueOrCreateInMap("ZONE", globalZoneIndex).Add(zone.Alias.ToString());
+            SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalZoneIndex).Add(zone.Alias.ToString());
             count++;
         }
 
         Logger.Info($"[SerialLookupManager] On build done, collected {count} serial numbers");
-    }
-
-    private static IList<string> GetValueOrCreateInMap(string key1, (int, int, int) key2)
-    {
-        if (!SerialMap.TryGetValue(key1, out var localSerialMap))
-        {
-            localSerialMap = new Dictionary<(int, int, int), IList<string>>();
-        }
-        SerialMap[key1] = localSerialMap;
-
-        if (!localSerialMap.TryGetValue(key2, out var list))
-        {
-            list = new List<string>();
-        }
-        localSerialMap[key2] = list;
-
-        return list;
     }
 
     private static void Cleanup()

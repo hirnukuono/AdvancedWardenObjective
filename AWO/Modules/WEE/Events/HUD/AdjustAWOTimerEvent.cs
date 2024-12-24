@@ -6,7 +6,7 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        EntryPoint.TimerMods.TimeModifier = ResolveFieldFallback(e.Duration, e.AdjustTimer.Duration);
+        EntryPoint.TimerMods.TimeModifier = ResolveFieldsFallback(e.Duration, e.AdjustTimer.Duration, false);
 
         if (e.AdjustTimer.Speed != 0.0f)
         {

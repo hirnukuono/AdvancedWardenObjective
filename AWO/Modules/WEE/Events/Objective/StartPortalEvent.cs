@@ -1,5 +1,6 @@
 ﻿using GameData;
 using GTFO.API;
+using LevelGeneration;
 using Player;
 
 namespace AWO.Modules.WEE.Events;
@@ -7,6 +8,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartPortalEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartPortalMachine;
+    public static Dictionary<GlobalZoneIndex, LG_DimensionPortal> Portals { get; set; } = new();
 
     protected override void OnSetup()
     {
@@ -15,14 +17,14 @@ internal sealed class StartPortalEvent : BaseEvent
 
     private void OnLevelCleanup()
     {
-        EntryPoint.Portals.Clear();
+        Portals.Clear();
     }
 
     protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        if (!EntryPoint.Portals.TryGetValue(new(zone.DimensionIndex, zone.Layer.m_type, zone.LocalIndex), out var portalMachine))
+        if (!Portals.TryGetValue(new(zone.DimensionIndex, zone.Layer.m_type, zone.LocalIndex), out var portalMachine))
         {
             LogError("Cannot find Portal!");
             return;

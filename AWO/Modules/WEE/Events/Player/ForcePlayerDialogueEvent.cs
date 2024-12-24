@@ -91,7 +91,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         dialogue.Post(lineEvent, player.Position, 1u, (AkEventCallback)VoiceDoneCallback, dialogue);
 
         WOManager.Current.m_sound.Post(e.SoundID, true);
-        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldFallback(e.Duration, 4.0f));
+        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(e.Duration, 4.0f));
     }
 
     private static bool TryGetPlayerCharacter(WEE_ForcePlayerDialogue dialog, Vector3 pos, [NotNullWhen(true)] out PlayerAgent? player, out List<DialogCharFilter> charFilterList)
@@ -100,7 +100,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         player = null;
 
         var charFiltersInLevel = PlayerDialogManager.GetAllRegistredPlayerCharacterFilters();
-        float closest = float.MaxValue;
+        float minDist = float.MaxValue;
         bool flag = false;
         foreach (DialogCharFilter charFilter in charFiltersInLevel)
         {
@@ -123,9 +123,9 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             else if (dialog.Type == DialogueType.Closest)
             {
                 float dist = Vector3.Distance(pos, currentPlayer.Position);
-                if (dist < closest)
+                if (dist < minDist)
                 {
-                    closest = dist;
+                    minDist = dist;
                     player = currentPlayer;
                 }
             }

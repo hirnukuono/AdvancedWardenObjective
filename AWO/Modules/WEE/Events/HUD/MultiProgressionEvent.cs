@@ -73,7 +73,8 @@ internal sealed class MultiProgressionEvent : BaseEvent
         foreach (var sub in e.MultiProgression)
         {
             int key = (int)sub.Index + 100;
-            var (header, body) = SetAndStyleSubObjective(sub);
+            LG_LayerType layer = ResolveFieldsFallback(e.Layer, sub.Layer, false);
+            var (header, body) = SetAndStyleSubObjective(sub, layer);
             bool isInVanillaMap = ObjHud.m_progressionObjectiveMap.ContainsKey(key);
             bool isInTrackedMap = TrackedMPs.Values.Any(list => list.Any(localMP => localMP.Index == key));
 
@@ -84,7 +85,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
 
                 if (!sub.IsLayerIndependent)
                 {
-                    TrackedMPs[sub.Layer].Add(new(prog, key, sub.Priority));
+                    TrackedMPs[layer].Add(new(prog, key, sub.Priority));
                 }
             }
             else if (!header.IsNullOrWhiteSpace()) // update MP text
@@ -137,13 +138,13 @@ internal sealed class MultiProgressionEvent : BaseEvent
         return prog;
     }
 
-    private static (string, string) SetAndStyleSubObjective(WEE_SubObjectiveData sub)
+    private static (string, string) SetAndStyleSubObjective(WEE_SubObjectiveData sub, LG_LayerType layer)
     {
         string header = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? sub.CustomSubObjective : sub.CustomSubObjectiveHeader;
         string body = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? string.Empty : sub.CustomSubObjective;
 
-        header = StyleText(header, sub.Layer, sub.OverrideTag, true);
-        body = StyleText(body, sub.Layer, string.Empty, false);
+        header = StyleText(header, layer, sub.OverrideTag, true);
+        body = StyleText(body, layer, string.Empty, false);
 
         return (header, body);
     }

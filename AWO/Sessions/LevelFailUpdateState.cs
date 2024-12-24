@@ -26,14 +26,6 @@ internal sealed class LevelFailUpdateState
     {
         if (_Replicator != null) return;
 
-        /*if (!StateReplicator<LevelFailCheck>.TryCreate(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent, out var replicator))
-        {
-            Logger.Error("Failed to create LevelFailUpdateState Replicator!");
-            return;
-        }
-
-        _Replicator = replicator;*/
-
         _Replicator = StateReplicator<LevelFailCheck>.Create(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent);
         LG_Factory.add_OnFactoryBuildStart(new Action(() =>
         {

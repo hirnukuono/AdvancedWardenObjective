@@ -19,7 +19,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
         if (ss.AreaIndex == -1 || IsValidAreaIndex(ss.AreaIndex, zone))
         {
             Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
-            int count = ResolveFieldFallback(e.Count, ss.Count);
+            int count = ResolveFieldsFallback(e.Count, ss.Count);
 
             CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
         }

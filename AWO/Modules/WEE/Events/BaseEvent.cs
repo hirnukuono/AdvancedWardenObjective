@@ -40,7 +40,7 @@ internal abstract class BaseEvent
 
     protected virtual void OnSetup() { }
     protected virtual void TriggerCommon(WEE_EventData e) { }
-    protected virtual void TriggerClient(WEE_EventData e) { } // :c
+    protected virtual void TriggerClient(WEE_EventData e) { } // client only events when
     protected virtual void TriggerMaster(WEE_EventData e) { }
 
     protected void LogInfo(string msg) => Logger.Info($"[{Name}] {msg}");
@@ -110,6 +110,19 @@ internal abstract class BaseEvent
         return false;
     }
 
+    public bool TryGetTerminalFromZone(WEE_EventData e, int index, [NotNullWhen(true)] out LG_ComputerTerminal? terminal)
+    {
+        if (TryGetZone(e, out var zone))
+        {
+            terminal = zone.TerminalsSpawnedInZone[index];
+            return terminal != null;
+        }
+
+        LogError($"Unable to find terminal {index} in zone!");
+        terminal = null;
+        return false;
+    }
+
     public bool IsValidAreaIndex(int areaIndex, LG_Zone zone)
     {
         var areas = zone.m_areas;
@@ -122,7 +135,7 @@ internal abstract class BaseEvent
         return true;
     }
 
-    public S ResolveFieldFallback<S>(S value, S nested, bool debug = true) where S : struct
+    public S ResolveFieldsFallback<S>(S value, S nested, bool debug = true) where S : struct
     {
         if (!EqualityComparer<S>.Default.Equals(nested, default))
         {

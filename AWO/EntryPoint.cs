@@ -19,7 +19,6 @@ namespace AWO;
 internal class EntryPoint : BasePlugin
 {
     public static HashSet<int> ActiveEventLoops { get; set; } = new();
-    public static Dictionary<GlobalZoneIndex, LG_DimensionPortal> Portals { get; set; } = new();
     public static System.Random SessionRand { get; private set; } = new();
     public struct Coroutines
     {

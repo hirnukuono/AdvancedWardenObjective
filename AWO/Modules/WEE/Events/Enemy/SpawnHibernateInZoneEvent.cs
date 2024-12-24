@@ -19,11 +19,11 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         if (!TryGetZone(e, out var zone)) return;
 
         var sh = e.SpawnHibernates;
-        Vector3 pos = GetPositionFallback(ResolveFieldFallback(e.Position, sh.Position, false), e.SpecialText, false);
-        int count = ResolveFieldFallback(e.Count, sh.Count);
-
         if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
         {
+            Vector3 pos = GetPositionFallback(ResolveFieldsFallback(e.Position, sh.Position, false), e.SpecialText, false);
+            int count = ResolveFieldsFallback(e.Count, sh.Count);
+
             if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
             {
                 EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));

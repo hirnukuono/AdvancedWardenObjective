@@ -8,9 +8,9 @@ internal sealed class HideTerminalCommand : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetTerminalFromZone(e, e.HideTerminalCommand.TerminalIndex, out var term)) return;
 
-        var term = zone.TerminalsSpawnedInZone[e.HideTerminalCommand.TerminalIndex];
+        TERM_Command c_num = (TERM_Command)(50 + e.HideTerminalCommand.CommandNumber);
         TERM_Command command = e.HideTerminalCommand.CommandNumber switch
         {
             1 => TERM_Command.UniqueCommand1,
@@ -18,7 +18,7 @@ internal sealed class HideTerminalCommand : BaseEvent
             3 => TERM_Command.UniqueCommand3,
             4 => TERM_Command.UniqueCommand4,
             5 => TERM_Command.UniqueCommand5,
-            > 5 when term.m_command.m_commandsPerEnum.ContainsKey((TERM_Command)(50 + e.HideTerminalCommand.CommandNumber)) => (TERM_Command)(50 + e.HideTerminalCommand.CommandNumber),
+            > 5 when term.m_command.m_commandsPerEnum.ContainsKey(c_num) => c_num,
             > 0 => e.HideTerminalCommand.CommandEnum,
             _ => TERM_Command.None
         };
@@ -35,7 +35,7 @@ internal sealed class HideTerminalCommand : BaseEvent
             }
 
             term.m_stateReplicator.State = state;
-            LogDebug($"Command {command} should be {(!e.HideTerminalCommand.DeleteCommand ? "hidden" : "deleted")} now");
+            //LogDebug($"Command {command} should be {(!e.HideTerminalCommand.DeleteCommand ? "hidden" : "deleted")} now");
         }
     }
 }

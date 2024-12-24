@@ -4,6 +4,7 @@ using AWO.Jsons;
 using Enemies;
 using GameData;
 using LevelGeneration;
+using Localization;
 using SNetwork;
 using System.Text.Json.Serialization;
 using UnityEngine;
@@ -37,6 +38,7 @@ public sealed class WEE_EventData
     public uint DialogueID { get; set; } = 0u;
     public int Count { get; set; } = 0;
     public bool Enabled { get; set; } = true; // different default value than vanilla!
+    public bool SpecialBool { get; set; } = false;
     public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
     public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = (LocaleText)value; }
@@ -79,13 +81,8 @@ public sealed class WEE_EventData
     public WEE_CustomHudText CustomHudText { get; set; } = new();
     public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
     public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
-}
-
-public sealed class WEE_UpdateFogData
-{
-    public bool DoUpdate { get; set; } = false;
-    public uint FogSetting { get; set; } = 0u;
-    public float FogTransitionDuration { get; set; }
+    public WEE_SetTerminalLog SetTerminalLog { get; set; } = new();
+    public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
 }
 
 public sealed class WEE_SubObjectiveData
@@ -98,6 +95,13 @@ public sealed class WEE_SubObjectiveData
     public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
     public bool IsLayerIndependent { get; set; } = true;
     public LocaleText OverrideTag { get; set; } = LocaleText.Empty;
+}
+
+public sealed class WEE_UpdateFogData
+{
+    public bool DoUpdate { get; set; } = false;
+    public uint FogSetting { get; set; } = 0u;
+    public float FogTransitionDuration { get; set; } = 0.0f;
 }
 
 public sealed class WEE_ReactorEventData
@@ -216,9 +220,10 @@ public sealed class WEE_AddTerminalCommand
     public int CommandNumber { get; set; } = 6;
     public string Command { get; set; } = string.Empty;
     public LocaleText CommandDesc { get; set; } = LocaleText.Empty;
-    public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
+    public bool AutoIndentCommandDesc { get; set; } = false;
     public List<TerminalOutput> PostCommandOutputs { get; set; } = new();
     public List<WardenObjectiveEventData> CommandEvents { get; set; } = new();
+    public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
 }
 
 public sealed class WEE_HideTerminalCommand
@@ -435,5 +440,52 @@ public sealed class WEE_ForcePlayerDialogue
         Stealth,
         Encounter,
         Combat
+    }
+}
+
+public sealed class WEE_SetTerminalLog
+{
+    public int TerminalIndex { get; set; } = 0;
+    public LogEventType Type { get; set; } = LogEventType.Add;
+    public string FileName { get; set; } = string.Empty;    
+    public LocaleText FileContent { get; set; } = LocaleText.Empty;
+    public Language FileContentOriginalLanguage { get; set; } = Language.English;    
+    public uint AttachedAudioFile { get; set; } = 0u;
+    public int AttachedAudioByteSize { get; set; } = 0;
+    public uint PlayerDialogToTriggerAfterAudio { get; set; } = 0u;
+    public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = new();
+    public enum LogEventType : byte
+    {
+        Add,
+        Remove
+    }
+}
+
+public sealed class WEE_SetPocketItem
+{
+    public int Index { get; set; } = 0;
+    public int Count { get; set; } = 1;
+    public bool IsOnTop { get; set; } = false;
+    public LocaleText ItemName { get; set; } = LocaleText.Empty;
+    public PlayerTagType TagType { get; set; } = PlayerTagType.Custom;
+    public PlayerIndex PlayerIndex { get; set; } = PlayerIndex.P0;
+    public string CustomTag { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public string? Tag { get; set; } = string.Empty;
+    public bool ShouldRemove => Count < 1;
+    private string LiveCount => Count > 1 ? $"{Count} " : string.Empty;
+
+    public string FormatString()
+    {
+        return $"{LiveCount}{ItemName} <uppercase><color=#ffffff{MathUtil.ZeroOneRangeToHex(0.2f)}>[{Tag}]</color></uppercase>";
+    }
+
+    public enum PlayerTagType : byte
+    {
+        Custom,
+        Specific,
+        Random,
+        Closest
     }
 }

@@ -1,5 +1,6 @@
 ﻿using GTFO.API;
 using LevelGeneration;
+using System.Collections;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -37,8 +38,19 @@ internal class SpawnNavMarkerEvent : BaseEvent
             }
             
             NavMarkers.Add(e.Count, marker);
+
+            if (e.Duration > 0.0f)
+            {
+                CoroutineManager.StartCoroutine(DestroyDelay(e.Count, e.Duration).WrapToIl2Cpp());
+            }
         }
 
         marker.SetVisible(e.Enabled);
+    }
+
+    static IEnumerator DestroyDelay(int index, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        NavMarkers.Remove(index);
     }
 }

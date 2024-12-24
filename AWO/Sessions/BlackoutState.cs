@@ -19,12 +19,6 @@ internal static class BlackoutState
     {
         if (_Replicator != null) return;
 
-        /*if (!StateReplicator<BlackoutStatus>.TryCreate(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent, out var replicator))
-        {
-            Logger.Error("Failed to create BlackoutState Replicator!");
-            return;
-        }
-        _Replicator = replicator;*/
         _Replicator = StateReplicator<BlackoutStatus>.Create(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent);
 
         _Replicator.OnStateChanged += OnStateChanged;

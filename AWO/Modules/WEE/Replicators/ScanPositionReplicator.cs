@@ -28,12 +28,6 @@ internal sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHo
             nodeID = scan.CourseNode.NodeID
         };
 
-        /*if (!StateReplicator<ScanPositionState>.TryCreate(id, defaultState, LifeTimeType.Session, out var replicator, this))
-        {
-            Logger.Error("Failed to create ScanPositionReplicator!");
-            return;
-        }
-        Replicator = replicator;*/
         Replicator = StateReplicator<ScanPositionState>.Create(id, defaultState, LifeTimeType.Session, this);
     }
 

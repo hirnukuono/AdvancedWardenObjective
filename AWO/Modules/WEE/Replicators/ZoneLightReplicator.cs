@@ -184,13 +184,6 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
 
     public void Setup(LG_Zone zone)
     {
-        /*Zone ID can be start with 0*/
-        /*if (!StateReplicator<ZoneLightState>.TryCreate((uint)zone.ID + 1, new() { lightData = 0u }, LifeTimeType.Session, out var replicator, this))
-        {
-            Logger.Error("Failed to create ZoneLightReplicator!");
-            return;
-        }
-        Replicator = replicator;*/
         Replicator = StateReplicator<ZoneLightState>.Create((uint)zone.ID + 1 /*Zone ID can be start with 0*/, new()
         {
             lightData = 0u

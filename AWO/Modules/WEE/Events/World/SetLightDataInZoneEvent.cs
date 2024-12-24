@@ -8,7 +8,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetLightDataInZone;
 
-    protected override void TriggerCommon(WEE_EventData e)
+    protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
 
@@ -22,7 +22,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
         /*bool shouldDisregardFlicker = setting.Type == ModifierType.SetZoneLightData ? setting.DisregardFlicker : !setting.DisregardFlicker;
         if (shouldDisregardFlicker)
         {
-            foreach (var light in zone.GetComponentsInChildren<LG_Light>(true))
+            foreach (var light in replicator.LightsInZone.Select(worker => worker.Light))
             {
                 if (light.gameObject.TryAndGetComponent(out LG_LightAnimator flicker) && light.GetC_Light() != null && flicker.m_type == LG_LightAnimatorType.RandomFadeBlinker)
                 {

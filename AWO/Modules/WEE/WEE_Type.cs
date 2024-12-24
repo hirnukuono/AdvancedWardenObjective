@@ -53,5 +53,9 @@ public enum WEE_Type
     PlayWaveRoarSound,
     CustomHudText,
     SpecialHudTimer,
-    ForcePlayPlayerDialogue
+    ForcePlayPlayerDialogue,
+    SetTerminalLog,
+    SetPocketItem,
+    DoInteractWeakDoorsInZone,
+    ToggleInteractWeakDoorsInZone
 }

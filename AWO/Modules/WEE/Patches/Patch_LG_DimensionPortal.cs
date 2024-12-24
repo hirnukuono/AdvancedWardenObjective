@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using LevelGeneration;
+using static AWO.Modules.WEE.Events.StartPortalEvent;
 
 namespace AWO.Modules.WEE.Patches;
 
@@ -10,6 +11,6 @@ internal static class Patch_LG_DimensionPortal
     [HarmonyPostfix]
     private static void Post_Setup(LG_DimensionPortal __instance)
     {
-        EntryPoint.Portals.Add(new(__instance.SpawnNode.m_dimension.DimensionIndex, __instance.SpawnNode.LayerType, __instance.SpawnNode.m_zone.LocalIndex), __instance);
+        Portals.Add(new(__instance.SpawnNode.m_dimension.DimensionIndex, __instance.SpawnNode.LayerType, __instance.SpawnNode.m_zone.LocalIndex), __instance);
     }
 }

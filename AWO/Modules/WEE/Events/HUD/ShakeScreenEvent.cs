@@ -14,7 +14,7 @@ internal sealed class ShakeScreenEvent : BaseEvent
         effect.transform.localPosition = Vector3.zero;
 
         effect.Radius = e.CameraShake.Radius;
-        effect.Duration = ResolveFieldFallback(e.Duration, e.CameraShake.Duration);
+        effect.Duration = ResolveFieldsFallback(e.Duration, e.CameraShake.Duration);
         effect.Amplitude = e.CameraShake.Amplitude;
         effect.Frequency = e.CameraShake.Frequency;
         effect.directional = e.CameraShake.Directional;

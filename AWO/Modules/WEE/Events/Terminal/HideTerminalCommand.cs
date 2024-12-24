@@ -19,7 +19,7 @@ internal sealed class HideTerminalCommand : BaseEvent
             4 => TERM_Command.UniqueCommand4,
             5 => TERM_Command.UniqueCommand5,
             > 5 when term.m_command.m_commandsPerEnum.ContainsKey(c_num) => c_num,
-            > 0 => e.HideTerminalCommand.CommandEnum,
+            0 => e.HideTerminalCommand.CommandEnum,
             _ => TERM_Command.None
         };
 

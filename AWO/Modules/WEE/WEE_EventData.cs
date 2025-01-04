@@ -333,10 +333,6 @@ public struct EventsOnTimerProgress
 {
     public float Progress { get; set; }
     public List<WardenObjectiveEventData> Events { get; set; }
-
-    [JsonIgnore]
-    public bool HasBeenActivated { get; private set; }
-    public void SetActivated() => HasBeenActivated = true;
 }
 
 public sealed class WEE_NavMarkerData

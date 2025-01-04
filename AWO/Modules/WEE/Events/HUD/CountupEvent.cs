@@ -1,5 +1,4 @@
 ﻿using AK;
-using FluffyUnderware.Curvy.Utils;
 using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
@@ -29,8 +28,9 @@ internal sealed class CountupEvent : BaseEvent
         float count = cu.StartValue;
         string[] body = ParseCustomText(cu.CustomText, duration);
 
-        List<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
+        double nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : double.NaN;
 
         EntryPoint.TimerMods.SpeedModifier = cu.Speed;
         EntryPoint.TimerMods.CountupText = cu.CustomText;
@@ -59,12 +59,14 @@ internal sealed class CountupEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(count / duration)))
+                if (nextProgress == Math.Round(count / duration, 3))
                 {
-                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
-                    progressEvents.SetActivated();
+                    WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
+                    {
+                        nextProgress = Math.Round(cachedProgressEvents.Peek().Progress, 3);
+                    }
                 }
-                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
             }
 
             GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";

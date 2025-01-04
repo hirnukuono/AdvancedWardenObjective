@@ -1,7 +1,5 @@
-﻿using FluffyUnderware.Curvy.Utils;
-using GameData;
+﻿using GameData;
 using GTFO.API.Extensions;
-using Il2CppSystem.Linq;
 using System.Collections;
 using UnityEngine;
 
@@ -25,8 +23,9 @@ internal sealed class CountdownEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float time = 0.0f;
 
-        List<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress);
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
+        double nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : double.NaN;
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
@@ -54,12 +53,14 @@ internal sealed class CountdownEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(time / duration)))
+                if (nextProgress == Math.Round(time / duration, 3))
                 {
-                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
-                    progressEvents.SetActivated();
+                    WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
+                    {
+                        nextProgress = Math.Round(cachedProgressEvents.Peek().Progress, 3);
+                    }
                 }
-                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
             }
 
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);

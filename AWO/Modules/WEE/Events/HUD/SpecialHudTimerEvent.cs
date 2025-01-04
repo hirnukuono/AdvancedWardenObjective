@@ -1,5 +1,4 @@
-﻿using FluffyUnderware.Curvy.Utils;
-using GameData;
+﻿using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
@@ -27,8 +26,9 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         string msg = hud.Message.ToString();
         bool hasTags = msg.Contains(Timer) || msg.Contains(Percent);
 
-        List<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress);
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
+        double nextProgress = hasProgressEvents ? Math.Round(cachedProgressEvents.Peek().Progress, 3) : double.NaN;
 
         GuiManager.InteractionLayer.MessageVisible = true;
         GuiManager.InteractionLayer.MessageTimerVisible = hud.ShowTimeInProgressBar;
@@ -55,7 +55,8 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
             if (hasTags)
             {
-                string tagTime = $"{(int)TimeSpan.FromSeconds(duration - time).TotalMinutes:D2}:{TimeSpan.FromSeconds(duration - time).Seconds:D2}";
+                var timeSpan = TimeSpan.FromSeconds(duration - time);
+                string tagTime = $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
                 string tagPercent = $"{(int)(percentage * 100)}%";
                 string formattedMsg = msg.Replace(Timer, tagTime).Replace(Percent, tagPercent);
 
@@ -70,12 +71,14 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             
             if (hasProgressEvents)
             {
-                foreach (var progressEvents in cachedProgressEvents.Where(prEv => !prEv.HasBeenActivated && prEv.Progress.Approximately(percentage)))
+                if (nextProgress == Math.Round(percentage, 3))
                 {
-                    WOManager.CheckAndExecuteEventsOnTrigger(progressEvents.Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
-                    progressEvents.SetActivated();
-                }
-                hasProgressEvents = cachedProgressEvents.Any(prEv => !prEv.HasBeenActivated);
+                    WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
+                    {
+                        nextProgress = Math.Round(cachedProgressEvents.Peek().Progress, 3);
+                    }
+                }                
             }
 
             yield return null;

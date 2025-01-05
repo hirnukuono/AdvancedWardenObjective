@@ -1,4 +1,6 @@
-﻿namespace AWO.Modules.WEE.Events;
+﻿using static AWO.Modules.WEE.Events.StartEventLoop;
+
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class StopEventLoop : BaseEvent
 {
@@ -6,18 +8,20 @@ internal sealed class StopEventLoop : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        lock (EntryPoint.ActiveEventLoops)
+        if (e.Count == -1)
         {
-            if (e.Count == -1)
-            {
-                LogDebug("Stopping all EventLoops...");
-                EntryPoint.ActiveEventLoops.Clear();
-            }
-            else
-            {
-                LogDebug($"Stopping EventLoop {e.Count}...");
-                EntryPoint.ActiveEventLoops.Remove(e.Count);
-            }
+            ActiveEventLoops.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
+            ActiveEventLoops.Clear();
+            LogDebug("Stopped all EventLoops");
+        }
+        else if (ActiveEventLoops.TryRemove(e.Count, out var loop))
+        {
+            CoroutineManager.StopCoroutine(loop);
+            LogDebug($"Stopped EventLoop {e.Count}");
+        }
+        else
+        {
+            LogError("No active EventLoop found!");
         }
     }
 }

@@ -2,6 +2,7 @@
 using GTFO.API;
 using GTFO.API.Extensions;
 using System.Collections;
+using System.Collections.Concurrent;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -9,6 +10,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartEventLoop;
+    public readonly static ConcurrentDictionary<int, Coroutine?> ActiveEventLoops = new();
 
     protected override void OnSetup()
     {
@@ -17,7 +19,8 @@ internal sealed class StartEventLoop : BaseEvent
 
     private void OnLevelCleanup()
     {
-        EntryPoint.ActiveEventLoops.Clear();
+        ActiveEventLoops.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
+        ActiveEventLoops.Clear();
     }
 
     protected override void TriggerCommon(WEE_EventData e)
@@ -28,57 +31,43 @@ internal sealed class StartEventLoop : BaseEvent
             return;
         }
 
-        lock (EntryPoint.ActiveEventLoops)
+        if (!ActiveEventLoops.TryAdd(e.StartEventLoop.LoopIndex, null))
         {
-            if (EntryPoint.ActiveEventLoops.Contains(e.StartEventLoop.LoopIndex))
-            {
-                LogError($"EventLoop {e.StartEventLoop.LoopIndex} is already active...");
-                return;
-            }
-
-            EntryPoint.ActiveEventLoops.Add(e.StartEventLoop.LoopIndex);
-            LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
-            CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
+            LogError($"EventLoop {e.StartEventLoop.LoopIndex} is already active...");
+            return;
         }
+
+        ActiveEventLoops[e.StartEventLoop.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
+        LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
     }
 
     static IEnumerator DoLoop(WEE_EventData e)
     {
         var sel = e.StartEventLoop;
+        int index = sel.LoopIndex;
         int repeatNum = 0;
         int repeatMax = sel.LoopCount;
         bool repeatInf = repeatMax == -1;
-        int index = sel.LoopIndex;
+
+        var eData = sel.EventsToActivate.ToIl2Cpp();
         int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         WaitForSeconds delay = new(sel.LoopDelay);
 
         while (repeatNum < repeatMax || repeatInf)
         {
-            lock (EntryPoint.ActiveEventLoops)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
             {
-                if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-                {
-                    EntryPoint.ActiveEventLoops.Remove(index);
-                    yield break; // no longer in level, exit
-                }
-                if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
-                {
-                    EntryPoint.ActiveEventLoops.Remove(index);
-                    yield break; // checkpoint was used, exit
-                }
-                if (!EntryPoint.ActiveEventLoops.Contains(index))
-                {
-                    Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");
-                    yield break; // StopEventLoop used, exit
-                }
+                break; // not in level or checkpoint was used, exit
             }
             
             Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum}");
-            WOManager.CheckAndExecuteEventsOnTrigger(sel.EventsToActivate.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+            WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None);
 
             yield return delay;
             repeatNum++;
         }
+
         Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");
+        ActiveEventLoops.TryRemove(index, out _);
     }
 }

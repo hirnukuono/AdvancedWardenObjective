@@ -2,7 +2,7 @@
 
 namespace AWO.Utils;
 
-internal static class GameObjectExtensions
+public static class GameObjectExtensions
 {
     public static bool TryAndGetComponent<T>(this GameObject go, out T component)
     {

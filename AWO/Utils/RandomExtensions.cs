@@ -1,6 +1,6 @@
 ﻿namespace AWO.Utils;
 
-internal static class RandomExtensions
+public static class RandomExtensions
 {
     public static bool MeetProbability(this Random rand, float prob)
     {

@@ -8,7 +8,6 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using GTFO.API;
 using HarmonyLib;
-using LevelGeneration;
 using UnityEngine;
 
 namespace AWO;
@@ -18,7 +17,6 @@ namespace AWO;
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 internal class EntryPoint : BasePlugin
 {
-    public static HashSet<int> ActiveEventLoops { get; set; } = new();
     public static System.Random SessionRand { get; private set; } = new();
     public struct Coroutines
     {
@@ -41,7 +39,7 @@ internal class EntryPoint : BasePlugin
         new Harmony("AWO.Harmony").PatchAll();
 
         AssetAPI.OnStartupAssetsLoaded += OnStartupAssetsLoaded;
-        LevelAPI.OnBuildDone += PostFactoryDone;
+        LevelAPI.OnBuildDone += OnBuildDone;
 
         WOEventDataFields.Init();
         //WODataBlockFields.Init();
@@ -56,7 +54,7 @@ internal class EntryPoint : BasePlugin
         LevelFailUpdateState.AssetLoaded();
     }
 
-    private void PostFactoryDone()
+    private void OnBuildDone()
     {
         int seed = RundownManager.GetActiveExpeditionData().sessionSeed;
         SessionRand = new(seed);

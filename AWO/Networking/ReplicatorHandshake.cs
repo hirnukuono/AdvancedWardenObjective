@@ -1,6 +1,5 @@
 ﻿using GTFO.API;
 using SNetwork;
-using System.Collections.Generic;
 
 namespace AWO.Networking;
 

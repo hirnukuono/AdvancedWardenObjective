@@ -65,7 +65,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
 
     private static void OnLevelCleanup()
     {
-        TrackedMPs.Values.ToList().ForEach(list => list.Clear());
+        TrackedMPs.ForEachValue(list => list.Clear());
     }
 
     protected override void TriggerCommon(WEE_EventData e)

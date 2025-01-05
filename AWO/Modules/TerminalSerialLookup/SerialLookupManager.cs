@@ -9,6 +9,7 @@ public static class SerialLookupManager
 {
     public readonly static Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
     private const string Pattern = @"\[(?<ItemName>.+?)_(?<Dimension>\d+)_(?<Layer>\d+)_(?<Zone>\d+)(_(?<InstanceIndex>\d+))?\]";
+    private const string Terminal = "TERMINAL";
     private const string Zone = "ZONE";
 
     internal static void Init()
@@ -29,6 +30,8 @@ public static class SerialLookupManager
             string itemName = serial.Key.Substring(0, split);
             string serialNumber = serial.Key.Substring(split + 1);
 
+            if (itemName == Terminal && serial.Value.SpawnNode.m_dimension.DimensionData.IsStaticDimension) continue;
+
             int dimension = (int)serial.Value.SpawnNode.m_dimension.DimensionIndex;
             int layer = (int)serial.Value.SpawnNode.LayerType;
             int zone = (int)serial.Value.SpawnNode.m_zone.LocalIndex;
@@ -38,10 +41,31 @@ public static class SerialLookupManager
             count++;
         }
 
+        foreach (var dimension in Builder.CurrentFloor.m_dimensions)
+        {
+            if (dimension.DimensionData.IsStaticDimension)
+            {
+                var node = dimension.GetStartCourseNode();
+                int dimensionIndex = (int)dimension.DimensionIndex;
+                int layer = (int)node.LayerType;
+                var globalIndex = (dimensionIndex, layer, 0);
+
+                foreach (var staticTerm in node.m_zone.TerminalsSpawnedInZone)
+                {
+                    int split = staticTerm.m_terminalItem.TerminalItemKey.LastIndexOf('_');
+                    if (split == -1) continue;
+                    string serialNumber = staticTerm.m_terminalItem.TerminalItemKey.Substring(split + 1);
+
+                    SerialMap.GetOrAddNew(Terminal).GetOrAddNew(globalIndex).Add(serialNumber);
+                    count++;
+                }
+            }
+        }
+
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
-            var globalZoneIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
-            SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalZoneIndex).Add(zone.Alias.ToString());
+            var globalIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
+            SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalIndex).Add(zone.Alias.ToString());
             count++;
         }
 

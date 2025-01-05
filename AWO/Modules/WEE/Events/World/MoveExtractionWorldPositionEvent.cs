@@ -1,5 +1,4 @@
 ﻿using AWO.Modules.WEE.Replicators;
-using BepInEx;
 using ChainedPuzzles;
 using GTFO.API;
 using LevelGeneration;
@@ -15,7 +14,7 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnBuildDone += PostFactoryDone;
+        LevelAPI.OnEnterLevel += PostFactoryDone;
     }
 
     private void PostFactoryDone()
@@ -37,7 +36,6 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
     private void TrackWinConditionScan(ElevatorShaftLanding landing)
     {
         if (landing.m_puzzle.NRofPuzzles() > 1) return;
-
         var puzzleCore = landing.m_puzzle.GetPuzzle(0);
         var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
         if (scanCore == null) return;
@@ -53,7 +51,6 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
     private void TrackWinConditionScan(LG_LevelExitGeo exitgeo)
     {
         if (exitgeo.m_puzzle.NRofPuzzles() > 1) return;
-
         var puzzleCore = exitgeo.m_puzzle.GetPuzzle(0);
         var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
         if (scanCore == null) return;
@@ -68,8 +65,6 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        LogDebug("Position updated");
-
         Vector3 pos = GetPositionFallback(e.Position, e.SpecialText);
         EntranceScanReplicator?.TryUpdatePosition(pos);
         ExitScanReplicator?.TryUpdatePosition(pos);

@@ -2,7 +2,7 @@
 
 namespace AWO.Utils;
 
-internal static class LocalizedTextExtensions
+public static class LocalizedTextExtensions
 {
     public static string ToText(this LocalizedText text)
     {

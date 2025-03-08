@@ -37,8 +37,8 @@ internal sealed class StartEventLoop : BaseEvent
             return;
         }
 
-        ActiveEventLoops[e.StartEventLoop.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
         LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
+        ActiveEventLoops[e.StartEventLoop.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
     }
 
     static IEnumerator DoLoop(WEE_EventData e)

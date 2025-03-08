@@ -1,4 +1,5 @@
 ﻿using AK;
+using AWO.Modules.TerminalSerialLookup;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -15,8 +16,8 @@ internal sealed class CustomHudTextEvent : BaseEvent
         if (e.Enabled)
         {    
             CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
-            GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = e.CustomHudText.Title;
-            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = e.CustomHudText.Body;
+            GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Title);
+            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Body);
         }
         else
         {

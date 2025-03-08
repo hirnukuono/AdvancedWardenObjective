@@ -35,32 +35,48 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 
     private void TrackWinConditionScan(ElevatorShaftLanding landing)
     {
-        if (landing.m_puzzle.NRofPuzzles() > 1) return;
-        var puzzleCore = landing.m_puzzle.GetPuzzle(0);
-        var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
-        if (scanCore == null) return;
+        try
+        {
+            if (landing.m_puzzle.NRofPuzzles() != 1) return;
+            var puzzleCore = landing.m_puzzle.GetPuzzle(0);
+            var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
+            if (scanCore == null) return;
 
-        var positionUpdater = landing.gameObject.AddComponent<ScanPositionReplicator>();
-        positionUpdater.Marker.Set(landing.m_marker);
-        positionUpdater.TrackingScan.Set(scanCore);
-        positionUpdater.IsExitScan.Set(true);
-        positionUpdater.Setup(10u);
-        EntranceScanReplicator = positionUpdater;
+            var positionUpdater = landing.gameObject.AddComponent<ScanPositionReplicator>();
+            positionUpdater.Marker.Set(landing.m_marker);
+            positionUpdater.TrackingScan.Set(scanCore);
+            positionUpdater.IsExitScan.Set(true);
+            positionUpdater.Setup(10u);
+            EntranceScanReplicator = positionUpdater;
+        }
+        catch
+        {
+            Logger.Warn("[MoveExtractionWorldPositionEvent] An issue occured setting up the extraction scan replicator. There might be an issue with the elevator tile? This event will not work in this level!");
+            EntranceScanReplicator = null;
+        }
     }
 
     private void TrackWinConditionScan(LG_LevelExitGeo exitgeo)
     {
-        if (exitgeo.m_puzzle.NRofPuzzles() > 1) return;
-        var puzzleCore = exitgeo.m_puzzle.GetPuzzle(0);
-        var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
-        if (scanCore == null) return;
+        try
+        {
+            if (exitgeo.m_puzzle.NRofPuzzles() != 1) return;
+            var puzzleCore = exitgeo.m_puzzle.GetPuzzle(0);
+            var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
+            if (scanCore == null) return;
 
-        var positionUpdater = exitgeo.gameObject.AddComponent<ScanPositionReplicator>();
-        positionUpdater.Marker.Set(exitgeo.m_marker);
-        positionUpdater.TrackingScan.Set(scanCore);
-        positionUpdater.IsExitScan.Set(true);
-        positionUpdater.Setup(20u);
-        ExitScanReplicator = positionUpdater;
+            var positionUpdater = exitgeo.gameObject.AddComponent<ScanPositionReplicator>();
+            positionUpdater.Marker.Set(exitgeo.m_marker);
+            positionUpdater.TrackingScan.Set(scanCore);
+            positionUpdater.IsExitScan.Set(true);
+            positionUpdater.Setup(20u);
+            ExitScanReplicator = positionUpdater;
+        }
+        catch
+        {
+            Logger.Warn("[MoveExtractionWorldPositionEvent] An issue occured setting up the extraction scan replicator. There might be an issue with the exit tile? This event will not work in this level!");
+            ExitScanReplicator = null;
+        }
     }
 
     protected override void TriggerMaster(WEE_EventData e)

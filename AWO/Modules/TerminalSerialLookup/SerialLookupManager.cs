@@ -1,4 +1,5 @@
-﻿using GTFO.API;
+﻿using BepInEx;
+using GTFO.API;
 using LevelGeneration;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,7 +9,7 @@ namespace AWO.Modules.TerminalSerialLookup;
 public static class SerialLookupManager
 {
     public readonly static Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
-    private const string Pattern = @"\[(?<ItemName>.+?)_(?<Dimension>\d+)_(?<Layer>\d+)_(?<Zone>\d+)(_(?<InstanceIndex>\d+))?\]";
+    private const string Pattern = @"\[(?<ItemName>[^\[]+?)_(?<Dimension>\d+)_(?<Layer>\d+)_(?<Zone>\d+)(?:_(?<InstanceIndex>\d+))?\]";
     private const string Terminal = "TERMINAL";
     private const string Zone = "ZONE";
 
@@ -21,7 +22,8 @@ public static class SerialLookupManager
     private static void BuildSerialMap()
     {
         int count = 0;
-
+        
+        // collect all general terminal items
         foreach (var serial in LG_LevelInteractionManager.GetAllTerminalInterfaces())
         {
             if (serial?.Value.SpawnNode == null) continue;
@@ -30,7 +32,7 @@ public static class SerialLookupManager
             string itemName = serial.Key.Substring(0, split);
             string serialNumber = serial.Key.Substring(split + 1);
 
-            if (itemName == Terminal && serial.Value.SpawnNode.m_dimension.DimensionData.IsStaticDimension) continue;
+            if (itemName == Terminal && serial.Value.SpawnNode.m_dimension.DimensionData.IsStaticDimension) continue; // skip static terminals here
 
             int dimension = (int)serial.Value.SpawnNode.m_dimension.DimensionIndex;
             int layer = (int)serial.Value.SpawnNode.LayerType;
@@ -41,6 +43,7 @@ public static class SerialLookupManager
             count++;
         }
 
+        // collect all static terminals
         foreach (var dimension in Builder.CurrentFloor.m_dimensions)
         {
             if (dimension.DimensionData.IsStaticDimension)
@@ -62,11 +65,19 @@ public static class SerialLookupManager
             }
         }
 
+        // collect all zone alias numbers
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
             var globalIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
             SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalIndex).Add(zone.Alias.ToString());
             count++;
+        }
+        
+        // parse door interaction text
+        foreach (var locks in UnityEngine.Object.FindObjectsOfType<LG_SecurityDoor_Locks>())
+        {            
+            locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
+            locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
         }
 
         Logger.Info($"[SerialLookupManager] On build done, collected {count} serial numbers");
@@ -79,6 +90,8 @@ public static class SerialLookupManager
 
     public static string ParseTextFragments(string input)
     {
+        if (input.IsNullOrWhiteSpace()) return input;
+
         StringBuilder result = new(input);
         foreach (Match match in Regex.Matches(input, Pattern))
         {
@@ -104,20 +117,13 @@ public static class SerialLookupManager
             if (instanceIndex < serialList.Count)
             {
                 string serialNumber = serialList[instanceIndex];
-                if (itemName != "ZONE")
-                {
-                    serialStr = $"<color=orange>{itemName}_{serialNumber}</color>";
-                }
-                else
-                {
-                    serialStr = $"<color=orange>{itemName} {serialNumber}</color>";
-                }
+                serialStr = $"<color=orange>{itemName}{(itemName != Zone ? "_" : " ")}{serialNumber}</color>";
                 return true;
             }
         }
 
         serialStr = match.Value;
-        Logger.Error($"[SerialLookupManager] No match found for TerminalItem: '{itemName}' in ({dimension}, {layer}, {zone}) at instance {instanceIndex}");
+        Logger.Error($"[SerialLookupManager] No match found for TerminalItem: '{itemName}' in (D{dimension}, L{layer}, Z{zone}) at instance #{instanceIndex}");
         return false;
     }
 }

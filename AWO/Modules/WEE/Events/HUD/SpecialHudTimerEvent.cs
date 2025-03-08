@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using AWO.Modules.TerminalSerialLookup;
+using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
@@ -23,7 +24,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float time = 0.0f;
         float percentage;
-        string msg = hud.Message.ToString();
+        string msg = SerialLookupManager.ParseTextFragments(hud.Message);
         bool hasTags = msg.Contains(Timer) || msg.Contains(Percent);
 
         Queue<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress);

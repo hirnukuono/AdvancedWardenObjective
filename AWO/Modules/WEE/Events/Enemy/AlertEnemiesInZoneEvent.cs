@@ -8,24 +8,26 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AlertEnemiesInZone;
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
+
+        if (e.Enabled) Logger.Info("I believe in you!");
 
         if (e.SpecialNumber == -1)
         {
             foreach (var node in zone.m_courseNodes)
             {
-                DoAlert(node, e.Enabled);
+                DoAlert(node);
             }
         }
         else if (IsValidAreaIndex(e.SpecialNumber, zone))
         {
-            DoAlert(zone.m_areas[e.SpecialNumber].m_courseNode, e.Enabled);
+            DoAlert(zone.m_areas[e.SpecialNumber].m_courseNode);
         }
     }
 
-    private static void DoAlert(AIG_CourseNode node, bool enabled)
+    private static void DoAlert(AIG_CourseNode node)
     {
         if (node.m_enemiesInNode == null || node.listenersInNode == null)
         {
@@ -33,32 +35,27 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             return;
         }
 
-        if (enabled)
+        NoiseManager.MakeNoise(new()
         {
-            NoiseManager.MakeNoise(new()
-            {
-                noiseMaker = null,
-                node = node,
-                position = node.GetRandomPositionInside(),
-                radiusMin = 0.0f,
-                radiusMax = 64.0f,
-                yScale = 1.0f,
-                type = NM_NoiseType.InstaDetect,
-                includeToNeightbourAreas = false, // 10cc typo literaly unplayable
-                raycastFirstNode = false
-            });
-        }
-        else
+            noiseMaker = null,
+            node = node,
+            position = node.GetRandomPositionInside(),
+            radiusMin = 0.0f,
+            radiusMax = 64.0f,
+            yScale = 1.0f,
+            type = NM_NoiseType.InstaDetect,
+            includeToNeightbourAreas = false, // 10cc typo literaly unplayable
+            raycastFirstNode = false
+        });
+
+        foreach (var enemy in node.m_enemiesInNode)
         {
-            foreach (var enemy in node.m_enemiesInNode)
-            {
-                PlayerManager.TryGetClosestAlivePlayerAgent(enemy.CourseNode, out PlayerAgent minae);
-                AgentMode mode = AgentMode.Agressive;
-                enemy.AI.SetStartMode(mode);
-                enemy.AI.ModeChange();
-                enemy.AI.m_mode = mode;
-                enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
-            }
-        }
+            PlayerManager.TryGetClosestAlivePlayerAgent(enemy.CourseNode, out PlayerAgent minae);
+            AgentMode mode = AgentMode.Agressive;
+            enemy.AI.SetStartMode(mode);
+            enemy.AI.ModeChange();
+            enemy.AI.m_mode = mode;
+            enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
+        }        
     }
 }

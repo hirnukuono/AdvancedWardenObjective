@@ -12,9 +12,11 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetCPInstance(e.ChainPuzzle, out var puzzleInstance) || !puzzleInstance.IsActive || puzzleInstance.IsSolved)
+        uint chainPuzzle = ResolveFieldsFallback((uint)e.SpecialNumber, e.ChainPuzzle);
+
+        if (!TryGetCPInstance(chainPuzzle, out var puzzleInstance) || !puzzleInstance.IsActive || puzzleInstance.IsSolved)
         {
-            LogError($"An active ChainedPuzzle with index {e.ChainPuzzle} was not found!");
+            LogError($"An active ChainedPuzzle with index {chainPuzzle} was not found!");
             return;
         }
         
@@ -79,7 +81,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         }
         catch
         {
-            //Logger.Warn("[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
+            Logger.Warn("[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
         }
 
         yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);

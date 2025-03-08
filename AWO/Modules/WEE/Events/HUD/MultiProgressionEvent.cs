@@ -90,28 +90,30 @@ internal sealed class MultiProgressionEvent : BaseEvent
             }
             else if (!header.IsNullOrWhiteSpace()) // update MP text
             {
-                PUI_ProgressionObjective? prog = isInVanillaMap
-                    ? ObjHud.m_progressionObjectiveMap[key]
-                    : TrackedMPs.Values.SelectMany(list => list).FirstOrDefault(localMP => localMP.Index == key)?.ProgObj;
-                if (prog == null)
-                {
-                    LogError("Failed to find a SubObjective to update text for!");
-                    return;
-                }
                 LogDebug($"Updating text for SubObjective with Index: {sub.Index}");
-
-                prog.m_header.text = header;
-                prog.m_text.text = body;
-                prog.ResizeAccordingToText();
-                CoroutineManager.BlinkIn(prog.Header, 0.1f);
-                CoroutineManager.BlinkIn(prog.SubObjective, 0.3f);
-                CoroutineManager.StartCoroutine(ObjHud.DoUpdateObjectiveLayoutAfterTime(CoroutineManager.BlinkDuration));
+                
+                if (isInVanillaMap)
+                {
+                    var prog1 = ObjHud.m_progressionObjectiveMap[key];
+                    prog1.m_header.text = header;
+                    prog1.m_text.text = body;
+                    prog1.ResizeAccordingToText();
+                    CoroutineManager.BlinkIn(prog1.Header, 0.1f);
+                    CoroutineManager.BlinkIn(prog1.SubObjective, 0.3f);
+                    CoroutineManager.StartCoroutine(ObjHud.DoUpdateObjectiveLayoutAfterTime(CoroutineManager.BlinkDuration));
+                }                
+                if (isInTrackedMap)
+                {
+                    var prog2 = TrackedMPs.Values.SelectMany(list => list).FirstOrDefault(localMP => localMP.Index == key)!.ProgObj;
+                    prog2.m_header.text = header;
+                    prog2.m_text.text = body;
+                }
             }
             else // remove MP
             {
                 LogDebug($"Removing SubObjective with Index: {sub.Index}");
                 ObjHud.RemoveProgressionObjective(key);
-                TrackedMPs.Values.ToList().ForEach(list => list.RemoveAll(localMP => localMP.Index == key));
+                TrackedMPs.ForEachValue(list => list.RemoveAll(LocalMPData => LocalMPData.Index == key));
             }
         }
     }

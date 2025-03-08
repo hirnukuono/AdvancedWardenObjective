@@ -356,6 +356,7 @@ public sealed class WEE_StartPortalMachine
 {
     public eDimensionIndex TargetDimension { get; set; } = eDimensionIndex.Dimension_1;
     public eLocalZoneIndex TargetZone { get; set; } = eLocalZoneIndex.Zone_0;
+    public uint PortalChainPuzzle { get; set; } = 4u;
 }
 
 public sealed class WEE_SetSuccessScreen

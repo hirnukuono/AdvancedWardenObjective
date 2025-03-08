@@ -45,7 +45,8 @@ internal class EntryPoint : BasePlugin
         //WODataBlockFields.Init();
         SerialLookupManager.Init();
 
-        Logger.Info("AWO is done loading! --Amorously");
+        Logger.Info("AWO is done loading!");
+        Logger.Info("Amorously was here");
     }
 
     private void OnStartupAssetsLoaded()

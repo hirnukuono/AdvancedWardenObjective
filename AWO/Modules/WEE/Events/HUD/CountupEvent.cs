@@ -1,4 +1,5 @@
 ﻿using AK;
+using AWO.Modules.TerminalSerialLookup;
 using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
@@ -26,7 +27,7 @@ internal sealed class CountupEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
-        string[] body = ParseCustomText(cu.CustomText, duration);
+        string[] body = ParseCustomText(SerialLookupManager.ParseTextFragments(cu.CustomText), duration);
 
         Queue<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
@@ -108,7 +109,7 @@ internal sealed class CountupEvent : BaseEvent
         if (EntryPoint.TimerMods.CountupText != cu.CustomText) // text mod
         {
             cu.CustomText = EntryPoint.TimerMods.CountupText;
-            body = ParseCustomText(cu.CustomText, duration);
+            body = ParseCustomText(SerialLookupManager.ParseTextFragments(cu.CustomText), duration);
         }
 
         if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod

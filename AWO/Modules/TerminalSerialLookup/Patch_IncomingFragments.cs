@@ -1,5 +1,5 @@
-﻿using BepInEx;
-using HarmonyLib;
+﻿using HarmonyLib;
+using LevelGeneration;
 
 namespace AWO.Modules.TerminalSerialLookup;
 
@@ -11,18 +11,18 @@ internal static class Patch_IncomingFragments
     [HarmonyWrapSafe]
     private static void Post_ReplaceFragments(ref string __result)
     {
-        if (HasBracketPair(__result))
-        {
-            __result = SerialLookupManager.ParseTextFragments(__result);
-        }
+        __result = SerialLookupManager.ParseTextFragments(__result);
     }
 
-    private static bool HasBracketPair(string input)
+    [HarmonyPatch(typeof(LG_SecurityDoor_Locks), nameof(LG_SecurityDoor_Locks.OnDoorState))]
+    [HarmonyPostfix]
+    [HarmonyAfter]
+    [HarmonyWrapSafe]
+    private static void InteractText_OnDoorState(LG_SecurityDoor_Locks __instance, pDoorState state)
     {
-        if (input.IsNullOrWhiteSpace()) return false;
-
-        int open = input.IndexOf('[');
-        int close = input.IndexOf(']', open + 1);
-        return open >= 0 && open < close;
+        if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
+        {
+            __instance.m_intOpenDoor.InteractionMessage = SerialLookupManager.ParseTextFragments(__instance.m_intOpenDoor.InteractionMessage);
+        }
     }
 }

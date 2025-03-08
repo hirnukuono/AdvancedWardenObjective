@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using AWO.Modules.TerminalSerialLookup;
+using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
 using UnityEngine;
@@ -29,7 +30,7 @@ internal sealed class CountdownEvent : BaseEvent
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(cd.TimerText);
+        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(SerialLookupManager.ParseTextFragments(cd.TimerText));
         GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
 
         while (time <= duration)
@@ -66,10 +67,19 @@ internal sealed class CountdownEvent : BaseEvent
             GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
             time += Time.deltaTime;
 
-            if (EntryPoint.TimerMods.TimeModifier != 0.0f)
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
             {
                 time -= EntryPoint.TimerMods.TimeModifier;
                 EntryPoint.TimerMods.TimeModifier = 0.0f;
+            }
+            if (EntryPoint.TimerMods.CountupText != cd.TimerText) // text mod
+            {
+                cd.TimerText = EntryPoint.TimerMods.CountupText;
+                GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(cd.TimerText);
+            }
+            if (EntryPoint.TimerMods.TimerColor != cd.TimerColor) // color mod
+            {
+                cd.TimerColor = EntryPoint.TimerMods.TimerColor;
             }
 
             yield return null;

@@ -41,14 +41,14 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
             if (e.Duration > 0.0f)
             {
-                CoroutineManager.StartCoroutine(DestroyDelay(e.Count, e.Duration).WrapToIl2Cpp());
+                CoroutineManager.StartCoroutine(DestroyAfterDelay(e.Count, e.Duration).WrapToIl2Cpp());
             }
         }
 
         marker.SetVisible(e.Enabled);
     }
 
-    static IEnumerator DestroyDelay(int index, float duration)
+    static IEnumerator DestroyAfterDelay(int index, float duration)
     {
         yield return new WaitForSeconds(duration);
         NavMarkers.Remove(index);

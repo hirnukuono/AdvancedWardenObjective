@@ -122,6 +122,7 @@ public sealed class WEE_CountdownData
 {
     public float Duration { get; set; } = 0.0f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
+    public LocaleText TitleText { get => TimerText; set => TimerText = value; }
     public Color TimerColor { get; set; } = Color.red;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
@@ -311,8 +312,13 @@ public sealed class WEE_AdjustTimer
 {
     public float Duration { get; set; } = 0.0f;
     public float Speed { get; set; } = 0.0f;
+    public bool UpdateTitleText { get; set; } = false;
+    public LocaleText TitleText { get; set; } = LocaleText.Empty;
     public bool UpdateText { get; set; } = false;
+    public bool UpdateBodyText { get => UpdateText; set => UpdateText = value; }
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
+    public LocaleText BodyText { get => CustomText; set => CustomText = value; }
+    public bool UpdateColor { get; set; } = false; 
     public Color TimerColor { get; set; } = Color.red;
 }
 
@@ -322,7 +328,9 @@ public sealed class WEE_CountupData
     public float StartValue { get; set; } = 0.0f;
     public float Speed { get; set; } = 1.0f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
+    public LocaleText TitleText { get => TimerText; set => TimerText = value; }
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
+    public LocaleText BodyText { get => CustomText; set => CustomText = value; }
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();

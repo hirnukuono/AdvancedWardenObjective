@@ -38,10 +38,10 @@ internal sealed class DamagePlayerEvent : BaseEvent
 
         while (elapsed < e.Duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-                yield break; // no longer in level, exit
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
-                yield break; // checkpoint was used, exit
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            {
+                yield break; // checkpoint was used or not in level, exit
+            }
 
             ApplyDamage(player, damagePerSecond, e.DamagePlayer.UseZone, id);
             elapsed += Time.deltaTime;

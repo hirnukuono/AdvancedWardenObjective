@@ -27,28 +27,28 @@ internal sealed class CountupEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
-        string[] body = ParseCustomText(SerialLookupManager.ParseTextFragments(cu.CustomText), duration);
 
-        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cu.EventsOnProgress.OrderBy(prEv => prEv.Progress));
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
         double nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : double.NaN;
 
+        string titleText = SerialLookupManager.ParseTextFragments(cu.TimerText);
+        string customText = SerialLookupManager.ParseTextFragments(cu.CustomText);
+        string[] body = ParseCustomText(customText, duration);
+
         EntryPoint.TimerMods.SpeedModifier = cu.Speed;
-        EntryPoint.TimerMods.CountupText = cu.CustomText;
+        EntryPoint.TimerMods.TimerTitleText = new(titleText);
+        EntryPoint.TimerMods.TimerBodyText = new(customText);
         EntryPoint.TimerMods.TimerColor = cu.TimerColor;
 
         CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
-        GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = cu.TimerText;
+        GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = titleText;
         yield return new WaitForSeconds(0.25f);
 
         while (count <= duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-            {
-                yield break;
-            }
-            if (startTime < EntryPoint.Coroutines.CountdownStarted)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
             {
                 yield break; // someone has started a new countup while we were stuck here, exit
             }
@@ -60,7 +60,7 @@ internal sealed class CountupEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                if (nextProgress == Math.Round(count / duration, 3))
+                if (nextProgress <= NormalizedPercent(count, cu.StartValue, duration))
                 {
                     WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
@@ -72,13 +72,41 @@ internal sealed class CountupEvent : BaseEvent
 
             GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = $"<color=#{ColorUtility.ToHtmlStringRGB(cu.TimerColor)}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
             count += cu.Speed * Time.deltaTime;
-            ModifyCountup(ref cu, ref count, duration, ref body);
+
+            if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
+            {
+                count += EntryPoint.TimerMods.TimeModifier;
+                EntryPoint.TimerMods.TimeModifier = 0.0f;
+            }
+            if (EntryPoint.TimerMods.SpeedModifier != cu.Speed) // speed mod
+            {
+                cu.Speed = EntryPoint.TimerMods.SpeedModifier;
+            }
+            if (EntryPoint.TimerMods.TimerTitleText != titleText) // title text mod
+            {
+                titleText = EntryPoint.TimerMods.TimerTitleText;
+                GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = titleText;
+            }
+            if (EntryPoint.TimerMods.TimerBodyText != customText) // body text mod
+            {
+                customText = EntryPoint.TimerMods.TimerBodyText;
+                body = ParseCustomText(customText, duration);
+            }
+            if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod
+            {
+                cu.TimerColor = EntryPoint.TimerMods.TimerColor;
+            }
 
             yield return null;
         }
 
         CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
         GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
+        
+        while (cachedProgressEvents.Count > 0) 
+        {
+            WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+        }
         WOManager.CheckAndExecuteEventsOnTrigger(cu.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 
@@ -93,28 +121,12 @@ internal sealed class CountupEvent : BaseEvent
         return custom.Split(Tag, 2);
     }
 
-    private static void ModifyCountup(ref WEE_CountupData cu, ref float count, float duration, ref string[] body)
+    private static double NormalizedPercent(float current, float min, float max)
     {
-        if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
-        {
-            count += EntryPoint.TimerMods.TimeModifier;
-            EntryPoint.TimerMods.TimeModifier = 0.0f;
-        }
+        if (min == max) return double.NaN;
 
-        if (EntryPoint.TimerMods.SpeedModifier != cu.Speed) // speed mod
-        {
-            cu.Speed = EntryPoint.TimerMods.SpeedModifier;
-        }
-
-        if (EntryPoint.TimerMods.CountupText != cu.CustomText) // text mod
-        {
-            cu.CustomText = EntryPoint.TimerMods.CountupText;
-            body = ParseCustomText(SerialLookupManager.ParseTextFragments(cu.CustomText), duration);
-        }
-
-        if (EntryPoint.TimerMods.TimerColor != cu.TimerColor) // color mod
-        {
-            cu.TimerColor = EntryPoint.TimerMods.TimerColor;
-        }
+        float clamp = Math.Clamp(current, min, max);
+        float percent = (clamp - min) / (max - min);
+        return Math.Round(percent, 3);
     }
 }

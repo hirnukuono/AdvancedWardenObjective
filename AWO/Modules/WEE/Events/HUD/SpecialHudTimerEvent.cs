@@ -27,7 +27,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
         bool hasTags = msg.Contains(Timer) || msg.Contains(Percent);
 
-        Queue<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress.OrderBy(prEv => prEv.Progress));
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
         double nextProgress = hasProgressEvents ? Math.Round(cachedProgressEvents.Peek().Progress, 3) : double.NaN;
 
@@ -37,11 +37,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         while (time < duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-            {
-                yield break;
-            }
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
@@ -72,7 +68,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             
             if (hasProgressEvents)
             {
-                if (nextProgress == Math.Round(percentage, 3))
+                if (nextProgress <= Math.Round(percentage, 3))
                 {
                     WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
@@ -90,6 +86,12 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         GuiManager.InteractionLayer.MessageVisible = false;
         GuiManager.InteractionLayer.MessageTimerVisible = false;
+
+        while (cachedProgressEvents.Count > 0)
+        {
+            WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+        }
+
         WOManager.CheckAndExecuteEventsOnTrigger(hud.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 }

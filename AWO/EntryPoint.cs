@@ -28,7 +28,8 @@ internal class EntryPoint : BasePlugin
         public static float TimeModifier { get; set; }
         public static Color TimerColor { get; set; }
         public static float SpeedModifier { get; set; }
-        public static LocaleText CountupText { get; set; }
+        public static LocaleText TimerTitleText { get; set; }
+        public static LocaleText TimerBodyText { get; set; }
     }
 
     public unsafe override void Load()

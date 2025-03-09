@@ -1,4 +1,5 @@
-﻿using AWO.Modules.TerminalSerialLookup;
+﻿using AWO.Jsons;
+using AWO.Modules.TerminalSerialLookup;
 using GameData;
 using GTFO.API.Extensions;
 using System.Collections;
@@ -14,6 +15,7 @@ internal sealed class CountdownEvent : BaseEvent
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
         EntryPoint.TimerMods.TimeModifier = 0.0f;
+
         float duration = ResolveFieldsFallback(e.Duration, e.Countdown.Duration);
         CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, duration).WrapToIl2Cpp());
     }
@@ -24,22 +26,22 @@ internal sealed class CountdownEvent : BaseEvent
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float time = 0.0f;
 
-        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress);
+        Queue<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress.OrderBy(prEv => prEv.Progress));
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
         double nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : double.NaN;
 
+        string timerTitle = SerialLookupManager.ParseTextFragments(cd.TimerText);
+        EntryPoint.TimerMods.TimerTitleText = new(timerTitle);
+        EntryPoint.TimerMods.TimerColor = cd.TimerColor;
+
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(SerialLookupManager.ParseTextFragments(cd.TimerText));
+        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(timerTitle);
         GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
 
         while (time <= duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
-            {
-                yield break;
-            }
-            if (startTime < EntryPoint.Coroutines.CountdownStarted)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
             {
                 // someone has started a new countdown while we were stuck here, exit
                 yield break;
@@ -54,7 +56,7 @@ internal sealed class CountdownEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                if (nextProgress == Math.Round(time / duration, 3))
+                if (nextProgress <= Math.Round(time / duration, 3))
                 {
                     WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
@@ -72,10 +74,10 @@ internal sealed class CountdownEvent : BaseEvent
                 time -= EntryPoint.TimerMods.TimeModifier;
                 EntryPoint.TimerMods.TimeModifier = 0.0f;
             }
-            if (EntryPoint.TimerMods.CountupText != cd.TimerText) // text mod
+            if (EntryPoint.TimerMods.TimerTitleText != timerTitle) // text mod
             {
-                cd.TimerText = EntryPoint.TimerMods.CountupText;
-                GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(cd.TimerText);
+                timerTitle = EntryPoint.TimerMods.TimerTitleText;
+                GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = timerTitle;
             }
             if (EntryPoint.TimerMods.TimerColor != cd.TimerColor) // color mod
             {
@@ -86,6 +88,12 @@ internal sealed class CountdownEvent : BaseEvent
         }
 
         GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, true);
+        
+        while (cachedProgressEvents.Count > 0)
+        {
+            WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+        }
+
         WOManager.CheckAndExecuteEventsOnTrigger(cd.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
     }
 }

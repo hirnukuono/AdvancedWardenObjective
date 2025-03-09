@@ -109,17 +109,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         yield return new WaitForSeconds(duration);
 
-        if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount || startTime < EntryPoint.Coroutines.TPFStarted)
         {
-            yield break; // no longer in level, exit
-        }
-        if (startTime < EntryPoint.Coroutines.TPFStarted)
-        {
-            yield break; // new TeleportPlayer event started, exit
-        }
-        if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
-        {
-            yield break; // checkpoint was used, exit
+            yield break; // checkpoint was used or not in level or canceled by another warp, exit
         }
 
         Logger.Debug("[TeleportPlayerEvent] Warping players back...");

@@ -11,7 +11,7 @@ internal sealed class SetPocketItemEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetPocketItem;
 
-    public readonly static Dictionary<int, WEE_SetPocketItem> PocketItemsMap = new();
+    public static readonly Dictionary<int, WEE_SetPocketItem> PocketItemsMap = new();
     public static bool HasEmptyPockets => PocketItemsMap.Count == 0;
     public static string TopItems { get; private set; } = string.Empty;
     public static string BottomItems { get; private set; } = string.Empty;
@@ -26,6 +26,14 @@ internal sealed class SetPocketItemEvent : BaseEvent
         PocketItemsMap.Clear();
         TopItems = string.Empty;
         BottomItems = string.Empty;
+    }
+
+    protected override void TriggerMaster(WEE_EventData e)
+    {
+        if (e.ObjectiveItems.Any(pItem => pItem.TagType == TagType.Random))
+        {
+            EntryPoint.SessionRand.SyncStep(); // runs after TriggerCommon!
+        }
     }
 
     protected override void TriggerCommon(WEE_EventData e)
@@ -43,7 +51,7 @@ internal sealed class SetPocketItemEvent : BaseEvent
                 {
                     TagType.Custom => pItem.CustomTag,
                     TagType.Specific => slots[(int)pItem.PlayerIndex]?.GetName(),
-                    TagType.Random => slots[EntryPoint.SessionRand.Next(slots.Count)]?.GetName(),
+                    TagType.Random => slots[EntryPoint.SessionRand.NextInt(slots.Count)]?.GetName(),
                     TagType.Closest => GetClosestPlayerName(e.Position),
                     _ => null
                 };
@@ -81,6 +89,6 @@ internal sealed class SetPocketItemEvent : BaseEvent
                 nearestPlayer = currentPlayer;
             }
         }
-        return nearestPlayer?.PlayerName;
+        return nearestPlayer?.PlayerName ?? null;
     }
 }

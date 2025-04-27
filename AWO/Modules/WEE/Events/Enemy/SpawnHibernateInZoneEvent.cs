@@ -1,5 +1,6 @@
 ﻿using Agents;
 using AIGraph;
+using BepInEx.Logging;
 using Enemies;
 using LevelGeneration;
 using Player;
@@ -56,10 +57,10 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (Vector3.Distance(player.Position, pos) < 3.5f)
+                    if (!player.Owner.IsBot && Vector3.Distance(player.Position, pos) < 3.5f)
                     {
                         isValidPos = false;
-                        //Logger.Debug("SpawnHibernates - spawn pos rerolling due to pos conflict");
+                        Logger.Dev(LogLevel.Debug, "A spawn position rerolled due to nearby player conflict");
                         break;
                     }
                 }
@@ -71,14 +72,18 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                         if (Vector3.Distance(enemy.Position, pos) < 2.3f)
                         {
                             isValidPos = false;
-                            //Logger.Debug("SpawnHibernates - spawn pos rerolling due to pos conflict");
+                            Logger.Dev(LogLevel.Debug, "A spawn position rerolled due to nearby enemy conflict");
                             break;
                         }
                     }
                 }
             } while (!isValidPos && ++attempts < 5);
 
-            if (!isValidPos && !enabled) continue;
+            if (!isValidPos && !enabled)
+            {
+                Logger.Dev(LogLevel.Warning, "An enemy failed to spawn after maximum reroll attempts reached");
+                continue;
+            }
 
             Quaternion rotation = Quaternion.Euler(0, MasterRand.NextRange(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);

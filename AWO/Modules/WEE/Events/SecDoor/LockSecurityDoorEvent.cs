@@ -1,4 +1,5 @@
-﻿using AWO.Modules.TerminalSerialLookup;
+﻿using AWO.Jsons;
+using AWO.Modules.TSL;
 using GameData;
 using LevelGeneration;
 
@@ -38,7 +39,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         });
 
         var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
-        if (intMessage != null)
+        if (intMessage != null && e.SpecialText != LocaleText.Empty)
         {
             intMessage.m_message = SerialLookupManager.ParseTextFragments(e.SpecialText);
         }

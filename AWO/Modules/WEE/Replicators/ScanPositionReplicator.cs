@@ -7,41 +7,43 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE.Replicators;
 
-internal struct ScanPositionState
+public struct ScanPositionState
 {
     public Vector3 position;
     public int nodeID;
 }
 
-internal sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHolder<ScanPositionState>
+public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHolder<ScanPositionState>
 {
-    public Il2CppReferenceField<NavMarker> Marker;
-    public Il2CppReferenceField<CP_Bioscan_Core> TrackingScan;
-    public Il2CppValueField<bool> IsExitScan;
+    [HideFromIl2Cpp]
+    public StateReplicator<ScanPositionState>? Replicator { get; private set; }
+    public CP_Bioscan_Core? TrackingScan;
+    public NavMarker? Marker;
+    public bool IsExitScan;
 
-    public void Setup(uint id)
+    public void Setup(uint id, CP_Bioscan_Core scan, NavMarker marker, bool isExit) // reserved ids: 10u, 20u
     {
-        var scan = TrackingScan.Value;
-        var defaultState = new ScanPositionState()
+        Replicator = StateReplicator<ScanPositionState>.Create(id, new() 
         {
             position = scan.transform.position,
             nodeID = scan.CourseNode.NodeID
-        };
+        }, LifeTimeType.Session, this);
+        
+        TrackingScan = scan;
+        Marker = marker;
+        IsExitScan = isExit;
+    }
 
-        Replicator = StateReplicator<ScanPositionState>.Create(id, defaultState, LifeTimeType.Session, this);
+    public void OnDestroy()
+    {
+        Replicator?.Unload();
     }
 
     public void TryUpdatePosition(Vector3 position)
     {
-        if (Replicator == null)
-            return;
-
-        if (Replicator.IsInvalid)
-            return;
-
         if (AIG_CourseNode.TryGetCourseNode(position.GetDimension().DimensionIndex, position, 6.0f, out var node))
         {
-            Replicator.SetState(new ScanPositionState()
+            Replicator?.SetState(new()
             {
                 position = position,
                 nodeID = node.NodeID
@@ -49,41 +51,42 @@ internal sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHo
         }
     }
 
-    [HideFromIl2Cpp]
-    public StateReplicator<ScanPositionState> Replicator { get; private set; }
-
-    [HideFromIl2Cpp]
-    void IStateReplicatorHolder<ScanPositionState>.OnStateChange(ScanPositionState oldState, ScanPositionState state, bool isRecall)
+    public void OnStateChange(ScanPositionState oldState, ScanPositionState state, bool isRecall)
     {
-        var scan = TrackingScan.Value;
-        scan.transform.position = state.position;
-        if (scan.State.status != eBioscanStatus.Disabled)
+        if (TrackingScan == null)
         {
-            //Refresh Scanner HUD Position
-            scan.PlayerScanner.StopScan();
-            scan.PlayerScanner.StartScan();
+            Logger.Error("[ScanPositionReplicator] TrackingScan is null!");
+            return;
         }
 
-        var marker = Marker.Value;
-        marker.SetTrackingObject(scan.gameObject);
-
-        if (AIG_CourseNode.GetCourseNode(state.nodeID, out var newNode))
-        {
-            scan.CourseNode.UnregisterBioscan(scan);
-            scan.m_courseNode = newNode;
-            newNode.RegisterBioscan(scan);
+        TrackingScan.transform.position = state.position;
+        if (TrackingScan.State.status != eBioscanStatus.Disabled) // Refresh Scanner HUD Position
+        {            
+            TrackingScan.PlayerScanner.StopScan();
+            TrackingScan.PlayerScanner.StartScan();
         }
 
-        if (IsExitScan.Value)
+        Marker?.SetTrackingObject(TrackingScan.gameObject);
+
+        if (AIG_CourseNode.GetCourseNode(state.nodeID, out var newNode)) // Register scan in new node
         {
-            var exitArea = scan.m_courseNode.m_zone;
-            var navInfoText = exitArea.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_With_Space);
-            WOManager.SetObjectiveTextFragment(LG_LayerType.MainLayer, 0, eWardenTextFragment.EXTRACTION_ZONE, navInfoText);
-            WOManager.SetObjectiveTextFragment(LG_LayerType.SecondaryLayer, 0, eWardenTextFragment.EXTRACTION_ZONE, navInfoText);
-            WOManager.SetObjectiveTextFragment(LG_LayerType.ThirdLayer, 0, eWardenTextFragment.EXTRACTION_ZONE, navInfoText);
-            WOManager.UpdateObjectiveGUIWithCurrentState(LG_LayerType.MainLayer, false);
-            WOManager.UpdateObjectiveGUIWithCurrentState(LG_LayerType.SecondaryLayer, false);
-            WOManager.UpdateObjectiveGUIWithCurrentState(LG_LayerType.ThirdLayer, false);
+            TrackingScan.CourseNode.UnregisterBioscan(TrackingScan);
+            TrackingScan.m_courseNode = newNode;
+            newNode.RegisterBioscan(TrackingScan);
+        }
+
+        if (IsExitScan) // Update [EXTRACTION_ZONE] text 
+        {
+            var extractZone = TrackingScan.m_courseNode.m_zone;
+            string navInfoText = extractZone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_With_Space);
+            foreach (var layer in Enum.GetValues<LG_LayerType>())
+            {
+                if (WOManager.HasWardenObjectiveDataForLayer(layer))
+                {
+                    WOManager.SetObjectiveTextFragment(layer, WOManager.GetCurrentChainIndex(layer), eWardenTextFragment.EXTRACTION_ZONE, navInfoText);
+                    WOManager.UpdateObjectiveGUIWithCurrentState(layer, false, false, true);
+                }
+            }
         }
     }
 }

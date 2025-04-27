@@ -9,12 +9,16 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MoveExtractionWorldPosition;
-    private ScanPositionReplicator? EntranceScanReplicator;
-    private ScanPositionReplicator? ExitScanReplicator;
+    private static ScanPositionReplicator? EntranceScanReplicator;
+    private static ScanPositionReplicator? ExitScanReplicator;
+    
+    public static bool HasFailed { get; private set; } = false;
+    private string FailWarning(string scan, string tile) => $"[{Name}] An issue occured setting up the {scan} scan replicator. There might be an issue with the {tile} tile? This event will not work in this level!";
 
     protected override void OnSetup()
     {
-        LevelAPI.OnEnterLevel += PostFactoryDone;
+        LevelAPI.OnEnterLevel += PostFactoryDone; // change to on factory build done when gtfo.api updates
+        LevelAPI.OnLevelCleanup += () => HasFailed = false;
     }
 
     private void PostFactoryDone()
@@ -43,39 +47,35 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
             if (scanCore == null) return;
 
             var positionUpdater = landing.gameObject.AddComponent<ScanPositionReplicator>();
-            positionUpdater.Marker.Set(landing.m_marker);
-            positionUpdater.TrackingScan.Set(scanCore);
-            positionUpdater.IsExitScan.Set(true);
-            positionUpdater.Setup(10u);
+            positionUpdater.Setup(10u, scanCore, landing.m_marker, true);
             EntranceScanReplicator = positionUpdater;
         }
         catch
         {
-            Logger.Warn("[MoveExtractionWorldPositionEvent] An issue occured setting up the extraction scan replicator. There might be an issue with the elevator tile? This event will not work in this level!");
+            Logger.Warn(FailWarning("entrance", "elevator"));
             EntranceScanReplicator = null;
+            HasFailed = true;
         }
     }
 
-    private void TrackWinConditionScan(LG_LevelExitGeo exitgeo)
+    private void TrackWinConditionScan(LG_LevelExitGeo exitGeo)
     {
         try
         {
-            if (exitgeo.m_puzzle.NRofPuzzles() != 1) return;
-            var puzzleCore = exitgeo.m_puzzle.GetPuzzle(0);
+            if (exitGeo.m_puzzle.NRofPuzzles() != 1) return;
+            var puzzleCore = exitGeo.m_puzzle.GetPuzzle(0);
             var scanCore = puzzleCore.TryCast<CP_Bioscan_Core>();
             if (scanCore == null) return;
 
-            var positionUpdater = exitgeo.gameObject.AddComponent<ScanPositionReplicator>();
-            positionUpdater.Marker.Set(exitgeo.m_marker);
-            positionUpdater.TrackingScan.Set(scanCore);
-            positionUpdater.IsExitScan.Set(true);
-            positionUpdater.Setup(20u);
-            ExitScanReplicator = positionUpdater;
+            var positionUpdater = exitGeo.gameObject.AddComponent<ScanPositionReplicator>();
+            positionUpdater.Setup(20u, scanCore, exitGeo.m_marker, true);
+            EntranceScanReplicator = positionUpdater;
         }
         catch
         {
-            Logger.Warn("[MoveExtractionWorldPositionEvent] An issue occured setting up the extraction scan replicator. There might be an issue with the exit tile? This event will not work in this level!");
+            Logger.Warn(FailWarning("extraction", "exit"));
             ExitScanReplicator = null;
+            HasFailed = true;
         }
     }
 
@@ -84,5 +84,10 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
         Vector3 pos = GetPositionFallback(e.Position, e.SpecialText);
         EntranceScanReplicator?.TryUpdatePosition(pos);
         ExitScanReplicator?.TryUpdatePosition(pos);
+
+        if (HasFailed)
+        {
+            LogError("Failed replicator setup during LG_Factory build");
+        }
     }
 }

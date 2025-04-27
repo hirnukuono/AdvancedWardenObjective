@@ -1,5 +1,6 @@
 ﻿using ChainedPuzzles;
 using GameData;
+using GTFO.API;
 using GTFO.API.Extensions;
 using LevelGeneration;
 
@@ -7,7 +8,18 @@ namespace AWO.Modules.WEE.Events;
 
 internal sealed class AddTerminalCommand : BaseEvent
 {
-    public override WEE_Type EventType => WEE_Type.AddTerminalCommand;
+    public override WEE_Type EventType => WEE_Type.AddTerminalCommand; 
+    public static readonly Dictionary<uint, List<TERM_Command>> ProgressWaitCommandMap = new();
+
+    protected override void OnSetup()
+    {
+        LevelAPI.OnLevelCleanup += OnLevelCleanup;
+    }
+
+    private void OnLevelCleanup()
+    {
+        ProgressWaitCommandMap.Clear();
+    }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -20,6 +32,10 @@ internal sealed class AddTerminalCommand : BaseEvent
             return;
         }
 
+        if (addcmd.ProgressWaitBeforeEvents)
+        {
+            ProgressWaitCommandMap.GetOrAddNew(term.SyncID).Add(c_num);
+        }
         Il2CppSystem.Collections.Generic.List<WardenObjectiveEventData> eventList = addcmd.CommandEvents.ToIl2Cpp();
 
         term.m_command.m_commandsPerEnum.Add(c_num, addcmd.Command.ToLower());
@@ -27,6 +43,7 @@ internal sealed class AddTerminalCommand : BaseEvent
         term.m_command.m_commandHelpStrings.Add(c_num, new() { UntranslatedText = addcmd.AutoIndentCommandDesc ? $"<indent=20%>{addcmd.CommandDesc}</indent>" : addcmd.CommandDesc });
         term.m_command.m_commandEventMap.Add(c_num, eventList);
 
+        ChainedPuzzleInstance? cmdChainPuzzle = null;
         for (int i = 0; i < eventList.Count; i++)
         {
             WardenObjectiveEventData eventData = eventList[i];
@@ -39,8 +56,12 @@ internal sealed class AddTerminalCommand : BaseEvent
                     continue;
                 }
 
-                var chainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, term.SpawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, eventData.UseStaticBioscanPoints);
-                term.SetChainPuzzleForCommand(c_num, i, chainPuzzle);
+                cmdChainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, term.SpawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, eventData.UseStaticBioscanPoints);                
+                term.SetChainPuzzleForCommand(c_num, i, cmdChainPuzzle);
+            }
+            if (cmdChainPuzzle != null)
+            {
+                cmdChainPuzzle.OnPuzzleSolved += (Action)(() => WOManager.CheckAndExecuteEventsOnTrigger(eventData, eWardenObjectiveEventTrigger.None, ignoreTrigger: true));
             }
         }
 

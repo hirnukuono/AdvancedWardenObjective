@@ -1,4 +1,5 @@
 ﻿using AK;
+using AWO.Jsons;
 using GameData;
 using Localization;
 using Player;
@@ -13,6 +14,11 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class ForcePlayerDialogueEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.ForcePlayPlayerDialogue;
+
+    protected override void TriggerMaster(WEE_EventData e)
+    {
+        EntryPoint.SessionRand.SyncStep(); // runs after TriggerCommon!
+    }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -49,7 +55,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             _ => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_1_EXPLORATION
         });
 
-        if (!player.IsLocallyOwned)
+        if (!player.IsLocallyOwned) // idk if this does anything anymore
         {
             dialogue.SetRTPCValue(GAME_PARAMETERS.FIRST_PERSON_MIX, 0.0f);
             float magnitude = (LocalPlayer.Position - player.Position).magnitude;
@@ -83,15 +89,19 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             return;
         }
 
-        int index = SessionRand.Next(dialogueVariation.m_data.lineEventIDs.Count);
+        int index = EntryPoint.SessionRand.NextInt(dialogueVariation.m_data.lineEventIDs.Count);
         uint lineEvent = dialogueVariation.m_data.lineEventIDs[index];
         uint subtitle = dialogueVariation.m_data.SubtitleIDs[index];
 
-        AkSoundEngine.SetRandomSeed((uint)SessionRand.Next());
+        AkSoundEngine.SetRandomSeed(EntryPoint.SessionRand.Next());
         dialogue.Post(lineEvent, player.Position, 1u, (AkEventCallback)VoiceDoneCallback, dialogue);
 
         WOManager.Current.m_sound.Post(e.SoundID, true);
-        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(e.Duration, 4.0f));
+        if (e.SoundSubtitle != LocaleText.Empty)
+        {
+            LogWarning("Skipping this event's SoundSubtitle since player dialogue is active");
+        }
+        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(4.0f, e.Duration));
     }
 
     private static bool TryGetPlayerCharacter(WEE_ForcePlayerDialogue dialog, Vector3 pos, [NotNullWhen(true)] out PlayerAgent? player, out List<DialogCharFilter> charFilterList)
@@ -110,7 +120,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
 
             if (dialog.Type == DialogueType.Random)
             {
-                player = PlayerManager.PlayerAgentsInLevel[SessionRand.Next(charFiltersInLevel.Count)];
+                player = PlayerManager.PlayerAgentsInLevel[EntryPoint.SessionRand.NextInt(charFiltersInLevel.Count)];
                 flag = true;
                 continue;
             }

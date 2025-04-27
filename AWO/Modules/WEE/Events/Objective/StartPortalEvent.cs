@@ -20,7 +20,7 @@ internal sealed class StartPortalEvent : BaseEvent
         Portals.Clear();
     }
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
 
@@ -31,18 +31,17 @@ internal sealed class StartPortalEvent : BaseEvent
         }
 
         portalMachine.m_targetDimension = e.Portal.TargetDimension;
-        portalMachine.m_targetZone = e.Portal.TargetZone;
+        portalMachine.m_teleportDelay = e.Portal.TeleportDelay;
         portalMachine.m_portalEventData = new()
         {
-            Type = eWardenObjectiveEventType.DimensionWarpTeam,
+            Type = e.Portal.PreventPortalWarpTeamEvent ? eWardenObjectiveEventType.None : eWardenObjectiveEventType.DimensionWarpTeam,
             DimensionIndex = portalMachine.m_targetDimension,
-            LocalIndex = portalMachine.m_targetZone,
             Delay = portalMachine.m_teleportDelay,
-            ChainPuzzle = portalMachine.PortalChainPuzzle,
-            UseStaticBioscanPoints = false
+            UseStaticBioscanPoints = false,
+            WorldEventObjectFilter = e.SpecialText
         };
 
-        if (e.Enabled)
+        if (IsMaster && e.Enabled)
         {
             LogDebug("Activating portal...");
             pDimensionPortalState state = portalMachine.m_stateReplicator.State;

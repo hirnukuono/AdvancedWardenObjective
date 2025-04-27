@@ -1,5 +1,5 @@
-﻿using BepInEx;
-using static AWO.Modules.TerminalSerialLookup.SerialLookupManager;
+﻿using AWO.Jsons;
+using static AWO.Modules.TSL.SerialLookupManager;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -18,15 +18,15 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
 
         if (e.AdjustTimer.UpdateTitleText)
         {
-            EntryPoint.TimerMods.TimerTitleText = new(ParseTextFragments(e.AdjustTimer.TitleText));
+            EntryPoint.TimerMods.TimerTitleText = ParseLocaleText(e.AdjustTimer.TitleText);
         }
 
         if (e.AdjustTimer.UpdateText)
         {
-            EntryPoint.TimerMods.TimerBodyText = new(ParseTextFragments(e.AdjustTimer.CustomText));
+            EntryPoint.TimerMods.TimerBodyText = ParseLocaleText(e.AdjustTimer.CustomText);
         }
 
-        if ((e.AdjustTimer.UpdateText && !e.AdjustTimer.CustomText.ToString().IsNullOrWhiteSpace()) || e.AdjustTimer.UpdateColor)
+        if ((e.AdjustTimer.UpdateText && e.AdjustTimer.CustomText != LocaleText.Empty) || e.AdjustTimer.UpdateColor)
         {
             EntryPoint.TimerMods.TimerColor = e.AdjustTimer.TimerColor;
         }

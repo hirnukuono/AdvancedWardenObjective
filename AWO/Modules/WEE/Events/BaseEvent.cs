@@ -1,4 +1,6 @@
 ﻿using BepInEx.Core.Logging.Interpolation;
+using GameData;
+using GTFO.API.Extensions;
 using LevelGeneration;
 using Player;
 using SNetwork;
@@ -14,7 +16,6 @@ internal abstract class BaseEvent
     protected static bool IsMaster => SNet.IsMaster;
     protected static bool HasMaster => SNet.HasMaster;
     public static System.Random MasterRand { get; } = new(Guid.NewGuid().GetHashCode());
-    public static System.Random SessionRand => EntryPoint.SessionRand;
     public abstract WEE_Type EventType { get; }
 
     public void Setup()
@@ -172,4 +173,7 @@ internal abstract class BaseEvent
 
         return Vector3.zero;
     }
+
+    public static void ExecuteWardenEvents(List<WardenObjectiveEventData> events) 
+        => WOManager.CheckAndExecuteEventsOnTrigger(events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
 }

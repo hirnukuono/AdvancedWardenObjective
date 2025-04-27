@@ -11,7 +11,7 @@ using VEO_Type = GameData.eWardenObjectiveEventType;
 
 namespace AWO.Modules.WEE;
 
-public static class VanillaEventOvr
+internal static class VanillaEventOvr
 {
     internal static bool HasOverride(VEO_Type type, WardenObjectiveEventData e)
     {
@@ -105,7 +105,7 @@ public static class VanillaEventOvr
         AgentMode mode = e.Enabled switch 
         {
             true => AgentMode.Agressive,
-            false when (e.EnemyID == 20) => AgentMode.Scout,
+            false when (e.EnemyID == 20) => AgentMode.Scout, // mimicks vanilla behavior
             _ => AgentMode.Hibernate
         };
 

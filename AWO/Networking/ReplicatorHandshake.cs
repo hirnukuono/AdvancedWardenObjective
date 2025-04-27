@@ -1,4 +1,5 @@
-﻿using GTFO.API;
+﻿using AWO.Networking.Patch;
+using GTFO.API;
 using SNetwork;
 
 namespace AWO.Networking;
@@ -25,6 +26,28 @@ public sealed class ReplicatorHandshake
     {
         EventName = eventName;
         NetworkAPI.RegisterEvent<Packet>(eventName, OnSyncAction);
+        Patch_OnRecallDone.OnRecallDone += delegate ()
+        {
+            Logger.Warn("ReplicatorHandshake: Client sending sync request");
+            ClientSyncRequest();
+        };
+    }
+
+    private void ClientSyncRequest()
+    {
+        if (SNet.IsMaster)
+        {
+            return;
+        }
+        
+        foreach (uint replicatorID in _Lookup.Keys)
+        {
+            NetworkAPI.InvokeEvent(this.EventName, new Packet 
+            { 
+                replicatorID = replicatorID, 
+                action = PacketAction.SyncRequest
+            }, SNet.Master, SNet_ChannelType.GameOrderCritical);
+        }
     }
 
     public void Reset()

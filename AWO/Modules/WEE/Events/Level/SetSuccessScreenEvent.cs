@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using BepInEx.Logging;
+using System.Collections;
 using UnityEngine;
 using ScreenType = AWO.Modules.WEE.WEE_SetSuccessScreen.ScreenType;
 
@@ -28,11 +29,10 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
             return;
         }
 
-        var menuGUI = MainMenuGuiLayer.Current;
         try
         {
-            menuGUI.PageCustomExpeditionSuccess = menuGUI.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, pageResourcePath);
-            Logger.Warn($"[SetSuccessScreen] CustomSuccessScreen should now be changed to {pageResourcePath}");
+            MainMenuGuiLayer.Current.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, pageResourcePath);
+            Logger.Dev(LogLevel.Debug, $"CustomSuccessScreen should now be changed to {pageResourcePath}");
         }
         catch
         {
@@ -42,14 +42,14 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     static IEnumerator FakeScreen(WEE_EventData e)
     {
-        Logger.Debug("[SetSuccessScreen] Enabling fake end screen... Disabled map and menu toggle");
+        Logger.Dev(LogLevel.Debug, "Enabling fake end screen... Disabled map and menu toggle");
         FocusStateManager.EnterMenu(e.SuccessScreen.FakeEndScreen, force: true);
         FocusStateManager.MapToggleAllowed = false;
         FocusStateManager.MenuToggleAllowed = false;
 
         yield return new WaitForSeconds(e.Duration);
 
-        Logger.Debug("[SetSuccessScreen] Disabling fake end screen... Enabled map and menu toggle");
+        Logger.Dev(LogLevel.Debug, "Disabling fake end screen... Enabled map and menu toggle");
         FocusStateManager.ExitMenu();
         FocusStateManager.ChangeState(eFocusState.FPS, force: true);
         FocusStateManager.MapToggleAllowed = true;

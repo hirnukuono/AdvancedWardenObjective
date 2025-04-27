@@ -1,5 +1,4 @@
 ﻿using AWO.CustomFields;
-using AWO.Jsons.ManagedJson;
 using GameData;
 using Il2CppJsonNet.Linq;
 using InjectLib.FieldInjection;

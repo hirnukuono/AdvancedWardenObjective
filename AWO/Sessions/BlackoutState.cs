@@ -1,5 +1,4 @@
 ﻿using AWO.Networking;
-using GTFO.API;
 using LevelGeneration;
 using static AWO.Sessions.LG_Objects;
 
@@ -10,32 +9,29 @@ internal struct BlackoutStatus
     public bool blackoutEnabled;
 }
 
-internal static class BlackoutState
+internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
 {
-    private static StateReplicator<BlackoutStatus>? _Replicator;
-    public static bool BlackoutEnabled { get; private set; } = false;
+    public StateReplicator<BlackoutStatus>? Replicator { get; private set; }
+    public bool BlackoutEnabled { get; private set; }
 
-    internal static void AssetLoaded()
+    public void Setup()
     {
-        if (_Replicator != null) return;
-
-        _Replicator = StateReplicator<BlackoutStatus>.Create(1u, new() { blackoutEnabled = false }, LifeTimeType.Permanent);
-
-        _Replicator.OnStateChanged += OnStateChanged;
-        LevelAPI.OnLevelCleanup += LevelCleanup;
+        BlackoutEnabled = false;
+        Replicator = StateReplicator<BlackoutStatus>.Create(1u, new() { blackoutEnabled = false }, LifeTimeType.Session, this);
     }
 
-    private static void LevelCleanup()
+    public void Cleanup()
     {
-        SetEnabled(false);
+        BlackoutEnabled = false;
+        Replicator?.Unload();
     }
 
-    public static void SetEnabled(bool enabled)
+    public void SetEnabled(bool enabled)
     {
-        _Replicator?.SetState(new() { blackoutEnabled = enabled });
+        Replicator?.SetState(new() { blackoutEnabled = enabled });
     }
 
-    private static void OnStateChanged(BlackoutStatus _, BlackoutStatus state, bool isRecall)
+    public void OnStateChange(BlackoutStatus oldState, BlackoutStatus state, bool isRecall)
     {
         var isNormal = !state.blackoutEnabled;
 

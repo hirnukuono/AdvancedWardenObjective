@@ -1,6 +1,4 @@
-﻿using AWO.Modules.TerminalSerialLookup;
-using GameData;
-using GTFO.API.Extensions;
+﻿using AWO.Modules.TSL;
 using System.Collections;
 using UnityEngine;
 
@@ -16,6 +14,12 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         float duration = ResolveFieldsFallback(e.Duration, e.SpecialHudTimer.Duration);
+        if (duration <= 0.0f)
+        {
+            LogError("Duration must be greater than 0!");
+            return;
+        }
+
         CoroutineManager.StartCoroutine(DoInteractionHud(e.SpecialHudTimer, duration).WrapToIl2Cpp());
     }
 
@@ -29,13 +33,12 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         Queue<EventsOnTimerProgress> cachedProgressEvents = new(hud.EventsOnProgress.OrderBy(prEv => prEv.Progress));
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
-        double nextProgress = hasProgressEvents ? Math.Round(cachedProgressEvents.Peek().Progress, 3) : double.NaN;
+        float nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : float.NaN;
 
         GuiManager.InteractionLayer.MessageVisible = true;
         GuiManager.InteractionLayer.MessageTimerVisible = hud.ShowTimeInProgressBar;
-        yield return new WaitForSeconds(0.25f);
 
-        while (time < duration)
+        while (time <= duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
@@ -50,34 +53,33 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 GuiManager.InteractionLayer.SetMessageTimer(percentage);
             }
 
-            if (hasTags)
+            if (!hasTags)
             {
-                var timeSpan = TimeSpan.FromSeconds(duration - time);
-                string tagTime = $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
-                string tagPercent = $"{(int)(percentage * 100)}%";
-                string formattedMsg = msg.Replace(Timer, tagTime).Replace(Percent, tagPercent);
-
-                GuiManager.InteractionLayer.SetMessage(formattedMsg, hud.Style, hud.Priority);
+                GuiManager.InteractionLayer.SetMessage(msg, hud.Style, hud.Priority);                
             }
             else
             {
-                GuiManager.InteractionLayer.SetMessage(msg, hud.Style, hud.Priority);
+                var timeSpan = TimeSpan.FromSeconds(duration - time);
+                string tagTime = $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
+                string tagPercent = $"{percentage * 100:F0}%";
+                string formattedMsg = msg.Replace(Timer, tagTime, StringComparison.Ordinal).Replace(Percent, tagPercent, StringComparison.Ordinal);
+
+                GuiManager.InteractionLayer.SetMessage(formattedMsg, hud.Style, hud.Priority);
             }
-            
-            time += Time.deltaTime;
             
             if (hasProgressEvents)
             {
-                if (nextProgress <= Math.Round(percentage, 3))
+                if (nextProgress <= percentage)
                 {
-                    WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
                     {
-                        nextProgress = Math.Round(cachedProgressEvents.Peek().Progress, 3);
+                        nextProgress = cachedProgressEvents.Peek().Progress;
                     }
                 }                
             }
 
+            time += Time.deltaTime;
             yield return null;
 
             GuiManager.InteractionLayer.MessageVisible = true;
@@ -89,9 +91,8 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         while (cachedProgressEvents.Count > 0)
         {
-            WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+            ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
         }
-
-        WOManager.CheckAndExecuteEventsOnTrigger(hud.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+        ExecuteWardenEvents(hud.EventsOnDone);
     }
 }

@@ -1,6 +1,6 @@
 ﻿global using AWO.CustomFields;
 using AWO.Jsons;
-using AWO.Modules.TerminalSerialLookup;
+using AWO.Modules.TSL;
 using AWO.Modules.WEE;
 //using AWO.Modules.WOE;
 using AWO.Sessions;
@@ -13,15 +13,17 @@ using UnityEngine;
 namespace AWO;
 
 [BepInPlugin("GTFO.AWO", "AWO", VersionInfo.Version)]
-[BepInDependency("GTFO.InjectLib", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency("GTFO.InjectLib", BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency("MTFO.Extension.PartialBlocks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class EntryPoint : BasePlugin
 {
-    public static System.Random SessionRand { get; private set; } = new();
+    public static bool PartialDataIsLoaded { get; private set; } = false;
+    public static BlackoutState BlackoutState { get; private set; } = new();
+    public static SessionRandReplicator SessionRand { get; private set; } = new();
     public struct Coroutines
     {
         public static float CountdownStarted { get; set; }
-        public static float TPFStarted { get; set; }
     }
     public struct TimerMods
     {
@@ -34,32 +36,39 @@ internal class EntryPoint : BasePlugin
 
     public unsafe override void Load()
     {
+        if (IL2CPPChainloader.Instance.Plugins.TryGetValue("MTFO.Extension.PartialBlocks", out var plugin) && plugin.Metadata.Version.CompareTo(new(1, 5, 2)) >= 0)
+        {
+            Logger.Debug("Flowaria's PartialData v1.5.2(+) support found");
+            PartialDataIsLoaded = true;
+        }
+
+        Configuration.Init();
         WardenEventExt.Initialize();
         //WardenObjectiveExt.Initialize();
 
         new Harmony("AWO.Harmony").PatchAll();
 
-        AssetAPI.OnStartupAssetsLoaded += OnStartupAssetsLoaded;
+        AssetAPI.OnStartupAssetsLoaded += () => LevelFailUpdateState.AssetLoaded();
         LevelAPI.OnBuildDone += OnBuildDone;
+        LevelAPI.OnLevelCleanup += OnLevelCleanup;
 
         WOEventDataFields.Init();
         //WODataBlockFields.Init();
         SerialLookupManager.Init();
 
         Logger.Info("AWO is done loading!");
-        Logger.Info("Amorously was here");
-    }
-
-    private void OnStartupAssetsLoaded()
-    {
-        BlackoutState.AssetLoaded();
-        LevelFailUpdateState.AssetLoaded();
     }
 
     private void OnBuildDone()
     {
-        int seed = RundownManager.GetActiveExpeditionData().sessionSeed;
-        SessionRand = new(seed);
-        Logger.Info($"SessionSeed {seed}");
+        BlackoutState.Setup();
+        SessionRand.Setup(1u, RundownManager.GetActiveExpeditionData().sessionSeed);
+    }
+
+    private void OnLevelCleanup()
+    {
+        WOManager.m_exitEventsTriggered &= false;
+        BlackoutState.Cleanup();
+        SessionRand.Cleanup();
     }
 }

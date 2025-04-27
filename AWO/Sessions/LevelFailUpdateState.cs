@@ -18,22 +18,20 @@ internal struct LevelFailCheck
 
 internal sealed class LevelFailUpdateState
 {
-    private static StateReplicator<LevelFailCheck>? _Replicator;
+    public static StateReplicator<LevelFailCheck>? Replicator;
     public static bool LevelFailAllowed { get; private set; } = true;
     public static bool LevelFailWhenAnyPlayerDown { get; private set; } = false;
 
     internal static void AssetLoaded()
     {
-        if (_Replicator != null) return;
-
-        _Replicator = StateReplicator<LevelFailCheck>.Create(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent);
+        Replicator = StateReplicator<LevelFailCheck>.Create(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent);
         LG_Factory.add_OnFactoryBuildStart(new Action(() =>
         {
-            _Replicator.ClearAllRecallSnapshot();
-            _Replicator.SetState(new() { mode = LevelFailMode.Default });
+            Replicator.ClearAllRecallSnapshot();
+            Replicator.SetState(new() { mode = LevelFailMode.Default });
         }));
 
-        _Replicator.OnStateChanged += OnStateChanged;
+        Replicator.OnStateChanged += OnStateChanged;
         LevelAPI.OnLevelCleanup += LevelCleanup;
     }
 
@@ -44,7 +42,7 @@ internal sealed class LevelFailUpdateState
 
     public static void SetFailAllowed(bool allowed)
     {
-        _Replicator?.SetState(new()
+        Replicator?.SetState(new()
         {
             mode = allowed ? LevelFailMode.Default : LevelFailMode.Never
         });
@@ -52,7 +50,7 @@ internal sealed class LevelFailUpdateState
 
     public static void SetFailWhenAnyPlayerDown(bool enabled)
     {
-        _Replicator?.SetState(new()
+        Replicator?.SetState(new()
         {
             mode = enabled ? LevelFailMode.AnyPlayerDown : LevelFailMode.Default
         });

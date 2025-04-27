@@ -11,9 +11,9 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE;
 
-public static class WardenEventExt
+internal static class WardenEventExt
 {
-    internal readonly static Dictionary<WEE_Type, BaseEvent> _EventsToTrigger = new();
+    internal static readonly Dictionary<WEE_Type, BaseEvent> _EventsToTrigger = new();
 
     static WardenEventExt()
     {
@@ -75,7 +75,7 @@ public static class WardenEventExt
             yield break;
         }
 
-        WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel.ToLocalizedText());
+        WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel);
 
         if (e.Type != WEE_Type.ForcePlayPlayerDialogue)
         {
@@ -96,7 +96,7 @@ public static class WardenEventExt
         
         if (e.SubObjective.DoUpdate && e.Type != WEE_Type.MultiProgression)
         {
-            WOManager.UpdateSyncCustomSubObjective(e.SubObjective.CustomSubObjectiveHeader.ToLocalizedText(), e.SubObjective.CustomSubObjective.ToLocalizedText());
+            WOManager.UpdateSyncCustomSubObjective(e.SubObjective.CustomSubObjectiveHeader, e.SubObjective.CustomSubObjective);
         }
 
         if (e.Fog.DoUpdate)

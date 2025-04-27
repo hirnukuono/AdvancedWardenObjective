@@ -121,6 +121,7 @@ public sealed class WEE_ReactorEventData
 public sealed class WEE_CountdownData
 {
     public float Duration { get; set; } = 0.0f;
+    public bool CanShowHours { get; set; } = true;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public LocaleText TitleText { get => TimerText; set => TimerText = value; }
     public Color TimerColor { get; set; } = Color.red;
@@ -182,9 +183,8 @@ public sealed class WEE_ZoneLightData
     public ModifierType Type { get; set; } = ModifierType.RevertToOriginal;
     public uint LightDataID { get; set; } = 0u;
     public float TransitionDuration { get; set; } = 0.5f;
-    public int Seed { get; set; } = 0; // Random seed on 0
-    public bool DisregardFlicker { get; set; } = false;
-
+    public int Seed { get; set; } = 0;
+    public bool UseRandomSeed => Seed == 0;
     public enum ModifierType : byte
     {
         RevertToOriginal,
@@ -219,6 +219,7 @@ public sealed class WEE_AddTerminalCommand
     public bool AutoIndentCommandDesc { get; set; } = false;
     public List<TerminalOutput> PostCommandOutputs { get; set; } = new();
     public List<WardenObjectiveEventData> CommandEvents { get; set; } = new();
+    public bool ProgressWaitBeforeEvents { get; set; } = false;
     public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
 }
 
@@ -244,10 +245,20 @@ public sealed class WEE_NestedEvent
     public int MaxRandomEvents { get; set; } = -1;
     public bool AllowRepeatsInRandom { get; set; } = false;
     public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
+    public List<EventsOnRandomWeight> WheelOfEvents { get; set; } = new();
     public enum NestedMode : byte
     {
         ActivateAll,
-        RandomAny
+        RandomAny,
+        RandomWeighted
+    }
+    public struct EventsOnRandomWeight
+    {
+        public string DebugName { get; set; }
+        public float Weight { get; set; }
+        public int RepeatCount { get; set; }
+        public bool IsInfinite { get; set; }
+        public List<WardenObjectiveEventData> Events { get; set; }
     }
 }
 
@@ -363,8 +374,8 @@ public sealed class WEE_ShakeScreen
 public sealed class WEE_StartPortalMachine
 {
     public eDimensionIndex TargetDimension { get; set; } = eDimensionIndex.Dimension_1;
-    public eLocalZoneIndex TargetZone { get; set; } = eLocalZoneIndex.Zone_0;
-    public uint PortalChainPuzzle { get; set; } = 4u;
+    public float TeleportDelay { get; set; } = 5.0f;
+    public bool PreventPortalWarpTeamEvent { get; set; } = false;
 }
 
 public sealed class WEE_SetSuccessScreen
@@ -409,16 +420,18 @@ public sealed class WEE_PlayWaveDistantRoar
 public sealed class WEE_CustomHudText
 {
     public LocaleText Title { get; set; } = LocaleText.Empty;
+    public LocaleText TitleText { get => Title; set => Title = value; } 
     public LocaleText Body { get; set; } = LocaleText.Empty;
+    public LocaleText BodyText { get => Body; set => Body = value; }
 }
 
 public sealed class WEE_SpecialHudTimer
 {
+    public float Duration { get; set; } = 0.0f;
     public LocaleText Message { get; set; } = LocaleText.Empty;
     public ePUIMessageStyle Style { get; set; } = ePUIMessageStyle.Default;
     public int Priority { get; set; } = -2;
-    public bool ShowTimeInProgressBar { get; set; } = true;
-    public float Duration { get; set; } = 0.0f;
+    public bool ShowTimeInProgressBar { get; set; } = true;    
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
 }

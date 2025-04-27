@@ -5,7 +5,7 @@ namespace AWO.Jsons;
 [JsonConverter(typeof(WinScreenConverter))]
 public struct WinScreen
 {
-    public readonly static string[] VanillaPaths = new[]
+    public static readonly string[] VanillaPaths = new[]
     {
         "CM_PageExpeditionSuccess_Completed",
         "CM_PageExpeditionSuccess_Resources expended_CellUI 2",
@@ -28,7 +28,7 @@ public struct WinScreen
         PagePath = filepath;
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return PagePath;
     }

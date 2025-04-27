@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AWO.Jsons;
@@ -12,7 +11,7 @@ public class LocaleTextConverter : JsonConverter<LocaleText>
     {
         return reader.TokenType switch
         {
-            JsonTokenType.String => new LocaleText(reader.GetString()),
+            JsonTokenType.String => new LocaleText(reader.GetString()!),
             JsonTokenType.Number => new LocaleText(reader.GetUInt32()),
             JsonTokenType.Null => LocaleText.Empty,
             _ => throw new JsonException($"LocaleTextJson type: {reader.TokenType} is not implemented!"),

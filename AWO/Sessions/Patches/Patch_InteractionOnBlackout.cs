@@ -12,6 +12,6 @@ internal static class Patch_InteractionOnBlackout
     [HarmonyPrefix]
     private static bool Pre_ToggleInteraction()
     {
-        return !BlackoutState.BlackoutEnabled;
+        return !EntryPoint.BlackoutState.BlackoutEnabled;
     }
 }

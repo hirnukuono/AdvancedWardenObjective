@@ -1,5 +1,5 @@
 ﻿using AK;
-using AWO.Modules.TerminalSerialLookup;
+using AWO.Modules.TSL;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -7,21 +7,22 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CustomHudTextEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CustomHudText;
+    private static PUI_ObjectiveTimer ObjHudTimer => GuiManager.PlayerLayer.m_objectiveTimer;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
-        GuiManager.PlayerLayer.m_objectiveTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
+        ObjHudTimer.m_timerSoundPlayer.Post(EVENTS.STINGER_SUBOBJECTIVE_COMPLETE, true);
 
         if (e.Enabled)
         {    
-            CoroutineManager.BlinkIn(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
-            GuiManager.PlayerLayer.m_objectiveTimer.m_titleText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Title);
-            GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Body);
+            CoroutineManager.BlinkIn(ObjHudTimer.gameObject);
+            ObjHudTimer.m_titleText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Title);
+            ObjHudTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Body);
         }
         else
         {
-            CoroutineManager.BlinkOut(GuiManager.PlayerLayer.m_objectiveTimer.gameObject);
+            CoroutineManager.BlinkOut(ObjHudTimer.gameObject);
         }
     }
 }

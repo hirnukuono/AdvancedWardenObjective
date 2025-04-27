@@ -1,4 +1,5 @@
 ﻿using AIGraph;
+using BepInEx.Logging;
 using LevelGeneration;
 using Player;
 using SNetwork;
@@ -59,9 +60,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             var playerData = new TPData((PlayerIndex)i, pos, dir, player.DimensionIndex, player.Position, Vector3.zero, itemAssignment.GetOrAddNew(i));
 
             if (tp.FlashTeleport)
-            {        
-                EntryPoint.Coroutines.TPFStarted = Time.realtimeSinceStartup;
-                playerData.LastLookDir = CamDirIfNotBot(player);
+            {                
                 CoroutineManager.StartCoroutine(FlashBack(e.Duration, player, playerData, tp.PlayWarpAnimation).WrapToIl2Cpp());
             }
 
@@ -104,31 +103,33 @@ internal sealed class TeleportPlayerEvent : BaseEvent
     static IEnumerator FlashBack(float duration, PlayerAgent player, TPData playerData, bool playAnim)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float startTime = EntryPoint.Coroutines.TPFStarted;
-        playerData.Position = playerData.LastPosition;
+        playerData.LastLookDir = CamDirIfNotBot(player);
+        playerData.LastPosition = playerData.Position;
+        Logger.Dev(LogLevel.Debug, $"{playerData.PlayerIndex} warp flash to {playerData.LastDim} is queued");
 
         yield return new WaitForSeconds(duration);
 
-        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount || startTime < EntryPoint.Coroutines.TPFStarted)
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
         {
-            yield break; // checkpoint was used or not in level or canceled by another warp, exit
+            yield break; // checkpoint was used or not in level, exit
         }
 
-        Logger.Debug("[TeleportPlayerEvent] Warping players back...");
+        Logger.Dev(LogLevel.Debug, $"Warping {playerData.PlayerIndex} back to {playerData.LastDim}");
         DoTeleport(playerData.LastDim, player, playerData, playAnim);
     }
 
     private static void DoTeleport(eDimensionIndex dim, PlayerAgent player, TPData playerData, bool playAnim)
     {
         Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : playerData.LastLookDir;
+        Vector3 pos = playerData.LastPosition == Vector3.zero ? playerData.Position : playerData.LastPosition;
 
         if (player.Owner.IsBot)
         {
-            player.TryWarpTo(dim, playerData.Position, Vector3.forward);
+            player.TryWarpTo(dim, pos, Vector3.forward);
         }
         else
         {
-            player.Sync.SendSyncWarp(dim, playerData.Position, lookDirV3, playAnim ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
+            player.Sync.SendSyncWarp(dim, pos, lookDirV3, playAnim ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
         }
 
         foreach (var item in playerData.ItemsToWarp)

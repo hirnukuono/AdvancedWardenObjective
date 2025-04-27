@@ -36,6 +36,7 @@
 	<ItemGroup>
 		<!-- BepInEx -->
 		<Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
+		<Reference Include="$(BIELibsFolder)\SemanticVersioning.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\Il2CppInterop.*.dll" Private="false" />
@@ -55,5 +56,6 @@
 	<ItemGroup>
 		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="False"/>
 		<Reference Include="$(PluginsFolder)\**\InjectLib.dll" Private="false" />
+		<Reference Include="$(PluginsFolder)\**\MTFO.Ext.PartialData.dll" Private="false" />
 	</ItemGroup>	
 </Project>

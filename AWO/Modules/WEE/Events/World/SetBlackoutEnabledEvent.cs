@@ -1,6 +1,4 @@
-﻿using AWO.Sessions;
-
-namespace AWO.Modules.WEE.Events;
+﻿namespace AWO.Modules.WEE.Events;
 
 internal sealed class SetBlackoutEnabledEvent : BaseEvent
 {
@@ -8,6 +6,6 @@ internal sealed class SetBlackoutEnabledEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        BlackoutState.SetEnabled(e.Enabled);
+        EntryPoint.BlackoutState.SetEnabled(e.Enabled);
     }
 }

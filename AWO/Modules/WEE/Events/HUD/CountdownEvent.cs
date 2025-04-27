@@ -1,7 +1,5 @@
 ﻿using AWO.Jsons;
-using AWO.Modules.TerminalSerialLookup;
-using GameData;
-using GTFO.API.Extensions;
+using AWO.Modules.TSL;
 using System.Collections;
 using UnityEngine;
 
@@ -10,13 +8,18 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CountdownEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countdown;
+    private static PUI_ObjectiveTimer ObjHudTimer => GuiManager.PlayerLayer.m_objectiveTimer;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup;
-        EntryPoint.TimerMods.TimeModifier = 0.0f;
-
         float duration = ResolveFieldsFallback(e.Duration, e.Countdown.Duration);
+        if (duration <= 0.0f)
+        {
+            LogError("Duration must be greater than 0.0!");
+            return;
+        }
+
+        EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
         CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, duration).WrapToIl2Cpp());
     }
 
@@ -24,20 +27,21 @@ internal sealed class CountdownEvent : BaseEvent
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
-        float time = 0.0f;
+        float time = 0.0f;        
+        LocaleText timerTitle = SerialLookupManager.ParseLocaleText(cd.TimerText);
+        Color color = cd.TimerColor;
+
+        EntryPoint.TimerMods.TimeModifier = 0.0f;        
+        EntryPoint.TimerMods.TimerTitleText = timerTitle;
+        EntryPoint.TimerMods.TimerColor = color;
 
         Queue<EventsOnTimerProgress> cachedProgressEvents = new(cd.EventsOnProgress.OrderBy(prEv => prEv.Progress));
         bool hasProgressEvents = cachedProgressEvents.Count > 0;
-        double nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : double.NaN;
+        float nextProgress = hasProgressEvents ? cachedProgressEvents.Peek().Progress : float.NaN;
 
-        string timerTitle = SerialLookupManager.ParseTextFragments(cd.TimerText);
-        EntryPoint.TimerMods.TimerTitleText = new(timerTitle);
-        EntryPoint.TimerMods.TimerColor = cd.TimerColor;
-
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(true, true);
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(true);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerTitle(timerTitle);
-        GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
+        ObjHudTimer.SetTimerActive(true, true);
+        ObjHudTimer.UpdateTimerTitle(timerTitle);
+        UpdateTimerText(time, duration, color, cd.CanShowHours);
 
         while (time <= duration)
         {
@@ -49,24 +53,24 @@ internal sealed class CountdownEvent : BaseEvent
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 // checkpoint has been used
-                GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, false);
-                GuiManager.PlayerLayer.m_objectiveTimer.SetTimerTextEnabled(false);
+                ObjHudTimer.SetTimerActive(false, false);
+                ObjHudTimer.SetTimerTextEnabled(false);
                 yield break;
             }
 
             if (hasProgressEvents)
             {
-                if (nextProgress <= Math.Round(time / duration, 3))
+                if (nextProgress <= NormalizedPercent(time, 0.0f, duration))
                 {
-                    WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+                    ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
                     {
-                        nextProgress = Math.Round(cachedProgressEvents.Peek().Progress, 3);
+                        nextProgress = cachedProgressEvents.Peek().Progress;
                     }
                 }
             }
 
-            GuiManager.PlayerLayer.m_objectiveTimer.UpdateTimerText(duration - time, duration, cd.TimerColor);
+            UpdateTimerText(time, duration, color, cd.CanShowHours);
             time += Time.deltaTime;
 
             if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
@@ -74,26 +78,43 @@ internal sealed class CountdownEvent : BaseEvent
                 time -= EntryPoint.TimerMods.TimeModifier;
                 EntryPoint.TimerMods.TimeModifier = 0.0f;
             }
-            if (EntryPoint.TimerMods.TimerTitleText != timerTitle) // text mod
+            if (EntryPoint.TimerMods.TimerTitleText != timerTitle) // title text mod
             {
                 timerTitle = EntryPoint.TimerMods.TimerTitleText;
                 GuiManager.PlayerLayer.m_objectiveTimer.m_timerText.text = timerTitle;
             }
-            if (EntryPoint.TimerMods.TimerColor != cd.TimerColor) // color mod
+            if (EntryPoint.TimerMods.TimerColor != color) // color mod
             {
-                cd.TimerColor = EntryPoint.TimerMods.TimerColor;
+                color = EntryPoint.TimerMods.TimerColor;
             }
 
             yield return null;
         }
 
-        GuiManager.PlayerLayer.m_objectiveTimer.SetTimerActive(false, true);
-        
+        ObjHudTimer.SetTimerActive(false, true);
+
         while (cachedProgressEvents.Count > 0)
         {
-            WOManager.CheckAndExecuteEventsOnTrigger(cachedProgressEvents.Dequeue().Events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+            ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
         }
+        ExecuteWardenEvents(cd.EventsOnDone);
+    }
 
-        WOManager.CheckAndExecuteEventsOnTrigger(cd.EventsOnDone.ToIl2Cpp(), eWardenObjectiveEventTrigger.None);
+    private static void UpdateTimerText(float time, float duration, Color color, bool showHours)
+    {
+        ObjHudTimer.SetTimerTextEnabled(true);
+        float remainder = Math.Max(duration - time, 0.0f);
+        var timeSpan = TimeSpan.FromSeconds(remainder);
+
+        ObjHudTimer.m_timerText.color = color;
+        ObjHudTimer.m_timerText.text = $"{(showHours && time > 3600.0f ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2)}" : $"{(int)timeSpan.TotalMinutes:D2}")}:{timeSpan.Seconds:D2}";
+    }
+
+    private static float NormalizedPercent(float current, float min, float max)
+    {
+        if (min == max) return float.NaN;
+
+        float clamp = Math.Clamp(current, min, max);
+        return (clamp - min) / (max - min);
     }
 }

@@ -33,6 +33,6 @@ internal static class Patch_ZoneLightJob
     {
         if (!__result) return;
 
-        __state?.Setup_UpdateLightSetting();
+        __state?.PostSetup();
     }
 }

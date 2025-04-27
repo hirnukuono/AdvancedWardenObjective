@@ -8,18 +8,18 @@ internal sealed class StopEventLoop : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (e.Count == -1)
+        if (e.Count == -1) // remove all event loops
         {
             ActiveEventLoops.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
             ActiveEventLoops.Clear();
             LogDebug("Stopped all EventLoops");
         }
-        else if (ActiveEventLoops.TryRemove(e.Count, out var loop))
+        else if (ActiveEventLoops.TryRemove(e.Count, out var loop)) // remove specific event loop
         {
             CoroutineManager.StopCoroutine(loop);
             LogDebug($"Stopped EventLoop {e.Count}");
         }
-        else
+        else // event loop not found
         {
             LogError("No active EventLoop found!");
         }

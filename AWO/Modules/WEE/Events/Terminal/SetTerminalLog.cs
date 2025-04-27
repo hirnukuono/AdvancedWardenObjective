@@ -1,4 +1,4 @@
-﻿using BepInEx;
+﻿using AWO.Jsons;
 using GameData;
 using GTFO.API;
 using LogEventType = AWO.Modules.WEE.WEE_SetTerminalLog.LogEventType;
@@ -8,7 +8,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetTerminalLog : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetTerminalLog;
-    public readonly static Dictionary<(uint, string), Queue<WardenObjectiveEventData>> LogEventQueue = new();
+    public static readonly Dictionary<(uint, string), Queue<WardenObjectiveEventData>> LogEventQueue = new();
 
     protected override void OnSetup()
     {
@@ -32,9 +32,9 @@ internal sealed class SetTerminalLog : BaseEvent
                 LogError($"A log file with filename {eLog.FileName.ToUpper()} is already present on terminal!");
                 return;
             }
-            else if (eLog.FileContent.ToString().IsNullOrWhiteSpace())
+            else if (eLog.FileContent == LocaleText.Empty)
             {
-                LogError("FileContent cannot be empty.");
+                LogError("Terminal log 'FileContent' cannot be empty.");
                 return;
             }
             

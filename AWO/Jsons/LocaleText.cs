@@ -11,22 +11,22 @@ public struct LocaleText
 
     public LocaleText(LocalizedText baseText)
     {
-        if (baseText.HasTranslation)
-        {
-            RawText = string.Empty;
-            ID = baseText.Id;
-        }
-        else
-        {
-            RawText = baseText.UntranslatedText;
-            ID = 0u;
-        }
+        RawText = baseText.ToText();
+        ID = baseText.Id;
     }
 
     public LocaleText(string text)
     {
-        RawText = text;
-        ID = 0;
+        if (EntryPoint.PartialDataIsLoaded && PartialData.TryGetGUID(text, out uint guid))
+        {
+            RawText = string.Empty;
+            ID = guid;
+        }
+        else
+        {
+            RawText = text;
+            ID = 0u;
+        }
     }
 
     public LocaleText(uint id)
@@ -35,39 +35,33 @@ public struct LocaleText
         ID = id;
     }
 
-    public string Translated
+    public readonly string TextFallback
     {
         get
         {
-            return ID == 0 ? RawText : Text.Get(ID);
+            return ID == 0u ? RawText : Text.Get(ID);
         }
     }
 
-    public LocalizedText ToLocalizedText()
+    public readonly LocalizedText ToLocalizedText()
     {
-        return ID == 0
-            ? new LocalizedText()
-            {
-                Id = 0,
-                UntranslatedText = RawText
-            }
-            : new LocalizedText()
-            {
-                Id = ID,
-                UntranslatedText = string.Empty
-            };
+        return new LocalizedText
+        {
+            Id = ID,
+            UntranslatedText = TextFallback
+        };
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
-        return Translated;
+        return TextFallback;
     }
 
     public static explicit operator LocaleText(LocalizedText localizedText) => new(localizedText);
     public static explicit operator LocaleText(string text) => new(text);
 
     public static implicit operator LocalizedText(LocaleText localeText) => localeText.ToLocalizedText();
-    public static implicit operator string(LocaleText localeText) => localeText.Translated;
+    public static implicit operator string(LocaleText localeText) => localeText.ToString();
 
     public static readonly LocaleText Empty = new(string.Empty);
 }

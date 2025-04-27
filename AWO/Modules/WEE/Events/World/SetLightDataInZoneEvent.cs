@@ -1,5 +1,4 @@
 ﻿using AWO.Modules.WEE.Replicators;
-using LevelGeneration;
 using ModifierType = AWO.Modules.WEE.WEE_ZoneLightData.ModifierType;
 
 namespace AWO.Modules.WEE.Events;
@@ -19,28 +18,19 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
             return;
         }
 
-        /*bool shouldDisregardFlicker = setting.Type == ModifierType.SetZoneLightData ? setting.DisregardFlicker : !setting.DisregardFlicker;
-        if (shouldDisregardFlicker)
+        switch (setting.Type)
         {
-            foreach (var light in replicator.LightsInZone.Select(worker => worker.Light))
-            {
-                if (light.gameObject.TryAndGetComponent(out LG_LightAnimator flicker) && light.GetC_Light() != null && flicker.m_type == LG_LightAnimatorType.RandomFadeBlinker)
+            case ModifierType.SetZoneLightData:
+                if (setting.UseRandomSeed)
                 {
-                    flicker.enabled = !setting.DisregardFlicker;
+                    setting.Seed = MasterRand.Next(int.MinValue, int.MaxValue);
                 }
-            }
-        }*/
-
-        if (IsMaster)
-        {
-            if (setting.Type == ModifierType.SetZoneLightData)
-            {
                 replicator.SetLightSetting(setting);
-            }
-            else if (setting.Type == ModifierType.RevertToOriginal)
-            {
+                break;
+
+            case ModifierType.RevertToOriginal:
                 replicator.RevertLightData();
-            }
+                break;
         }
     }
 }

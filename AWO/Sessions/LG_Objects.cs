@@ -24,7 +24,7 @@ public static class LG_Objects
 
     private static void Clear()
     {
-        TrackedTypes.ForEachValue(list => list.Clear());
+        TrackedTypes.ForEachValue(set => set.Clear());
     }
 
     public static IEnumerable<T> TrackedList<T>() where T : Component

@@ -12,7 +12,7 @@ public class WinScreenConverter : JsonConverter<WinScreen>
     {
         return reader.TokenType switch
         {
-            JsonTokenType.String => new WinScreen(reader.GetString()),
+            JsonTokenType.String => new WinScreen(reader.GetString()!),
             JsonTokenType.Number => new WinScreen(reader.GetInt32()),
             JsonTokenType.Null => WinScreen.Empty,
             _ => throw new JsonException($"WinScreenJson type: {reader.TokenType} is not implemented!"),

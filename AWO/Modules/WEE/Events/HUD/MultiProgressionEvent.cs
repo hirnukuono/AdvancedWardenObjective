@@ -8,7 +8,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class MultiProgressionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MultiProgression;
-    public readonly static Dictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = new()
+    public static readonly Dictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = new()
     {
         { LG_LayerType.MainLayer, new() },
         { LG_LayerType.SecondaryLayer, new() },

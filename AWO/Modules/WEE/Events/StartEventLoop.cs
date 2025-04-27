@@ -10,7 +10,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartEventLoop;
-    public readonly static ConcurrentDictionary<int, Coroutine?> ActiveEventLoops = new();
+    public static readonly ConcurrentDictionary<int, Coroutine?> ActiveEventLoops = new();
 
     protected override void OnSetup()
     {
@@ -60,7 +60,7 @@ internal sealed class StartEventLoop : BaseEvent
                 break; // not in level or checkpoint was used, exit
             }
             
-            Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum}");
+            Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum + 1}");
             WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None);
 
             yield return delay;

@@ -41,7 +41,7 @@ public sealed class WEE_EventData
     public bool SpecialBool { get; set; } = false;
     public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
-    public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = (LocaleText)value; }
+    public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = new(value); }
 
 
     // Common Updater

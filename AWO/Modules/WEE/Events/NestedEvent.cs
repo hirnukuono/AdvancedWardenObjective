@@ -28,7 +28,7 @@ internal sealed class NestedEvent : BaseEvent
             _ => nested.EventsToActivate
         };
         
-        ExecuteWardenEvents(eventList);
+        ExecuteWardenEvents(eventList, nested.Type == NestedType.RandomWeighted);
     }
 
     private static List<WardenObjectiveEventData> SelectRandomUniform(WEE_NestedEvent nested)
@@ -55,7 +55,8 @@ internal sealed class NestedEvent : BaseEvent
     {
         int count = 0;
         int maxSpins = nested.MaxRandomEvents <= 0 ? nested.WheelOfEvents.Count : nested.MaxRandomEvents;
-        List<WardenObjectiveEventData> eventList = new();
+        List<WardenObjectiveEventData> eventList = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.None || e.Trigger == eWardenObjectiveEventTrigger.OnStart).ToList();
+        List<WardenObjectiveEventData> eventsOnMid = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnMid).ToList();
         List<WEE_NestedEvent.EventsOnRandomWeight> wheel = new(nested.WheelOfEvents);
 
         if (wheel.Count > 0)
@@ -79,11 +80,13 @@ internal sealed class NestedEvent : BaseEvent
                 {
                     wheel[randIndex] = rolledGroup;
                 }
+
+                eventList.AddRange(eventsOnMid);
             } while (++count < maxSpins && wheel.Count > 0);
             Logger.Dev(LogLevel.Debug, "WheelofEvents is now done");
-        }        
+        }
 
-        eventList.InsertRange(0, nested.EventsToActivate);
+        eventList.AddRange(nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnEnd));
         return eventList;
     }
 

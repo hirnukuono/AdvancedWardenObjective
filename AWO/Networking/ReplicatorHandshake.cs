@@ -1,4 +1,4 @@
-﻿using AWO.Networking.Patch;
+﻿using AWO.Networking.Patches;
 using GTFO.API;
 using SNetwork;
 

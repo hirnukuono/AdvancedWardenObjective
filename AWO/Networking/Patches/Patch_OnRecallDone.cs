@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using SNetwork;
 
-namespace AWO.Networking.Patch;
+namespace AWO.Networking.Patches;
 
 [HarmonyPatch(typeof(SNet_Capture))]
 internal static class Patch_OnRecallDone

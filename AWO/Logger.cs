@@ -5,45 +5,46 @@ namespace AWO;
 
 internal static class Logger
 {
-    private static readonly ManualLogSource _Logger;
+    private static readonly ManualLogSource MSL;
+    private const string Dev = "Dev";
 
     static Logger()
     {
-        _Logger = new ManualLogSource(VersionInfo.RootNamespace);
-        BepInEx.Logging.Logger.Sources.Add(_Logger);
+        MSL = new ManualLogSource(VersionInfo.RootNamespace);
+        BepInEx.Logging.Logger.Sources.Add(MSL);
     }
 
-    private static string? Format(object msg) => msg.ToString();
-    public static void Info(BepInExInfoLogInterpolatedStringHandler handler) => _Logger.LogInfo(handler);
-    public static void Info(string str) => _Logger.LogMessage(str);
-    public static void Info(object data) => _Logger.LogMessage(Format(data));
-    public static void Debug(BepInExDebugLogInterpolatedStringHandler handler) => _Logger.LogDebug(handler);
-    public static void Debug(string str) => _Logger.LogDebug(str);
-    public static void Debug(object data) => _Logger.LogDebug(Format(data));
-    public static void Error(BepInExErrorLogInterpolatedStringHandler handler) => _Logger.LogError(handler);
-    public static void Error(string str) => _Logger.LogError(str);
-    public static void Error(object data) => _Logger.LogError(Format(data));
-    public static void Warn(BepInExWarningLogInterpolatedStringHandler handler) => _Logger.LogWarning(handler);
-    public static void Warn(string str) => _Logger.LogWarning(str);
-    public static void Warn(object data) => _Logger.LogWarning(Format(data));
+    private static string Format(string module, object msg) => $"[{module}] {msg}";
+    public static void Info(BepInExInfoLogInterpolatedStringHandler handler) => MSL.LogInfo(handler);
+    public static void Info(string str) => MSL.LogMessage(str);
+    public static void Info(string module, object data) => MSL.LogMessage(Format(module, data));
+    public static void Debug(BepInExDebugLogInterpolatedStringHandler handler) => MSL.LogDebug(handler);
+    public static void Debug(string str) => MSL.LogDebug(str);
+    public static void Debug(string module, object data) => MSL.LogDebug(Format(module, data));
+    public static void Error(BepInExErrorLogInterpolatedStringHandler handler) => MSL.LogError(handler);
+    public static void Error(string str) => MSL.LogError(str);
+    public static void Error(string module, object data) => MSL.LogError(Format(module, data));
+    public static void Warn(BepInExWarningLogInterpolatedStringHandler handler) => MSL.LogWarning(handler);
+    public static void Warn(string str) => MSL.LogWarning(str);
+    public static void Warn(string module, object data) => MSL.LogWarning(Format(module, data));
     
-    public static void Dev(LogLevel level, string str)
+    public static void Verbose(LogLevel level, string data)
     {
-        if (Configuration.DevDebug)
+        if (Configuration.VerboseEnabled)
         {
             switch (level)
             {
                 case LogLevel.Info:
-                    Info($"[Dev] {str}");
+                    Info(Dev, data);
                     return;
                 case LogLevel.Debug:
-                    Debug($"[Dev] {str}");
+                    Debug(Dev, data);
                     return;
                 case LogLevel.Error:
-                    Debug($"[Dev] {str}");
+                    Debug(Dev, data);
                     return;
                 case LogLevel.Warning:
-                    Warn($"[Dev] {str}");
+                    Warn(Dev, data);
                     return;
             }
         }

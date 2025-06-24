@@ -5,19 +5,19 @@ namespace AWO;
 
 internal static class Configuration
 {
-    public static bool DevDebug { get; private set; } = false;
+    public static bool VerboseEnabled { get; private set; } = false;
 
     public static void Init()
     {
         BindAll(new ConfigFile(Path.Combine(Paths.ConfigPath, "AWO" + ".cfg"), true));
-        Logger.Debug($"Dev logging is enabled: {DevDebug}");
+        Logger.Debug($"Verbose logging is enabled: {VerboseEnabled}");
     }
 
     private static void BindAll(ConfigFile config)
     {
         string section = "General Settings";
-        string key = "Enable Dev Debug Logging";
+        string key = "Enable Verbose Debug Logging";
         string description = "Prints some additional logs to the console, which may be useful for rundown devs";
-        DevDebug = config.Bind(new ConfigDefinition(section, key), DevDebug, new ConfigDescription(description, null)).Value;
+        VerboseEnabled = config.Bind(section, key, false, description).Value;
     }
 }

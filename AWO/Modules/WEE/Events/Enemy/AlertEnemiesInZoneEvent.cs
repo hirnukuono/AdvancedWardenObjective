@@ -1,6 +1,8 @@
 ﻿using Agents;
 using AIGraph;
+using BepInEx.Logging;
 using Player;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -11,8 +13,6 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
-
-        if (e.Enabled) Logger.Info("I believe in you!");
 
         if (e.SpecialNumber == -1)
         {
@@ -31,7 +31,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
     {
         if (node.m_enemiesInNode == null || node.listenersInNode == null)
         {
-            Logger.Error("[AlertEnemiesInZoneEvent] Null enemies or listeners in node!");
+            Logger.Error("AlertEnemiesInZoneEvent", "Null enemies or listeners in node!");
             return;
         }
 
@@ -48,14 +48,62 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             raycastFirstNode = false
         });
 
-        foreach (var enemy in node.m_enemiesInNode)
+        if (TryGetClosestAlivePlayer(node, out var minae))
         {
-            PlayerManager.TryGetClosestAlivePlayerAgent(enemy.CourseNode, out PlayerAgent minae);
-            AgentMode mode = AgentMode.Agressive;
-            enemy.AI.SetStartMode(mode);
-            enemy.AI.ModeChange();
-            enemy.AI.m_mode = mode;
-            enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
-        }        
+            Logger.Verbose(LogLevel.Debug, $"Closest, alive, preferred-human target player found is a bot: {minae.Owner.IsBot}");
+            foreach (var enemy in node.m_enemiesInNode)
+            {
+                AgentMode mode = AgentMode.Agressive;
+                enemy.AI.SetStartMode(mode);
+                enemy.AI.ModeChange();
+                enemy.AI.m_mode = mode;
+                enemy.AI.SetDetectedAgent(minae, AgentTargetDetectionType.DamageDetection);
+            }
+        }
+        else
+        {
+            Logger.Warn("AlertEnemiesInZoneEvent", "Failed to find closest alive target player!");
+        }
+    }
+
+    public static bool TryGetClosestAlivePlayer(AIG_CourseNode node, [NotNullWhen(true)] out PlayerAgent? player)
+    {
+        PlayerAgent? humanPlayer = null;        
+        PlayerAgent? botPlayer = null;
+        float humanDist = float.MaxValue;
+        float botDist = float.MaxValue;        
+        var coverageDatas = node.m_playerCoverage.m_coverageDatas;
+
+        int count = Math.Min(PlayerManager.PlayerAgentsInLevel.Count, coverageDatas.Length);
+        for (int i = 0; i < count; i++)
+        {
+            var agent = PlayerManager.PlayerAgentsInLevel[i];
+            var coverage = coverageDatas[i];
+            if (agent == null || !agent.Alive || coverage == null || !coverage.IsValidNodeDistance)
+            {
+                continue;
+            }
+
+            int nodeDist = coverage.m_nodeDistance;
+            if (agent.Owner.IsBot)
+            {
+                if (nodeDist < botDist)
+                {
+                    botDist = nodeDist;
+                    botPlayer = agent;
+                }
+            }
+            else
+            {
+                if (nodeDist < humanDist)
+                {
+                    humanDist = nodeDist;
+                    humanPlayer = agent;
+                }
+            }
+        }
+
+        player = humanPlayer ?? botPlayer;
+        return player != null;
     }
 }

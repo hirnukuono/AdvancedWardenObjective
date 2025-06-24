@@ -18,8 +18,7 @@ internal sealed class CountupEvent : BaseEvent
         float duration = ResolveFieldsFallback(e.Duration, e.Countup.Duration);
         if (duration <= 0.0f)
         {
-            LogError("Duration must be greater than 0.0!");
-            return;
+            LogWarning("Duration must generally be greater than 0 seconds");
         }
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
@@ -56,7 +55,7 @@ internal sealed class CountupEvent : BaseEvent
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
             {
-                yield break; // someone has started a new countup while we were stuck here, exit
+                yield break; // someone has started a new countup while we were here, exit
             }
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
@@ -80,6 +79,7 @@ internal sealed class CountupEvent : BaseEvent
             ObjHudTimer.m_timerText.text = $"<color=#{htmlColor}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
             count += speed * Time.deltaTime;
 
+            #region TIMER_MODS
             if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
             {
                 count += EntryPoint.TimerMods.TimeModifier;
@@ -104,6 +104,7 @@ internal sealed class CountupEvent : BaseEvent
                 color = EntryPoint.TimerMods.TimerColor;
                 htmlColor = ColorUtility.ToHtmlStringRGB(color);
             }
+            #endregion
 
             yield return null;
         }

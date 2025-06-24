@@ -15,8 +15,7 @@ internal sealed class CountdownEvent : BaseEvent
         float duration = ResolveFieldsFallback(e.Duration, e.Countdown.Duration);
         if (duration <= 0.0f)
         {
-            LogError("Duration must be greater than 0.0!");
-            return;
+            LogWarning("Duration should generally be greater than 0 seconds");
         }
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
@@ -47,8 +46,7 @@ internal sealed class CountdownEvent : BaseEvent
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
             {
-                // someone has started a new countdown while we were stuck here, exit
-                yield break;
+                yield break; // someone has started a new countdown while we were here, exit
             }
             if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
@@ -73,6 +71,7 @@ internal sealed class CountdownEvent : BaseEvent
             UpdateTimerText(time, duration, color, cd.CanShowHours);
             time += Time.deltaTime;
 
+            #region TIMER_MODS
             if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
             {
                 time -= EntryPoint.TimerMods.TimeModifier;
@@ -87,6 +86,7 @@ internal sealed class CountdownEvent : BaseEvent
             {
                 color = EntryPoint.TimerMods.TimerColor;
             }
+            #endregion
 
             yield return null;
         }
@@ -100,7 +100,7 @@ internal sealed class CountdownEvent : BaseEvent
         ExecuteWardenEvents(cd.EventsOnDone);
     }
 
-    private static void UpdateTimerText(float time, float duration, Color color, bool showHours)
+    public static void UpdateTimerText(float time, float duration, Color color, bool showHours)
     {
         ObjHudTimer.SetTimerTextEnabled(true);
         float remainder = Math.Max(duration - time, 0.0f);
@@ -110,7 +110,7 @@ internal sealed class CountdownEvent : BaseEvent
         ObjHudTimer.m_timerText.text = $"{(showHours && time > 3600.0f ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2)}" : $"{(int)timeSpan.TotalMinutes:D2}")}:{timeSpan.Seconds:D2}";
     }
 
-    private static float NormalizedPercent(float current, float min, float max)
+    public static float NormalizedPercent(float current, float min, float max)
     {
         if (min == max) return float.NaN;
 

@@ -14,6 +14,7 @@ public static class SerialLookupManager
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
     private const string Terminal = "TERMINAL";
     private const string Zone = "ZONE";
+    private static readonly string Module = nameof(SerialLookupManager);
 
     internal static void Init()
     {
@@ -74,14 +75,11 @@ public static class SerialLookupManager
         }
         catch (Exception e)
         {
-            Logger.Error($"[SerialLookupManager] We had to exit early because an error occured:\n{e}");
+            Logger.Error(Module, $"We had to exit early because an error occured:\n{e}");
         }
 
-        if (Configuration.DevDebug)
-        {
-            Logger.Dev(LogLevel.Debug, PrintSerialMap());
-        }
-        Logger.Info($"[SerialLookupManager] On build done, collected {count} serial numbers");
+        Logger.Verbose(LogLevel.Debug, PrintSerialMap());
+        Logger.Info(Module, $"On build done, collected {count} serial numbers");
     }
 
     private static void Cleanup()
@@ -130,7 +128,7 @@ public static class SerialLookupManager
         }
 
         serialStr = match.Value;
-        Logger.Error($"[SerialLookupManager] No match found for TerminalItem: '{itemName}' in (D{dimension}, L{layer}, Z{zone}) at instance #{instanceIndex}");
+        Logger.Error(Module, $"No match found for TerminalItem: '{itemName}' in (D{dimension}, L{layer}, Z{zone}) at instance #{instanceIndex}");
         return false;
     }
 

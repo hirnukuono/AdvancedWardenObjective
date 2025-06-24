@@ -2,10 +2,10 @@
 using BepInEx.Logging;
 using LevelGeneration;
 using Player;
-using SNetwork;
 using System.Collections;
 using UnityEngine;
 using Il2CppPlayerList = Il2CppSystem.Collections.Generic.List<Player.PlayerAgent>;
+using TeleportData = AWO.Modules.WEE.WEE_TeleportPlayer.TeleportData;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -13,58 +13,78 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.TeleportPlayer;
 
-    public class TPData
-    {
-        public PlayerIndex PlayerIndex { get; set; }
-        public Vector3 Position { get; set; }
-        public int LookDir { get; set; }
-        public eDimensionIndex LastDim { get; set; }
-        public Vector3 LastPosition { get; set; }
-        public Vector3 LastLookDir { get; set; }
-        public List<IWarpableObject> ItemsToWarp { get; set; }
-
-        public TPData(PlayerIndex a, Vector3 b, int c, eDimensionIndex d, Vector3 e, Vector3 f, List<IWarpableObject> g)
-        {
-            PlayerIndex = a;
-            Position = b;
-            LookDir = c;
-            LastDim = d;
-            LastPosition = e;
-            LastLookDir = f;
-            ItemsToWarp = g;
-        }
-    }
-
-    private static Vector3 CamDirIfNotBot(PlayerAgent player) => !player.Owner.IsBot ? player.FPSCamera.CameraRayDir : Vector3.forward;
-
     protected override void TriggerMaster(WEE_EventData e)
     {
         var tp = e.TeleportPlayer;
         var playersInLevel = PlayerManager.PlayerAgentsInLevel;
-        var itemAssignment = AssignWarpables(tp, playersInLevel);
-        var activeSlotIndices = new HashSet<int>(tp.PlayerFilter.Select(filter => (int)filter));
-
-        for (int i = 0; i < playersInLevel.Count; i++)
+        
+        if (tp.TPData.Count == 0) // convert old to new format
         {
-            if (!activeSlotIndices.Contains(i)) continue; // Player not in PlayerFilter            
-            PlayerAgent player = playersInLevel[i];
+            var activeSlotIndices = new HashSet<int>(tp.PlayerFilter.Select(filter => (int)filter));
 
-            var (pos, dir) = i switch
+            for (int i = 0; i < playersInLevel.Count; i++)
             {
-                0 => (tp.Player0Position, tp.P0LookDir),
-                1 => (tp.Player1Position, tp.P1LookDir),
-                2 => (tp.Player2Position, tp.P2LookDir),
-                3 => (tp.Player3Position, tp.P3LookDir),
-                _ => (player.Position, 4)
-            };
-            var playerData = new TPData((PlayerIndex)i, pos, dir, player.DimensionIndex, player.Position, Vector3.zero, itemAssignment.GetOrAddNew(i));
+                if (activeSlotIndices.Contains(i))
+                {
+                    var (pos, dir) = i switch
+                    {
+                        0 => (tp.Player0Position, tp.P0LookDir),
+                        1 => (tp.Player1Position, tp.P1LookDir),
+                        2 => (tp.Player2Position, tp.P2LookDir),
+                        3 => (tp.Player3Position, tp.P3LookDir),
+                        _ => (playersInLevel[i].Position, 4)
+                    };
 
-            if (tp.FlashTeleport)
-            {                
-                CoroutineManager.StartCoroutine(FlashBack(e.Duration, player, playerData, tp.PlayWarpAnimation).WrapToIl2Cpp());
+                    tp.TPData.Add(new()
+                    {
+                        PlayerIndex = (PlayerIndex)i,
+                        Position = pos,
+                        LookDir = dir,
+                        PlayWarpAnimation = tp.PlayWarpAnimation
+                    });
+                }
             }
+        }
 
-            DoTeleport(e.DimensionIndex, player, playerData, tp.PlayWarpAnimation);
+        var itemAssignment = AssignWarpables(tp, playersInLevel);
+
+        for (int j = 0; j < playersInLevel.Count; j++)
+        {
+            if (tp.TPData.Any(tpd => (int)tpd.PlayerIndex == j))
+            {
+                PlayerAgent player = playersInLevel[j];
+                var playerData = tp.TPData[j];
+
+                var tpData = new TeleportData()
+                {
+                    Player = player,
+                    PlayerIndex = playerData.PlayerIndex,
+                    Dimension = ResolveFieldsFallback(e.DimensionIndex, playerData.Dimension, false),
+                    Position = GetPositionFallback(ResolveFieldsFallback(e.Position, playerData.Position, false), ResolveFieldsFallback(e.SpecialText, playerData.WorldEventObjectFilter, false)),
+                    LookDirV3 = ResolveFieldsFallback(GetLookDirV3(player, playerData.LookDir), playerData.LookDirV3, false),
+                    PlayWarpAnimation = playerData.PlayWarpAnimation,
+                    Duration = ResolveFieldsFallback(e.Duration, playerData.Duration, tp.FlashTeleport),
+                    LastDimension = player.DimensionIndex,
+                    LastPosition = player.Position,
+                    LastLookDirV3 = CamDirIfNotBot(player),
+                    ItemsToWarp = itemAssignment.GetOrAddNew(j)
+                };
+
+                if (tp.FlashTeleport)
+                {
+                    CoroutineManager.StartCoroutine(FlashBack(tpData).WrapToIl2Cpp());
+                }
+
+                DoTeleport(tpData);
+            }
+        }
+    }
+
+    protected override void TriggerCommon(WEE_EventData e)
+    {
+        if (e.TeleportPlayer.TPData.Count == 0)
+        {
+            LogWarning($"No TPData provided! {Name} has been channged. Please contact the mod author to update and use the new fields (see AWO wiki)");
         }
     }
 
@@ -84,14 +104,14 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             var bigPickup = item.TryCast<ItemInLevel>();
             if (tp.FlashTeleport || !tp.WarpBigPickups || bigPickup == null || !bigPickup.CanWarp || !bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
             {
-                continue; // warp only BPUs on the floor, otherwise continue
+                continue; // warp only BPU on the floor, otherwise continue
             }
 
             if (HasMaster && tp.SendBPUsToHost)
             {
                 itemAssignment.GetOrAddNew(PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex).Add(item);
             }
-            else if (lobby.Count == tp.PlayerFilter.Count)
+            else if (lobby.Count == tp.TPData.Count)
             {
                 itemAssignment.GetOrAddNew(MasterRand.Next(lobby.Count)).Add(item);
             }
@@ -100,46 +120,46 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         return itemAssignment;
     }
 
-    static IEnumerator FlashBack(float duration, PlayerAgent player, TPData playerData, bool playAnim)
+    static IEnumerator FlashBack(TeleportData tpData)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        playerData.LastLookDir = CamDirIfNotBot(player);
-        playerData.LastPosition = playerData.Position;
-        Logger.Dev(LogLevel.Debug, $"{playerData.PlayerIndex} warp flash to {playerData.LastDim} is queued");
+        Logger.Verbose(LogLevel.Debug, $"{tpData.PlayerIndex} flash warp to {tpData.LastDimension} is queued...");
 
-        yield return new WaitForSeconds(duration);
+        yield return new WaitForSeconds(tpData.Duration);
 
         if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
         {
             yield break; // checkpoint was used or not in level, exit
         }
 
-        Logger.Dev(LogLevel.Debug, $"Warping {playerData.PlayerIndex} back to {playerData.LastDim}");
-        DoTeleport(playerData.LastDim, player, playerData, playAnim);
+        Logger.Verbose(LogLevel.Debug, $"Warping {tpData.PlayerIndex} back to {tpData.LastDimension}");
+
+        tpData.Dimension = tpData.LastDimension;
+        tpData.Position = tpData.LastPosition;
+        tpData.LookDirV3 = tpData.LastLookDirV3;
+
+        DoTeleport(tpData);
     }
 
-    private static void DoTeleport(eDimensionIndex dim, PlayerAgent player, TPData playerData, bool playAnim)
+    private static void DoTeleport(TeleportData tpData)
     {
-        Vector3 lookDirV3 = playerData.LastLookDir == Vector3.zero ? GetLookDirV3(player, playerData.LookDir) : playerData.LastLookDir;
-        Vector3 pos = playerData.LastPosition == Vector3.zero ? playerData.Position : playerData.LastPosition;
-
-        if (player.Owner.IsBot)
+        if (tpData.Player.Owner.IsBot)
         {
-            player.TryWarpTo(dim, pos, Vector3.forward);
+            tpData.Player.TryWarpTo(tpData.Dimension, tpData.Position, Vector3.forward);
         }
         else
         {
-            player.Sync.SendSyncWarp(dim, pos, lookDirV3, playAnim ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
+            tpData.Player.Sync.SendSyncWarp(tpData.Dimension, tpData.Position, tpData.LookDirV3, tpData.PlayWarpAnimation ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
         }
 
-        foreach (var item in playerData.ItemsToWarp)
+        foreach (var item in tpData.ItemsToWarp)
         {
             var sentry = item.TryCast<SentryGunInstance>();
             if (sentry != null)
             {
                 if (sentry.LocallyPlaced)
                 {
-                    sentry.m_sync.WantItemAction(player, SyncedItemAction_New.PickUp);
+                    sentry.m_sync.WantItemAction(tpData.Player, SyncedItemAction_New.PickUp);
                     continue;
                 }
             }
@@ -152,9 +172,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                     ePickupItemInteractionType.Place,
                     null,
                     bigPickup.pItemData.custom,
-                    playerData.Position,
+                    tpData.Position,
                     Quaternion.identity,
-                    GetNodeFromDimPos(dim, playerData.Position)?.CourseNode,
+                    GetNodeFromDimPos(tpData.Dimension, tpData.Position)?.CourseNode,
                     true,
                     true
                 );
@@ -174,6 +194,8 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             _ => Vector3.forward,
         };
     }
+    
+    private static Vector3 CamDirIfNotBot(PlayerAgent player) => !player.Owner.IsBot ? player.FPSCamera.CameraRayDir : Vector3.forward;
 
     private static AIG_NodeCluster? GetNodeFromDimPos(eDimensionIndex dimensionIndex, Vector3 position)
     {

@@ -5,6 +5,7 @@ using Enemies;
 using GameData;
 using LevelGeneration;
 using Localization;
+using Player;
 using SNetwork;
 using System.Text.Json.Serialization;
 using UnityEngine;
@@ -278,14 +279,11 @@ public enum PlayerIndex : byte
     P3
 }
 
-public sealed class WEE_TeleportPlayer
+public sealed partial class WEE_TeleportPlayer // old
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new();
     public bool PlayWarpAnimation { get; set; } = true;
-    public bool FlashTeleport { get; set; } = false;
-    public bool WarpSentries { get; set; } = true;
-    public bool WarpBigPickups { get; set; } = true;
-    public bool SendBPUsToHost {  get; set; } = false;
+    public bool SendBPUsToHost { get; set; } = false;
     public Vector3 Player0Position { get; set; } = Vector3.zero;
     public int P0LookDir { get; set; } = 0;
     public Vector3 Player1Position { get; set; } = Vector3.zero;
@@ -294,6 +292,41 @@ public sealed class WEE_TeleportPlayer
     public int P2LookDir { get; set; } = 0;
     public Vector3 Player3Position { get; set; } = Vector3.zero;
     public int P3LookDir { get; set; } = 0;
+}
+
+public sealed partial class WEE_TeleportPlayer // new
+{
+    public bool FlashTeleport { get; set; } = false;
+    public bool WarpSentries { get; set; } = true;
+    public bool WarpBigPickups { get; set; } = true;
+    public bool SendBigPickupsToHost { get => SendBPUsToHost; set => SendBPUsToHost = value; }
+    public List<TeleportData> TPData { get; set; } = new();
+    public struct TeleportData
+    { 
+        public PlayerIndex PlayerIndex { get; set; }
+        [JsonPropertyName("DimensionIndex")]
+        public eDimensionIndex Dimension { get; set; }
+        public Vector3 Position { get; set; }
+        public string WorldEventObjectFilter { get; set; }
+        [JsonPropertyName("LookDirection")]
+        public int LookDir { get; set; }
+        [JsonPropertyName("LookDirectionV3")]
+        public Vector3 LookDirV3 { get; set; }
+        public bool PlayWarpAnimation { get; set; }
+        [JsonPropertyName("FlashDuration")]
+        public float Duration { get; set; }
+
+        [JsonIgnore]
+        public PlayerAgent Player { get; set; }
+        [JsonIgnore]
+        public eDimensionIndex LastDimension { get; set; }
+        [JsonIgnore]
+        public Vector3 LastPosition { get; set; }
+        [JsonIgnore]
+        public Vector3 LastLookDirV3 { get; set; }
+        [JsonIgnore]
+        public List<IWarpableObject> ItemsToWarp { get; set; }
+    }
 }
 
 public sealed class WEE_InfectPlayer
@@ -428,12 +461,20 @@ public sealed class WEE_CustomHudText
 public sealed class WEE_SpecialHudTimer
 {
     public float Duration { get; set; } = 0.0f;
+    public SpecialHudType Type { get; set; } = SpecialHudType.Default;
+    public int PersistentIndex { get; set; } = 0;
     public LocaleText Message { get; set; } = LocaleText.Empty;
     public ePUIMessageStyle Style { get; set; } = ePUIMessageStyle.Default;
     public int Priority { get; set; } = -2;
     public bool ShowTimeInProgressBar { get; set; } = true;    
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+    public enum SpecialHudType : byte
+    {
+        Default,
+        Persistent,
+        StopPersistent
+    }
 }
 
 public sealed class WEE_ForcePlayerDialogue

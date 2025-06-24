@@ -155,6 +155,23 @@ internal abstract class BaseEvent
         return default!;
     }
 
+    public string ResolveFieldsFallback(string value, string nested, bool debug = true)
+    {
+        if (!string.IsNullOrEmpty(nested))
+        {
+            return nested;
+        }
+        else if (!string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+        if (debug)
+        {
+            LogWarning($"Both legacy-nested and field {nameof(value)} are null or empty");
+        }
+        return string.Empty;
+    }
+
     public Vector3 GetPositionFallback(Vector3 position, string weObjectFilter, bool debug = true)
     {
         if (position != Vector3.zero)

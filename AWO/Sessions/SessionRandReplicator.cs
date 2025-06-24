@@ -39,16 +39,17 @@ public sealed class SessionRandReplicator : IStateReplicatorHolder<SessionRandSt
     {
         if (state.currentStep != Step)
         {
-            Logger.Debug($"[SessionRandReplicator] Jumping ahead from step {Step} to step {state.currentStep}");
+            Logger.Debug($"Jumping ahead from local step {Step} to session step {state.currentStep}");
             Step = state.currentStep;
             Jump(Step);            
         }
         else
         {
-            Logger.Dev(LogLevel.Debug, "[SessionRandReplicator] No change in step from received state");
+            Logger.Verbose(LogLevel.Debug, "No change in SessionRand step from received state");
         }
     }
 
+    // Adapted from https://rosettacode.org/wiki/Pseudo-random_numbers/Splitmix64 + TommyYettinger and bryc
     public uint Next() // SplitMix32 PRNG
     {
         Replicator?.SetStateUnsynced(new() { currentStep = ++Step });

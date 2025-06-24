@@ -27,7 +27,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         if (e.StartEventLoop.LoopDelay < 1.0f)
         {
-            LogError("LoopDelay must be > 1.0 seconds");
+            LogError("LoopDelay must be greater than or equal to 1.0 seconds");
             return;
         }
 
@@ -60,14 +60,14 @@ internal sealed class StartEventLoop : BaseEvent
                 break; // not in level or checkpoint was used, exit
             }
             
-            Logger.Debug($"[StartEventLoop] EventLoop {index} repeating #{repeatNum + 1}");
+            Logger.Debug("StartEventLoop", $"EventLoop {index} repeating #{repeatNum + 1}");
             WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None);
 
             yield return delay;
             repeatNum++;
         }
 
-        Logger.Debug($"[StartEventLoop] EventLoop {index} is now done");
+        Logger.Debug("StartEventLoop", $"EventLoop {index} is now done");
         ActiveEventLoops.TryRemove(index, out _);
     }
 }

@@ -314,7 +314,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         while (time <= duration)
         {
             time += Time.fixedDeltaTime;
-            if (shouldSync && nextInvoke <= time)
+            if (shouldSync && nextInvoke <= time && nextInvoke < duration)
             {
                 ShareStatus();
                 nextInvoke += interval;
@@ -327,9 +327,13 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
 
     private static float GetInvocationInterval(float time) // a very overcomplicated way to get faster zone light change sync intervals
     {
-        if (time < 10.0f)
+        if (time < 2.0f)
         {
             return float.NaN;
+        }
+        else if (time < 10.0f)
+        {
+            return time / 2.0f;
         }
 
         int timef = (int)Math.Floor(time);

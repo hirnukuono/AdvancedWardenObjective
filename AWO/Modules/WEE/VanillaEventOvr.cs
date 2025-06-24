@@ -98,7 +98,7 @@ internal static class VanillaEventOvr
             : e.Position;
         if (!Dimension.TryGetCourseNodeFromPos(pos, out var courseNode))
         {
-            Logger.Error("[SpawnEnemyOnPoint] Failed to find valid CourseNode from Position!");
+            Logger.Error("SpawnEnemyOnPoint", "Failed to find valid CourseNode from Position!");
             yield break;
         }
 

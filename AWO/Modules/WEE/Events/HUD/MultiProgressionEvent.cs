@@ -140,7 +140,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
         return prog;
     }
 
-    private static (string, string) SetAndStyleSubObjective(WEE_SubObjectiveData sub, LG_LayerType layer)
+    public static (string, string) SetAndStyleSubObjective(WEE_SubObjectiveData sub, LG_LayerType layer)
     {
         string header = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? sub.CustomSubObjective : sub.CustomSubObjectiveHeader;
         string body = string.IsNullOrEmpty(sub.CustomSubObjectiveHeader) ? string.Empty : sub.CustomSubObjective;
@@ -151,7 +151,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
         return (header, body);
     }
 
-    private static string StyleText(string text, LG_LayerType layer, string tag, bool isHeader)
+    public static string StyleText(string text, LG_LayerType layer, string tag, bool isHeader)
     {
         string styledText = WOManager.ReplaceFragmentsInString
         (

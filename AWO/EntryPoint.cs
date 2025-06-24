@@ -18,6 +18,7 @@ namespace AWO;
 [BepInDependency("MTFO.Extension.PartialBlocks", BepInDependency.DependencyFlags.SoftDependency)]
 internal class EntryPoint : BasePlugin
 {
+    /* Globals */
     public static bool PartialDataIsLoaded { get; private set; } = false;
     public static BlackoutState BlackoutState { get; private set; } = new();
     public static SessionRandReplicator SessionRand { get; private set; } = new();

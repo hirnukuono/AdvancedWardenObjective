@@ -82,7 +82,7 @@ internal sealed class SetPocketItemEvent : BaseEvent
         PlayerAgent? nearestPlayer = null;
         foreach (var currentPlayer in PlayerManager.PlayerAgentsInLevel)
         {
-            float dist = Vector3.Distance(pos, currentPlayer.Position);
+            float dist = (pos - currentPlayer.Position).sqrMagnitude;
             if (dist < minDist)
             {
                 minDist = dist;

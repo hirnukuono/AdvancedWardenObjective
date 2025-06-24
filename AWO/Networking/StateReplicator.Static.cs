@@ -3,7 +3,7 @@ using SNetwork;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using static AWO.Networking.Patch.Patch_SNet_Capture;
+using static AWO.Networking.Patches.Patch_SNet_Capture;
 
 namespace AWO.Networking;
 

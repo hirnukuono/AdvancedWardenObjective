@@ -57,10 +57,10 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (!player.Owner.IsBot && Vector3.Distance(player.Position, pos) < 3.5f)
+                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 3.5f))
                     {
                         isValidPos = false;
-                        Logger.Dev(LogLevel.Debug, "A spawn position rerolled due to nearby player conflict");
+                        Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player conflict");
                         break;
                     }
                 }
@@ -69,10 +69,10 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 {
                     foreach (var enemy in spawnNode.m_enemiesInNode)
                     {
-                        if (Vector3.Distance(enemy.Position, pos) < 2.3f)
+                        if (enemy.Position.IsWithinSqrDistance(pos, 2.3f))
                         {
                             isValidPos = false;
-                            Logger.Dev(LogLevel.Debug, "A spawn position rerolled due to nearby enemy conflict");
+                            Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy conflict");
                             break;
                         }
                     }
@@ -81,7 +81,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
             if (!isValidPos && !enabled)
             {
-                Logger.Dev(LogLevel.Warning, "An enemy failed to spawn after maximum reroll attempts reached");
+                Logger.Verbose(LogLevel.Warning, "An enemy failed to spawn after maximum reroll attempts reached");
                 continue;
             }
 

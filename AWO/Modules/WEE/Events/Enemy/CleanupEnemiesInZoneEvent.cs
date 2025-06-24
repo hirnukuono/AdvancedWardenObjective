@@ -1,6 +1,4 @@
-﻿using LevelGeneration;
-
-namespace AWO.Modules.WEE.Events;
+﻿namespace AWO.Modules.WEE.Events;
 
 internal class CleanupEnemiesInZoneEvent : BaseEvent
 {
@@ -11,12 +9,6 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
         if (!TryGetZone(e, out var zone)) return;
 
         var data = e.CleanupEnemies;
-        if (data == null)
-        {
-            LogError("CleanupEnemies Data is null?");
-            return;
-        }
-
         if (data.AreaIndex == -1)
         {
             foreach (var node in zone.m_courseNodes)

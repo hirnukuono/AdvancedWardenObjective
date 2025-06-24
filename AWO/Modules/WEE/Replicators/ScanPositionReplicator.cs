@@ -55,7 +55,7 @@ public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHold
     {
         if (TrackingScan == null)
         {
-            Logger.Error("[ScanPositionReplicator] TrackingScan is null!");
+            Logger.Error("ScanPositionReplicator", "TrackingScan is null!");
             return;
         }
 

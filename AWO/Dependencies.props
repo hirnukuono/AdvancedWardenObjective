@@ -36,11 +36,11 @@
 	<ItemGroup>
 		<!-- BepInEx -->
 		<Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
-		<Reference Include="$(BIELibsFolder)\SemanticVersioning.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\Il2CppInterop.*.dll" Private="false" />
 		<Reference Include="$(BIECacheFolder)\Il2CppJsonNet.dll" Private="false" />
+		<Reference Include="$(BIELibsFolder)\SemanticVersioning.dll" Private="false" />
 
 		<!-- CoreCLR -->
 		<Reference Include="$(CorLibsFolder)\*.dll" Private="false" />

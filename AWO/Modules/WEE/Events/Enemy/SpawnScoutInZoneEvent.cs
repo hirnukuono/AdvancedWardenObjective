@@ -33,14 +33,13 @@ internal class SpawnScoutInZoneEvent : BaseEvent
         {
             if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r))
             {
-                Logger.Error($"[SpawnScoutInZoneEvent] Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
+                Logger.Error("SpawnScoutInZoneEvent", $"Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
                 yield break;
             }
 
-            EnemyGroupDataBlock randomGroup = r.GetRandomGroup(Builder.SessionSeedRandom.Value());
-            float popPoints = randomGroup.MaxScore * Builder.SessionSeedRandom.Range(1f, 1.2f);
-
-            var node = ss.AreaIndex == -1 ? zone.m_areas[MasterRand.Next(zone.m_areas.Count)].m_courseNode : zone.m_areas[ss.AreaIndex].m_courseNode;
+            EnemyGroupDataBlock randomGroup = r.GetRandomGroup(MasterRand.NextFloat());
+            float popPoints = randomGroup.MaxScore * MasterRand.NextRange(1.0f, 1.2f);
+            var node = ss.AreaIndex != -1 ? zone.m_areas[ss.AreaIndex].m_courseNode : zone.m_areas[MasterRand.Next(zone.m_areas.Count)].m_courseNode;
 
             var scoutSpawnData = EnemyGroup.GetSpawnData
             (

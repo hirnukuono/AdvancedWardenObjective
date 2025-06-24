@@ -82,7 +82,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         }
         catch
         {
-            Logger.Dev(LogLevel.Warning, "[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
+            Logger.Verbose(LogLevel.Warning, "[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
         }
 
         yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);

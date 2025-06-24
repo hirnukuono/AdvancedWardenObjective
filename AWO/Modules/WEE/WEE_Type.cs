@@ -4,7 +4,7 @@ public enum WEE_Type
 {
     CloseSecurityDoor = WEE_EnumInjector.ExtendedIndex + 0,
     LockSecurityDoor,
-    SetDoorInteraction, // Missing
+    SetDoorInteraction, 
     TriggerSecurityDoorAlarm, 
     SolveSecurityDoorAlarm,
     StartReactor, 
@@ -18,7 +18,7 @@ public enum WEE_Type
     KillAllPlayers, 
     KillPlayersInZone, 
     SolveSingleObjectiveItem, // Obsolete
-    SetLightDataInZone, // TODO: Partially done, need to work on animation
+    SetLightDataInZone,
     AlertEnemiesInZone, 
     CleanupEnemiesInZone, // Kill, Despawn has merged with this
     SpawnHibernateInZone, // Added by Inas
@@ -57,5 +57,6 @@ public enum WEE_Type
     SetTerminalLog,
     SetPocketItem,
     DoInteractWeakDoorsInZone,
-    ToggleInteractWeakDoorsInZone
+    ToggleInteractWeakDoorsInZone,
+    PickupSentries
 }

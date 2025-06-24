@@ -54,7 +54,7 @@ internal sealed class NestedEvent : BaseEvent
     private static List<WardenObjectiveEventData> SelectRandomWeighted(WEE_NestedEvent nested)
     {
         int count = 0;
-        int maxSpins = nested.MaxRandomEvents <= 0 ? nested.WheelOfEvents.Count : nested.MaxRandomEvents;
+        int maxSpins = nested.MaxRandomEvents;
         List<WardenObjectiveEventData> eventList = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.None || e.Trigger == eWardenObjectiveEventTrigger.OnStart).ToList();
         List<WardenObjectiveEventData> eventsOnMid = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnMid).ToList();
         List<WEE_NestedEvent.EventsOnRandomWeight> wheel = new(nested.WheelOfEvents);
@@ -63,18 +63,18 @@ internal sealed class NestedEvent : BaseEvent
         {
             do
             {
-                Logger.Dev(LogLevel.Debug, $"WheelofEvents spin #{count + 1}");
+                Logger.Verbose(LogLevel.Debug, $"WheelofEvents spin #{count + 1}");
                 int randIndex = PickWeightedIndex(wheel);
                 var rolledGroup = wheel[randIndex];
                 eventList.AddRange(rolledGroup.Events);
 
                 string debugName = $"{nested.WheelOfEvents.IndexOf(rolledGroup)}{(rolledGroup.DebugName.IsNullOrWhiteSpace() ? string.Empty : $" ({rolledGroup.DebugName})")}";
-                Logger.Dev(LogLevel.Debug, $"Selected group index {debugName}");
+                Logger.Verbose(LogLevel.Debug, $"Selected group index {debugName}");
 
                 if (!nested.AllowRepeatsInRandom || (!rolledGroup.IsInfinite && --rolledGroup.RepeatCount <= 0))
                 {
                     wheel.RemoveAt(randIndex);
-                    Logger.Dev(LogLevel.Debug, $"Removed group index {debugName}. New wheel size is {wheel.Count}");
+                    Logger.Verbose(LogLevel.Debug, $"Removed group index {debugName}. New wheel size is {wheel.Count}");
                 }
                 else
                 {
@@ -83,7 +83,7 @@ internal sealed class NestedEvent : BaseEvent
 
                 eventList.AddRange(eventsOnMid);
             } while (++count < maxSpins && wheel.Count > 0);
-            Logger.Dev(LogLevel.Debug, "WheelofEvents is now done");
+            Logger.Verbose(LogLevel.Debug, "WheelofEvents is now done");
         }
 
         eventList.AddRange(nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnEnd));
@@ -95,7 +95,7 @@ internal sealed class NestedEvent : BaseEvent
         float sum = wheel.Sum(part => part.Weight);
         float rand = EntryPoint.SessionRand.NextFloat() * sum;
         float cumulative = 0.0f;
-        Logger.Dev(LogLevel.Debug, $"Rolled {rand} / {sum}");
+        Logger.Verbose(LogLevel.Debug, $"Rolled {rand} / {sum}");
 
         for (int i = 0; i < wheel.Count; i++)
         {

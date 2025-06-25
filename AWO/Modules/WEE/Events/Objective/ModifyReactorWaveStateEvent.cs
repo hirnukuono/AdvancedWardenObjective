@@ -29,6 +29,7 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                         WEE_ReactorEventData.WaveState.Intro => eReactorStatus.Startup_intro,
                         WEE_ReactorEventData.WaveState.Wave => eReactorStatus.Startup_intense,
                         WEE_ReactorEventData.WaveState.Verify => eReactorStatus.Startup_waitForVerify,
+                        WEE_ReactorEventData.WaveState.Idle => eReactorStatus.Inactive_Idle,
                         _ => eReactorStatus.Startup_intro
                     };
                     reactor.m_stateReplicator.State = state;

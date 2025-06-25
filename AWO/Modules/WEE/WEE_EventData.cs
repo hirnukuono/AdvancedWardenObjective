@@ -14,9 +14,8 @@ namespace AWO.Modules.WEE;
 
 public sealed class WEE_EventData
 {
-    public WEE_Type Type { get; set; }
-
     // Vanilla Fields for Serialization
+    public WEE_Type Type { get; set; }    
     public WorldEventConditionPair Condition { get; set; } = new()
     {
         ConditionIndex = -1,
@@ -26,7 +25,7 @@ public sealed class WEE_EventData
     public uint ChainPuzzle { get; set; } = 0u;
     public bool UseStaticBioscanPoints { get; set; } = false;
 
-    // Common Fields
+    // General Fields
     public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
     public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;    
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
@@ -44,7 +43,6 @@ public sealed class WEE_EventData
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
     public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = new(value); }
 
-
     // Common Updater
     public WEE_SubObjectiveData SubObjective { get; set; } = new();
     public WEE_UpdateFogData Fog { get; set; } = new();
@@ -58,12 +56,12 @@ public sealed class WEE_EventData
     public WEE_SpawnHibernateData SpawnHibernates { get; set; } = new();
     public WEE_SpawnScoutData SpawnScouts { get; set; } = new();
 
-    // hirnu
+    // Hirnu
     public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
     public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
     public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
 
-    // amor
+    // Amor
     public WEE_NestedEvent NestedEvent { get; set; } = new();
     public WEE_StartEventLoop StartEventLoop { get; set; } = new();
     public WEE_StartEventLoop EventLoop { get => StartEventLoop; set => StartEventLoop = value; }
@@ -83,9 +81,11 @@ public sealed class WEE_EventData
     public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
     public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
     public WEE_SetTerminalLog SetTerminalLog { get; set; } = new();
+    public WEE_SetTerminalLog TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
 }
 
+#region OG_EVENTS
 public sealed class WEE_SubObjectiveData
 {
     public bool DoUpdate { get; set; } = false;
@@ -115,7 +115,8 @@ public sealed class WEE_ReactorEventData
     {
         Intro,
         Wave,
-        Verify
+        Verify,
+        Idle
     }
 }
 
@@ -209,8 +210,9 @@ public sealed class WEE_SpawnScoutData
     public eEnemyRoleDifficulty Difficulty { get; set; }
     public int Count { get; set; } = 1;
 }
+#endregion
 
-
+#region HIRNU_EVENTS
 public sealed class WEE_AddTerminalCommand
 {
     public int TerminalIndex { get; set; } = 0;
@@ -238,8 +240,9 @@ public sealed class WEE_UnhideTerminalCommand
     public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
     public int CommandNumber { get; set; } = 0;
 }
+#endregion
 
-
+#region AMOR_EVENTS
 public sealed class WEE_NestedEvent
 {
     public NestedMode Type { get; set; } = NestedMode.ActivateAll;
@@ -543,3 +546,4 @@ public sealed class WEE_SetPocketItem
         Closest
     }
 }
+#endregion

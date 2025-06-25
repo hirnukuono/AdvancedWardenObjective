@@ -165,10 +165,12 @@ internal abstract class BaseEvent
         {
             return value;
         }
+
         if (debug)
         {
             LogWarning($"Both legacy-nested and field {nameof(value)} are null or empty");
         }
+
         return string.Empty;
     }
 
@@ -178,14 +180,14 @@ internal abstract class BaseEvent
         {
             return position;
         }
-        else if (WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(weObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject))
+        else if (WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(weObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject) && weObject.enabled)
         {
             return weObject.gameObject.transform.position;
         }
 
         if (debug)
         {
-            LogWarning($"Position is zero, or could not find WorldEventObjectFilter {weObjectFilter}");
+            LogWarning($"Position is zero, or could not find enabled WorldEventObjectFilter {weObjectFilter}");
         }
 
         return Vector3.zero;

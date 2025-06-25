@@ -20,6 +20,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         
         if (tp.TPData.Count == 0) // convert old to new format
         {
+            LogWarning($"No TPData provided, we will convert! {Name} has been changed (see AWO wiki)");
             var activeSlotIndices = new HashSet<int>(tp.PlayerFilter.Select(filter => (int)filter));
 
             for (int i = 0; i < playersInLevel.Count; i++)
@@ -80,14 +81,6 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
     }
 
-    protected override void TriggerCommon(WEE_EventData e)
-    {
-        if (e.TeleportPlayer.TPData.Count == 0)
-        {
-            LogWarning($"No TPData provided! {Name} has been channged. Please contact the mod author to update and use the new fields (see AWO wiki)");
-        }
-    }
-
     private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
     {
         var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
@@ -102,19 +95,11 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if (tp.FlashTeleport || !tp.WarpBigPickups || bigPickup == null || !bigPickup.CanWarp || !bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
+            if (!tp.FlashTeleport && tp.WarpBigPickups && lobby.Count == tp.TPData.Count 
+                && bigPickup != null && bigPickup.CanWarp && bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
             {
-                continue; // warp only BPU on the floor, otherwise continue
-            }
-
-            if (HasMaster && tp.SendBPUsToHost)
-            {
-                itemAssignment.GetOrAddNew(PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex).Add(item);
-            }
-            else if (lobby.Count == tp.TPData.Count)
-            {
-                itemAssignment.GetOrAddNew(MasterRand.Next(lobby.Count)).Add(item);
-            }
+                itemAssignment.GetOrAddNew(tp.SendBPUsToHost ? PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex : MasterRand.Next(lobby.Count)).Add(item);
+            }            
         }
 
         return itemAssignment;

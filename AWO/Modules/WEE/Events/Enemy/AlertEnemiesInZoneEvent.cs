@@ -50,7 +50,6 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 
         if (TryGetClosestAlivePlayer(node, out var minae))
         {
-            Logger.Verbose(LogLevel.Debug, $"Closest, alive, preferred-human target player found is a bot: {minae.Owner.IsBot}");
             foreach (var enemy in node.m_enemiesInNode)
             {
                 AgentMode mode = AgentMode.Agressive;
@@ -62,7 +61,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
         else
         {
-            Logger.Warn("AlertEnemiesInZoneEvent", "Failed to find closest alive target player!");
+            Logger.Warn("AlertEnemiesInZoneEvent", "Failed to find closest alive player target!");
         }
     }
 
@@ -104,6 +103,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
 
         player = humanPlayer ?? botPlayer;
+        Logger.Verbose(LogLevel.Debug, $"Closest alive player target: {player?.PlayerName ?? "null"})");
         return player != null;
     }
 }

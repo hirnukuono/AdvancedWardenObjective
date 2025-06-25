@@ -1,4 +1,5 @@
 ﻿using AWO.Jsons;
+using CellMenu;
 using GameData;
 using HarmonyLib;
 
@@ -31,6 +32,20 @@ internal static class Patch_OnExpeditionUpdated
         {
             __instance.PageCustomExpeditionSuccess = __instance.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, __state);
             Logger.Debug($"Successfully loaded modded CustomSuccessScreen");
+        }
+    }
+
+    [HarmonyPatch(typeof(GameStateManager), nameof(GameStateManager.DoChangeState))]
+    [HarmonyPostfix]
+    [HarmonyWrapSafe]
+    private static void Post_DoChangeState(GameStateManager __instance, eGameStateName nextState)
+    {
+        if (nextState == eGameStateName.Lobby)
+        {
+            foreach (var p in RundownManager.FindObjectsOfType<CM_PageExpeditionSuccess>())
+            {
+                p.SetPageActive(false);
+            }
         }
     }
 }

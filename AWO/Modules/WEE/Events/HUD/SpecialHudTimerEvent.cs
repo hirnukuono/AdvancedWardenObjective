@@ -10,7 +10,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SpecialHudTimerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpecialHudTimer;
-    public static readonly ConcurrentDictionary<int, Coroutine?> PersistentSpecialHuds = new();
+    public static readonly ConcurrentDictionary<int, Coroutine?> SpecialHuds = new();
     private const string Timer = "[TIMER]";
     private const string Percent = "[PERCENT]";
 
@@ -21,49 +21,75 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     private void OnLevelCleanup()
     {
-        PersistentSpecialHuds.ForEachValue(pSpecialHud => CoroutineManager.StopCoroutine(pSpecialHud));
-        PersistentSpecialHuds.Clear();
+        SpecialHuds.ForEachValue(pSpecialHud => CoroutineManager.StopCoroutine(pSpecialHud));
+        SpecialHuds.Clear();
     }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        switch (e.SpecialHudTimer.Type)
+        var specHud = e.SpecialHudTimer;
+        float duration = ResolveFieldsFallback(e.Duration, specHud.Duration);
+
+        switch (specHud.Type)
         {
-            case SpecialHudType.Default:
-                float duration = ResolveFieldsFallback(e.Duration, e.SpecialHudTimer.Duration);
+            case SpecialHudType.StartTimer: // start timed specialhud without an index
                 if (duration <= 0.0f)
                 {
                     LogError("Duration must be greater than 0 seconds!");
                     return;
                 }
-                CoroutineManager.StartCoroutine(DoInteractionHud(e.SpecialHudTimer, duration).WrapToIl2Cpp());
+                LogDebug("Starting new Timed SpecialHud (no index, cannot be stopped once started)");
+                CoroutineManager.StartCoroutine(DoSpecialHudTimed(e.SpecialHudTimer, duration).WrapToIl2Cpp());
                 break;
 
-            case SpecialHudType.Persistent:
-                if (!PersistentSpecialHuds.TryAdd(e.SpecialHudTimer.PersistentIndex, null))
+            case SpecialHudType.StartIndexTimer: // start timed specialhud with index
+                if (duration <= 0.0f)
                 {
-                    LogError($"Persistent SpecialHud {e.SpecialHudTimer.PersistentIndex} is already active...");
+                    LogError("Duration must be greater than 0 seconds!");
                     return;
                 }
-                LogDebug($"Starting Persistent SpecialHud with index: {e.SpecialHudTimer.PersistentIndex}");
-                PersistentSpecialHuds[e.SpecialHudTimer.PersistentIndex] = CoroutineManager.StartCoroutine(PersistentInteractionHud(e.SpecialHudTimer).WrapToIl2Cpp());
+                else if (!SpecialHuds.TryAdd(specHud.Index, null))
+                {
+                    LogError($"Timed SpecialHud {specHud.Index} is already active...");
+                    return;
+                }
+                LogDebug($"Starting Timed SpecialHud with index: {specHud.Index}");
+                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudTimed(e.SpecialHudTimer, duration).WrapToIl2Cpp());
                 break;
 
-            case SpecialHudType.StopPersistent:
-                if (!PersistentSpecialHuds.TryRemove(e.SpecialHudTimer.PersistentIndex, out var loop))
+            case SpecialHudType.StartPersistent: // start persistent specialhud
+                if (!SpecialHuds.TryAdd(specHud.Index, null))
                 {
-                    LogError($"No active Persistent SpecialHud with index {e.SpecialHudTimer.PersistentIndex} was found!");
+                    LogError($"Persistent SpecialHud {specHud.Index} is already active...");
                     return;
                 }
-                LogDebug($"Stopping Persistent SpecialHud with index: {e.SpecialHudTimer.PersistentIndex}");
+                LogDebug($"Starting Persistent SpecialHud with index: {specHud.Index}");
+                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudPersistent(e.SpecialHudTimer).WrapToIl2Cpp());
+                break;
+
+            case SpecialHudType.StopIndex: // stop specialhud with index
+                if (!SpecialHuds.TryRemove(specHud.Index, out var loop))
+                {
+                    LogError($"No active SpecialHud with index {specHud.Index} was found!");
+                    return;
+                }
+                LogDebug($"Stopping SpecialHud with index: {specHud.Index}");
                 CoroutineManager.StopCoroutine(loop);
+                GuiManager.InteractionLayer.MessageVisible = false;
+                GuiManager.InteractionLayer.MessageTimerVisible = false;
+                break;
+
+            case SpecialHudType.StopAll: // stop all specialhuds with index
+                SpecialHuds.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
+                SpecialHuds.Clear();
+                LogDebug("Stopped all SpecialHuds (with an index)");
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
                 break;
         }
     }
 
-    static IEnumerator DoInteractionHud(WEE_SpecialHudTimer hud, float duration)
+    static IEnumerator DoSpecialHudTimed(WEE_SpecialHudTimer hud, float duration)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float time = 0.0f;
@@ -134,15 +160,20 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
         }
         ExecuteWardenEvents(hud.EventsOnDone);
+
+        if (hud.Type == SpecialHudType.StartIndexTimer)
+        {
+            SpecialHuds.TryRemove(hud.Index, out _);
+        }
     }
 
-    static IEnumerator PersistentInteractionHud(WEE_SpecialHudTimer hud)
+    static IEnumerator DoSpecialHudPersistent(WEE_SpecialHudTimer hud)
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
 
         GuiManager.InteractionLayer.MessageVisible = true;
-        GuiManager.InteractionLayer.MessageTimerVisible = hud.ShowTimeInProgressBar;
+        GuiManager.InteractionLayer.MessageTimerVisible = false;
 
         while (true)
         {
@@ -153,12 +184,11 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 yield break;
             }
 
-            GuiManager.InteractionLayer.SetMessage(msg, hud.Style, hud.Priority);
-            
+            GuiManager.InteractionLayer.SetMessage(msg, hud.Style, hud.Priority);            
             yield return null;
 
             GuiManager.InteractionLayer.MessageVisible = true;
-            GuiManager.InteractionLayer.MessageTimerVisible = hud.ShowTimeInProgressBar;
+            GuiManager.InteractionLayer.MessageTimerVisible = false;
         }
     }
 }

@@ -18,7 +18,7 @@ internal static class Patch_TermCmdInterpreter
     {
         if (cmd == TERM_Command.ReadLog)
         {
-            if (LogEventQueue.TryGetValue((__instance.m_terminal.SyncID, param1), out var eData))
+            if (LogEventQueue.TryGetValue((__instance.m_terminal.SyncID, param1.ToUpper()), out var eData))
             {
                 CoroutineManager.StartCoroutine(DoEvents(eData).WrapToIl2Cpp());
             }

@@ -40,7 +40,7 @@ internal sealed class SetTerminalLog : BaseEvent
             
             term.AddLocalLog(new()
             {
-                FileName = eLog.FileName,
+                FileName = eLog.FileName.ToUpper(),
                 FileContent = eLog.FileContent,
                 FileContentOriginalLanguage = eLog.FileContentOriginalLanguage,
                 AttachedAudioFile = eLog.AttachedAudioFile,

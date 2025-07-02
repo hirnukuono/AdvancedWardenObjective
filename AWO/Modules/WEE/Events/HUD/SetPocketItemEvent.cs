@@ -28,14 +28,6 @@ internal sealed class SetPocketItemEvent : BaseEvent
         BottomItems = string.Empty;
     }
 
-    protected override void TriggerMaster(WEE_EventData e)
-    {
-        if (e.ObjectiveItems.Any(pItem => pItem.TagType == TagType.Random))
-        {
-            EntryPoint.SessionRand.SyncStep(); // runs after TriggerCommon!
-        }
-    }
-
     protected override void TriggerCommon(WEE_EventData e)
     {
         foreach (var pItem in e.ObjectiveItems)
@@ -52,7 +44,7 @@ internal sealed class SetPocketItemEvent : BaseEvent
                     TagType.Custom => pItem.CustomTag,
                     TagType.Specific => slots[(int)pItem.PlayerIndex]?.GetName(),
                     TagType.Random => slots[EntryPoint.SessionRand.NextInt(slots.Count)]?.GetName(),
-                    TagType.Closest => GetClosestPlayerName(e.Position),
+                    TagType.Closest => GetClosestPlayerName(GetPositionFallback(e.Position, e.SpecialText)),
                     _ => null
                 };
 

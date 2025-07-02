@@ -34,7 +34,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float damagePerSecond = e.DamagePlayer.DamageAmount / e.Duration;
         float elapsed = 0.0f;
-        WaitForSeconds delay = new(e.InfectPlayer.Interval);
+        WaitForSeconds delay = new(e.DamagePlayer.Interval);
 
         while (elapsed < e.Duration)
         {

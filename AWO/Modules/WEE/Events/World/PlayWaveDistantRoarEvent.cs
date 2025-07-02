@@ -15,7 +15,6 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
 
         waveRoar.SetSwitch(SWITCHES.ENEMY_TYPE.GROUP, e.WaveRoarSound.RoarSound switch
         {
-            RoarSound.Striker => SWITCHES.ENEMY_TYPE.SWITCH.STRIKER,
             RoarSound.Shooter => SWITCHES.ENEMY_TYPE.SWITCH.SHOOTER,
             RoarSound.Birther => SWITCHES.ENEMY_TYPE.SWITCH.BIRTHER,
             RoarSound.Shadow => SWITCHES.ENEMY_TYPE.SWITCH.SHADOW,
@@ -31,7 +30,6 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
 
         waveRoar.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, e.WaveRoarSound.RoarSize switch
         {
-            RoarSize.Small => SWITCHES.ROAR_SIZE.SWITCH.SMALL,
             RoarSize.Medium => SWITCHES.ROAR_SIZE.SWITCH.MEDIUM,
             RoarSize.Big => SWITCHES.ROAR_SIZE.SWITCH.BIG,
             _ => SWITCHES.ROAR_SIZE.SWITCH.SMALL

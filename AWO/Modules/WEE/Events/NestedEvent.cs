@@ -9,14 +9,6 @@ internal sealed class NestedEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.NestedEvent;
 
-    protected override void TriggerMaster(WEE_EventData e)
-    {
-        if (e.NestedEvent.Type != NestedType.ActivateAll)
-        {
-            EntryPoint.SessionRand.SyncStep(); // runs after TriggerCommon!
-        }
-    }
-
     protected override void TriggerCommon(WEE_EventData e)
     {
         var nested = e.NestedEvent;
@@ -68,7 +60,7 @@ internal sealed class NestedEvent : BaseEvent
                 var rolledGroup = wheel[randIndex];
                 eventList.AddRange(rolledGroup.Events);
 
-                string debugName = $"{nested.WheelOfEvents.IndexOf(rolledGroup)}{(rolledGroup.DebugName.IsNullOrWhiteSpace() ? string.Empty : $" ({rolledGroup.DebugName})")}";
+                string debugName = $"{nested.WheelOfEvents.IndexOf(rolledGroup)} {(rolledGroup.DebugName.IsNullOrWhiteSpace() ? string.Empty : $"({rolledGroup.DebugName})")}";
                 Logger.Verbose(LogLevel.Debug, $"Selected group index {debugName}");
 
                 if (!nested.AllowRepeatsInRandom || (!rolledGroup.IsInfinite && --rolledGroup.RepeatCount <= 0))

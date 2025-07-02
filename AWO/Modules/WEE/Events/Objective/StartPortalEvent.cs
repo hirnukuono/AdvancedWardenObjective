@@ -36,9 +36,7 @@ internal sealed class StartPortalEvent : BaseEvent
         {
             Type = e.Portal.PreventPortalWarpTeamEvent ? eWardenObjectiveEventType.None : eWardenObjectiveEventType.DimensionWarpTeam,
             DimensionIndex = portalMachine.m_targetDimension,
-            Delay = portalMachine.m_teleportDelay,
-            UseStaticBioscanPoints = false,
-            WorldEventObjectFilter = e.SpecialText
+            Delay = portalMachine.m_teleportDelay
         };
 
         if (IsMaster && e.Enabled)

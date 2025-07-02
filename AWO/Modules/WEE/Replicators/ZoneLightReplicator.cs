@@ -1,6 +1,7 @@
 ﻿using AWO.Networking;
 using BepInEx.Unity.IL2CPP.Utils;
 using GameData;
+using GTFO.API;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -195,6 +196,8 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
     public LightWorker[] LightsInZone = Array.Empty<LightWorker>();
     [HideFromIl2Cpp]
     public event Action? OnSharedStatus;
+    [HideFromIl2Cpp]
+    public event Action? OnLightsChanged;
     public Coroutine? ShareStatusCoroutine;
     public bool IsSetup { get; private set; } = false;
 
@@ -227,6 +230,16 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
             worker.OrigColor = worker.Light.m_color;
             worker.OrigIntensity = worker.Light.m_intensity;
             worker.OrigEnabled = worker.Light.gameObject.active;            
+        }
+
+        LevelAPI.OnBuildDone += OnBuildDone;
+    }
+
+    private void OnBuildDone()
+    {
+        if (OnLightsChanged != null)
+        {
+            OnSharedStatus = OnLightsChanged;
         }
     }
 

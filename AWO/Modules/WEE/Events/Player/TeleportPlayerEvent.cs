@@ -15,6 +15,12 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+        {
+            LogError("Not in level!!!");
+            return;
+        }
+
         var tp = e.TeleportPlayer;
         var playersInLevel = PlayerManager.PlayerAgentsInLevel;
         
@@ -121,7 +127,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         tpData.Dimension = tpData.LastDimension;
         tpData.Position = tpData.LastPosition;
-        tpData.LookDirV3 = tpData.LastLookDirV3;
+        tpData.LookDirV3 = tpData.LookDir != 4 ? tpData.LastLookDirV3 : CamDirIfNotBot(tpData.Player);
 
         DoTeleport(tpData);
     }

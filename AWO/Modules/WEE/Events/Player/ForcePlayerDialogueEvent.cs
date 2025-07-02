@@ -15,11 +15,6 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.ForcePlayPlayerDialogue;
 
-    protected override void TriggerMaster(WEE_EventData e)
-    {
-        EntryPoint.SessionRand.SyncStep(); // runs after TriggerCommon!
-    }
-
     protected override void TriggerCommon(WEE_EventData e)
     {
         var block = PlayerDialogDataBlock.GetBlock(e.DialogueID);

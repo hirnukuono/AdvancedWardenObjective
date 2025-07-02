@@ -22,9 +22,11 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!NavMarkers.TryGetValue(e.Count, out var marker))
+        int index = ResolveFieldsFallback(e.Count, e.NavMarker.Index, false);
+
+        if (!NavMarkers.TryGetValue(index, out var marker))
         {
-            var trackingObj = new GameObject($"AMAWO_{e.Count}") 
+            var trackingObj = new GameObject($"AMAWO_{index}") 
             { 
                 transform = { position = GetPositionFallback(e.Position, e.SpecialText) } 
             };
@@ -37,11 +39,11 @@ internal class SpawnNavMarkerEvent : BaseEvent
                 marker.SetSignInfo(str);
             }
             
-            NavMarkers.Add(e.Count, marker);
+            NavMarkers.Add(index, marker);
 
             if (e.Duration > 0.0f)
             {
-                CoroutineManager.StartCoroutine(DestroyAfterDelay(e.Count, e.Duration).WrapToIl2Cpp());
+                CoroutineManager.StartCoroutine(DestroyAfterDelay(index, e.Duration).WrapToIl2Cpp());
             }
         }
 
@@ -51,6 +53,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
     static IEnumerator DestroyAfterDelay(int index, float duration)
     {
         yield return new WaitForSeconds(duration);
+        NavMarkers[index].SetVisible(false);
         NavMarkers.Remove(index);
     }
 }

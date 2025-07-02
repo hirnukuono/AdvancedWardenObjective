@@ -26,8 +26,8 @@ public sealed class WEE_EventData
     public bool UseStaticBioscanPoints { get; set; } = false;
 
     // General Fields
-    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
-    public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;    
+    public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
+    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;    
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
@@ -58,8 +58,11 @@ public sealed class WEE_EventData
 
     // Hirnu
     public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
+    public WEE_AddTerminalCommand AddCommand { get => AddTerminalCommand; set => AddTerminalCommand = value; }
     public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
+    public WEE_HideTerminalCommand HideCommand { get => HideTerminalCommand; set => HideTerminalCommand = value; }
     public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
+    public WEE_UnhideTerminalCommand UnhideCommand { get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
     // Amor
     public WEE_NestedEvent NestedEvent { get; set; } = new();
@@ -78,7 +81,9 @@ public sealed class WEE_EventData
     public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
     public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
     public WEE_CustomHudText CustomHudText { get; set; } = new();
+    public WEE_CustomHudText CustomHud { get => CustomHudText; set => CustomHudText = value; }
     public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
+    public WEE_SpecialHudTimer SpecialHud { get => SpecialHudTimer; set => SpecialHudTimer = value; }
     public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
     public WEE_SetTerminalLog SetTerminalLog { get; set; } = new();
     public WEE_SetTerminalLog TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
@@ -392,6 +397,7 @@ public struct EventsOnTimerProgress
 
 public sealed class WEE_NavMarkerData
 {
+    public int Index { get; set; } = 0;
     public NavMarkerOption Style { get; set; } = NavMarkerOption.Waypoint | NavMarkerOption.Distance;
     public LocaleText Title { get; set; } = LocaleText.Empty;
     public Color Color { get; set; } = new(0.701f, 0.435f, 0.964f, 1.0f);
@@ -464,8 +470,8 @@ public sealed class WEE_CustomHudText
 public sealed class WEE_SpecialHudTimer
 {
     public float Duration { get; set; } = 0.0f;
-    public SpecialHudType Type { get; set; } = SpecialHudType.Default;
-    public int PersistentIndex { get; set; } = 0;
+    public SpecialHudType Type { get; set; } = SpecialHudType.StartTimer;
+    public int Index { get; set; } = 0;
     public LocaleText Message { get; set; } = LocaleText.Empty;
     public ePUIMessageStyle Style { get; set; } = ePUIMessageStyle.Default;
     public int Priority { get; set; } = -2;
@@ -474,9 +480,11 @@ public sealed class WEE_SpecialHudTimer
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
     public enum SpecialHudType : byte
     {
-        Default,
-        Persistent,
-        StopPersistent
+        StartTimer,
+        StartIndexTimer,
+        StartPersistent,
+        StopIndex,
+        StopAll
     }
 }
 
@@ -521,7 +529,7 @@ public sealed class WEE_SetTerminalLog
 public sealed class WEE_SetPocketItem
 {
     public int Index { get; set; } = 0;
-    public int Count { get; set; } = 1;
+    public int Count { get; set; } = 0;
     public bool IsOnTop { get; set; } = false;
     public LocaleText ItemName { get; set; } = LocaleText.Empty;
     public PlayerTagType TagType { get; set; } = PlayerTagType.Custom;

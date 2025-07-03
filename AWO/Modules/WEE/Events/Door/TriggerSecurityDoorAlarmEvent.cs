@@ -10,16 +10,18 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
     {
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
-        string doorDebug = door.Gate.m_linksTo.m_zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting);
-
-        if (door.m_locks.ChainedPuzzleToSolve != null)
+        var puzzleInstance = door.m_locks.ChainedPuzzleToSolve;
+        if (puzzleInstance == null)
+        {
+            LogError($"Door does not have any ChainedPuzzles to activate!");
+        }
+        else if (!puzzleInstance.IsSolved)
         {
             door.m_sync.AttemptDoorInteraction(eDoorInteractionType.ActivateChainedPuzzle);
-            LogDebug($"{doorDebug} alarm triggered!");
         }
         else
         {
-            LogDebug($"{doorDebug} does not have any ChainedPuzzles to activate");
+            LogError("Door already has a solved ChainedPuzzle");
         }
     }
 }

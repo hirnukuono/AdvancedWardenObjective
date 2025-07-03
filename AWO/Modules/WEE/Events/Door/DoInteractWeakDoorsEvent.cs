@@ -29,7 +29,7 @@ internal sealed class DoInteractWeakDoorsEvent : BaseEvent
         }
         else
         {
-            LogError($"{e.LocalIndex} may have no WeakDoors?");
+            LogError($"Zone may have no WeakDoors?");
         }
     }
 }

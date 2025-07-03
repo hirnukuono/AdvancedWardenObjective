@@ -1,4 +1,5 @@
 ﻿using BepInEx.Core.Logging.Interpolation;
+using BepInEx.Logging;
 using GameData;
 using GTFO.API.Extensions;
 using LevelGeneration;
@@ -82,11 +83,12 @@ internal abstract class BaseEvent
 
     public bool TryGetZone(WEE_EventData e, [NotNullWhen(true)] out LG_Zone? zone)
     {
+        Logger.Verbose(LogLevel.Debug, $"Searching for ({e.DimensionIndex}, {e.Layer}, {e.LocalIndex}) in level...");
         if (Builder.CurrentFloor.TryGetZoneByLocalIndex(e.DimensionIndex, e.Layer, e.LocalIndex, out zone))
         {
             return true;
         }
-        LogError("Unable to find zone from EventData!");
+        LogError("Unable to find zone in level!");
         return false;
     }
 
@@ -102,7 +104,7 @@ internal abstract class BaseEvent
 
     public bool TryGetZoneEntranceSecDoor(LG_Zone zone, [NotNullWhen(true)] out LG_SecurityDoor? door)
     {
-        door = zone?.m_sourceGate?.SpawnedDoor.TryCast<LG_SecurityDoor>();
+        door = zone.m_sourceGate?.SpawnedDoor.TryCast<LG_SecurityDoor>();
         if (door != null)
         { 
             return true;
@@ -119,7 +121,7 @@ internal abstract class BaseEvent
             return terminal != null;
         }
 
-        LogError($"Unable to find terminal {index} in zone!");
+        LogError($"Unable to find terminal {index} in {e.LocalIndex}!");
         terminal = null;
         return false;
     }
@@ -129,7 +131,7 @@ internal abstract class BaseEvent
         var areas = zone.m_areas;
         if (areaIndex < 0 || areaIndex >= areas.Count)
         {
-            LogError($"Invalid area index ({areaIndex}) for local index {zone.LocalIndex}");
+            LogError($"Invalid area index ({areaIndex}) for zone");
             return false;
         }
 
@@ -168,7 +170,7 @@ internal abstract class BaseEvent
 
         if (debug)
         {
-            LogWarning($"Both legacy-nested and field {nameof(value)} are null or empty");
+            LogWarning($"Both legacy-nested and field {nameof(value)} are null or empty strings");
         }
 
         return string.Empty;

@@ -25,7 +25,7 @@ internal sealed class ToggleInteractWeakDoorsEvent : BaseEvent
                         var weakLock = doorButton.GetComponentInChildren<LG_WeakLock>();
                         if (weakLock == null || weakLock.Status == eWeakLockStatus.Unlocked)
                         {
-                            doorButton.m_enabled = true;
+                            doorButton.m_enabled = false;
                         }
                     }
                 }
@@ -33,7 +33,7 @@ internal sealed class ToggleInteractWeakDoorsEvent : BaseEvent
         }
         else
         {
-            LogError($"{e.LocalIndex} may have no WeakDoors?");
+            LogError($"Zone may have no WeakDoors?");
         }
     }
 }

@@ -13,14 +13,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
     {
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
-        var sync = door.m_sync.TryCast<LG_Door_Sync>();
-        if (sync == null)
-        {
-            LogError("Door has no sync, wtf?");
-            return;
-        }
-
-        var state = sync.GetCurrentSyncState();
+        var state = door.m_sync.GetCurrentSyncState();
         if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)
         {
             LogError("Door is open!");
@@ -28,7 +21,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         }
 
         state.status = eDoorStatus.Closed_LockedWithNoKey;
-        sync.m_stateReplicator.State = state;
+        door.m_sync.SetStateUnsynced(state);
 
         WorldEventManager.ExecuteEvent(new()
         {

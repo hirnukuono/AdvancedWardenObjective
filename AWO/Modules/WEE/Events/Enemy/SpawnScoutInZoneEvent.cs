@@ -33,7 +33,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
         {
             if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r))
             {
-                Logger.Error("SpawnScoutInZoneEvent", $"Invalid scout group: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
+                Logger.Error("SpawnScoutInZoneEvent", $"Invalid EnemyGroup: (GroupType: {ss.GroupType}, Difficulty: {ss.Difficulty})");
                 yield break;
             }
 

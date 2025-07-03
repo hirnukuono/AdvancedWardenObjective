@@ -22,7 +22,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        int index = ResolveFieldsFallback(e.Count, e.NavMarker.Index, false);
+        int index = ResolveFieldsFallback(e.NavMarker.Index, e.Count, false);
 
         if (!NavMarkers.TryGetValue(index, out var marker))
         {

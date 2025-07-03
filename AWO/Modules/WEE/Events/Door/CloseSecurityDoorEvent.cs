@@ -12,31 +12,29 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
         var state = door.m_sync.GetCurrentSyncState();
-        if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)
+        if (state.status != eDoorStatus.Open || state.status != eDoorStatus.Opening)
         {
-            LogDebug("Door closing...");
+            LogError("Door is already closed!");
+            return;
+        }
 
-            var sync = door.m_sync.TryCast<LG_Door_Sync>();
-            if (sync == null) return;
+        LogDebug("Door closing...");
+        state.status = eDoorStatus.Closed;
+        state.hasBeenOpenedDuringGame = false;
+        door.m_sync.SetStateUnsynced(state);
 
-            var syncState = sync.GetCurrentSyncState();
-            syncState.status = eDoorStatus.Closed;
-            syncState.hasBeenOpenedDuringGame = false;
-            sync.m_stateReplicator.State = syncState;
+        var gate = door.Gate;
+        gate.HasBeenOpenedDuringPlay = false;
+        gate.IsTraversable = false;
 
-            var gate = door.Gate;
-            gate.HasBeenOpenedDuringPlay = false;
-            gate.IsTraversable = false;
-
-            if (e.CleanUpEnemiesBehind)
-            {
-                var nodeDistanceFrom = gate.m_linksFrom.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
-                var nodeDistanceBehind = gate.m_linksTo.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
-                var clearNode = nodeDistanceFrom < nodeDistanceBehind ? gate.m_linksTo.m_courseNode : gate.m_linksFrom.m_courseNode;
-                LogDebug("Despawning enemies behind securiy door...");
-                AIG_SearchID.IncrementSearchID();
-                DespawnEnemiesInNearNodes(AIG_SearchID.SearchID, clearNode);
-            }
+        if (e.CleanUpEnemiesBehind)
+        {
+            var nodeDistanceFrom = gate.m_linksFrom.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
+            var nodeDistanceBehind = gate.m_linksTo.m_courseNode.m_playerCoverage.GetNodeDistanceToPlayer();
+            var clearNode = nodeDistanceFrom < nodeDistanceBehind ? gate.m_linksTo.m_courseNode : gate.m_linksFrom.m_courseNode;
+            LogDebug("Despawning enemies behind security door...");
+            AIG_SearchID.IncrementSearchID();
+            DespawnEnemiesInNearNodes(AIG_SearchID.SearchID, clearNode);
         }
     }
 

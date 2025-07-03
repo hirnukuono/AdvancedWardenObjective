@@ -60,7 +60,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                     if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 3.5f))
                     {
                         isValidPos = false;
-                        Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player conflict");
+                        Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player");
                         break;
                     }
                 }
@@ -72,7 +72,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                         if (enemy.Position.IsWithinSqrDistance(pos, 2.3f))
                         {
                             isValidPos = false;
-                            Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy conflict");
+                            Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy");
                             break;
                         }
                     }

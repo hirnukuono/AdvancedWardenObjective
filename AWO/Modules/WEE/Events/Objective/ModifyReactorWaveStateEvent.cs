@@ -16,7 +16,7 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
 
             var state = reactor.m_stateReplicator.State;
 
-            if (e.Reactor.State == WEE_ReactorEventData.WaveState.Idle)
+            if (e.Reactor.State == WEE_ReactorEventData.WaveState.Idle && state.status != eReactorStatus.Inactive_Idle)
             {
                 state.stateCount = 0;
                 state.verifyFailed = false;
@@ -25,7 +25,7 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
             }
-            else if (state.status is eReactorStatus.Startup_intro or eReactorStatus.Startup_intense  or eReactorStatus.Startup_waitForVerify or eReactorStatus.Startup_complete)
+            else if (state.status is eReactorStatus.Startup_intro or eReactorStatus.Startup_intense or eReactorStatus.Startup_waitForVerify or eReactorStatus.Startup_complete)
             {
                 state.stateCount = e.Reactor.Wave;
                 state.stateProgress = e.Reactor.Progress;
@@ -38,6 +38,10 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                     _ => eReactorStatus.Startup_intro
                 };
                 reactor.m_stateReplicator.State = state;
+            }
+            else
+            {
+                LogError("Reactor in invalid state, or already Inactive_Idle");
             }
         }
     }

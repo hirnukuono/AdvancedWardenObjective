@@ -70,12 +70,11 @@ internal sealed class SetPocketItemEvent : BaseEvent
 
     private static string? GetClosestPlayerName(Vector3 pos)
     {
-        float minDist = float.MaxValue;
+        float minDist = float.PositiveInfinity;
         PlayerAgent? nearestPlayer = null;
         foreach (var currentPlayer in PlayerManager.PlayerAgentsInLevel)
         {
-            float dist = (pos - currentPlayer.Position).sqrMagnitude;
-            if (dist < minDist)
+            if (currentPlayer.Position.IsWithinSqrDistance(pos, minDist, out float dist))
             {
                 minDist = dist;
                 nearestPlayer = currentPlayer;

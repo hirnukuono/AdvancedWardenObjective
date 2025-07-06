@@ -57,7 +57,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 3.5f))
+                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 3.5f, out _))
                     {
                         isValidPos = false;
                         Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player");
@@ -69,7 +69,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 {
                     foreach (var enemy in spawnNode.m_enemiesInNode)
                     {
-                        if (enemy.Position.IsWithinSqrDistance(pos, 2.3f))
+                        if (enemy.Position.IsWithinSqrDistance(pos, 2.3f, out _))
                         {
                             isValidPos = false;
                             Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy");

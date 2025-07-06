@@ -5,21 +5,15 @@ namespace AWO.Utils;
 
 public static class Vector3Extensions
 {
-    public static bool IsWithinSqrDistance(this Vector3 a, Vector3 b, float threshold)
+    public static bool IsWithinSqrDistance(this Vector3 a, Vector3 b, float threshold, out float sqrDistance)
     {
-        float sqrDistance = (a - b).sqrMagnitude;
+        sqrDistance = (a - b).sqrMagnitude;
         return sqrDistance < threshold * threshold;
     }
 
-    public static bool IsBeyondSqrDistance(this Vector3 a, Vector3 b, float threshold)
+    public static bool IsApproximatelySqrDistance(this Vector3 a, Vector3 b, float threshold, out float sqrDistance)
     {
-        float sqrDistance = (a - b).sqrMagnitude;
-        return sqrDistance > threshold * threshold;
-    }
-
-    public static bool IsApproximatelySqrDistance(this Vector3 a, Vector3 b, float threshold)
-    {
-        float sqrDistance = (a - b).sqrMagnitude;
+        sqrDistance = (a - b).sqrMagnitude;
         return sqrDistance.Approximately(threshold * threshold);
     }
 }

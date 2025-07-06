@@ -280,7 +280,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
             var block = LightSettingsDataBlock.GetBlock(state.lightData);
             if (block == null || !block.internalEnabled)
             {
-                Logger.Error("Failed to find enabled LightSettingsDataBlock!");
+                Logger.Error($"Failed to find enabled LightSettingsDataBlock {state.lightData}!");
                 return;
             }
 

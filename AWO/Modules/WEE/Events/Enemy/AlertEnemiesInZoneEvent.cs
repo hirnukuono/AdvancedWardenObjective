@@ -103,7 +103,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
 
         player = humanPlayer ?? botPlayer;
-        Logger.Verbose(LogLevel.Debug, $"Closest alive player target to {node.m_zone.LocalIndex}, {node.m_zone.m_courseNodes.IndexOf(node)}: {player?.PlayerName ?? "null"})");
+        Logger.Verbose(LogLevel.Debug, $"Closest alive player target to node {node.m_zone.m_courseNodes.IndexOf(node)}: {player?.PlayerName ?? "null"})");
         return player != null;
     }
 }

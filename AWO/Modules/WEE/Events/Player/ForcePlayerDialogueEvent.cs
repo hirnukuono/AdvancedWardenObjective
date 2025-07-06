@@ -20,7 +20,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         var block = PlayerDialogDataBlock.GetBlock(e.DialogueID);
         if (block == null || !block.internalEnabled)
         {
-            LogError("Failed to find enabled PlayerDialogDataBlock!");
+            LogError($"Failed to find enabled PlayerDialogDataBlock {e.DialogueID}!");
             return;
         }
 
@@ -105,7 +105,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         player = null;
 
         var charFiltersInLevel = PlayerDialogManager.GetAllRegistredPlayerCharacterFilters();
-        float minDist = float.MaxValue;
+        float minDist = float.PositiveInfinity;
         bool flag = false;
         foreach (DialogCharFilter charFilter in charFiltersInLevel)
         {
@@ -127,8 +127,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             }
             else if (dialog.Type == DialogueType.Closest)
             {
-                float dist = Vector3.Distance(pos, currentPlayer.Position);
-                if (dist < minDist)
+                if (currentPlayer.Position.IsWithinSqrDistance(pos, minDist, out float dist))
                 {
                     minDist = dist;
                     player = currentPlayer;

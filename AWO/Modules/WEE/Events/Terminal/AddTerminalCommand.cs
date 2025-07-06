@@ -52,7 +52,7 @@ internal sealed class AddTerminalCommand : BaseEvent
                 var block = GameDataBlockBase<ChainedPuzzleDataBlock>.GetBlock(eventData.ChainPuzzle);
                 if (block == null || !block.internalEnabled)
                 {
-                    LogWarning("Failed to find enabled ChainedPuzzleDataBlock!");
+                    LogWarning($"Failed to find enabled ChainedPuzzleDataBlock {eventData.ChainPuzzle}!");
                     continue;
                 }
 

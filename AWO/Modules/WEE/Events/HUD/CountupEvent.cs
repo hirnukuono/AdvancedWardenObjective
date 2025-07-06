@@ -18,7 +18,7 @@ internal sealed class CountupEvent : BaseEvent
         float duration = ResolveFieldsFallback(e.Duration, e.Countup.Duration);
         if (duration <= 0.0f)
         {
-            LogWarning("Duration must generally be greater than 0 seconds");
+            LogWarning("Duration should generally be greater than 0 seconds");
         }
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte

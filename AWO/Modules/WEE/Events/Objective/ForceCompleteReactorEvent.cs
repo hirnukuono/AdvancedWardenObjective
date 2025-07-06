@@ -35,7 +35,7 @@ internal sealed class ForceCompleteReactorEvent : BaseEvent
 
                 case eReactorStatus.Startup_complete:
                 case eReactorStatus.Shutdown_complete:
-                    LogDebug("Reactor is already completed!");
+                    LogWarning("Reactor is already completed");
                     break;
             }
         }

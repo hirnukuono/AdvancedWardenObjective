@@ -13,11 +13,11 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
     {
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;        
 
-        uint chainPuzzle = ResolveFieldsFallback((uint)e.SpecialNumber, e.ChainPuzzle);
+        uint chainPuzzle = ResolveFieldsFallback(e.SpecialNumber > -1 ? (uint)e.SpecialNumber : 0u, e.ChainPuzzle);
         var block = ChainedPuzzleDataBlock.GetBlock(chainPuzzle);
         if (block == null || !block.internalEnabled)
         {
-            LogError("Failed to find enabled ChainedPuzzleDataBlock!");
+            LogError($"Failed to find enabled ChainedPuzzleDataBlock {chainPuzzle}!");
             return;
         }
 
@@ -32,7 +32,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     break;
                 
                 case eDoorStatus.ChainedPuzzleActivated:
-                    LogError("Door already has an active ChainedPuzzle!");
+                    LogError("Door already has an active chained puzzle!");
                     break;
 
                 case eDoorStatus.Closed:
@@ -45,7 +45,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                 case eDoorStatus.Unlocked:
                     if (door.m_locks.ChainedPuzzleToSolve != null && !door.m_locks.ChainedPuzzleToSolve.IsSolved)
                     {
-                        LogWarning($"Door already has unsolved ChainedPuzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
+                        LogWarning($"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
                     }
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
                     state.status = door.m_locks.SetupForChainedPuzzle(puzzleInstance);
@@ -70,7 +70,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                         eSecurityDoorType.Bulkhead => "ClosedIdle",
                         _ => string.Empty
                     });                    
-                    Logger.Verbose(LogLevel.Debug, $"Door has recieved new ChainedPuzzle {chainPuzzle}");
+                    Logger.Verbose(LogLevel.Debug, $"Door has recieved new chained puzzle {chainPuzzle}");
                     break;
 
                 default:

@@ -23,7 +23,7 @@ internal sealed class HideTerminalCommand : BaseEvent
         }
         else
         {
-            LogError($"No TERM_Command given, or (num {e.HideTerminalCommand.CommandNumber} -- enum {(int)e.HideTerminalCommand.CommandEnum}) does not exist in terminal!");
+            LogError($"No TERM_Command given, or (num {e.HideTerminalCommand.CommandNumber} -- enum {(int)e.HideTerminalCommand.CommandEnum}) does not exist on terminal!");
             return;
         }
 

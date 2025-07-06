@@ -13,7 +13,7 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
         var puzzleInstance = door.m_locks.ChainedPuzzleToSolve;
         if (puzzleInstance == null)
         {
-            LogError($"Door does not have any ChainedPuzzles to activate!");
+            LogError($"Door does not have any chained puzzles to activate!");
         }
         else if (!puzzleInstance.IsSolved)
         {
@@ -21,7 +21,7 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
         }
         else
         {
-            LogError("Door already has a solved ChainedPuzzle");
+            LogWarning("Door's chained puzzles are already solved");
         }
     }
 }

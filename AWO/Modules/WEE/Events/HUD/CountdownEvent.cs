@@ -107,7 +107,7 @@ internal sealed class CountdownEvent : BaseEvent
         var timeSpan = TimeSpan.FromSeconds(remainder);
 
         ObjHudTimer.m_timerText.color = color;
-        ObjHudTimer.m_timerText.text = $"{(showHours && time > 3600.0f ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2)}" : $"{(int)timeSpan.TotalMinutes:D2}")}:{timeSpan.Seconds:D2}";
+        ObjHudTimer.m_timerText.text = showHours && timeSpan.TotalSeconds >= 3600 ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}" : $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
     }
 
     public static float NormalizedPercent(float current, float min, float max)

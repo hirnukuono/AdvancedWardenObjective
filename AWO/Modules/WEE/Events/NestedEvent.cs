@@ -20,7 +20,7 @@ internal sealed class NestedEvent : BaseEvent
             _ => nested.EventsToActivate
         };
         
-        ExecuteWardenEvents(eventList, nested.Type == NestedType.RandomWeighted);
+        ExecuteWardenEvents(eventList);
     }
 
     private static List<WardenObjectiveEventData> SelectRandomUniform(WEE_NestedEvent nested)

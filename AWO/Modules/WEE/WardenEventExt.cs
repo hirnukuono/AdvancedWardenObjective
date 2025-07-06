@@ -8,6 +8,7 @@ using InjectLib.JsonNETInjection;
 using Player;
 using System.Collections;
 using UnityEngine;
+using BepInEx.Logging;
 
 namespace AWO.Modules.WEE;
 
@@ -72,6 +73,7 @@ internal static class WardenEventExt
 
         if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
         {
+            Logger.Verbose(LogLevel.Debug, $"Condition {e.Condition.ConditionIndex} is not met");
             yield break;
         }
 

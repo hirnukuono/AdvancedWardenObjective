@@ -1,4 +1,5 @@
 ﻿using Agents;
+using BepInEx.Logging;
 using Enemies;
 using GameData;
 using LevelGeneration;
@@ -18,6 +19,7 @@ internal static class VanillaEventOvr
         bool overridePos = e.Position != Vector3.zero;
         return type switch
         {
+            VEO_Type.AllLightsOn or VEO_Type.AllLightsOff => e.DimensionIndex != eDimensionIndex.Reality,
             VEO_Type.PlaySound => overridePos,
             VEO_Type.SpawnEnemyOnPoint => overridePos || e.Count > 0,
             _ => false,
@@ -36,6 +38,7 @@ internal static class VanillaEventOvr
 
         if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
         {
+            Logger.Verbose(LogLevel.Debug, $"Condition {e.Condition.ConditionIndex} is not met");
             yield break;
         }
 
@@ -46,25 +49,46 @@ internal static class VanillaEventOvr
             PlayerDialogManager.WantToStartDialog(e.DialogueID, -1, false, false);
         }
 
-        switch (type)
+        if (e.SoundID > 0u)
         {
-            case VEO_Type.PlaySound:
-                PlaySound(e);
-                break;
-            case VEO_Type.SpawnEnemyOnPoint:
-                CoroutineManager.StartCoroutine(SpawnEnemyOnPoint(e).WrapToIl2Cpp());
-                break;
+            PlaySound(e);
+        }
+
+        if (SNet.IsMaster) // all these events are host-only
+        {
+            switch (type)
+            {
+                case VEO_Type.AllLightsOn:
+                    ToggleDimensionLights(true, e.DimensionIndex);
+                    break;
+
+                case VEO_Type.AllLightsOff:
+                    ToggleDimensionLights(false, e.DimensionIndex);
+                    break;
+
+                case VEO_Type.PlaySound:
+                    break;
+
+                case VEO_Type.SpawnEnemyOnPoint:
+                    CoroutineManager.StartCoroutine(SpawnEnemyOnPoint(e).WrapToIl2Cpp());
+                    break;
+            }
         }
     }
 
     private static void PlaySound(WardenObjectiveEventData e)
-    {
-        if (e.SoundID == 0u) return;
-        
-        CellSoundPlayer soundEvent = new();
-        soundEvent.Post(e.SoundID, e.Position, 1u, (AkEventCallback)SoundDoneCallback, soundEvent);
+    {        
+        if (e.Type != VEO_Type.PlaySound || e.Position == Vector3.zero)
+        {
+            WOManager.Current.m_sound.Post(e.SoundID, true);
+        }
+        else
+        {
+            CellSoundPlayer soundEvent = new();
+            soundEvent.Post(e.SoundID, e.Position, 1u, (AkEventCallback)SoundDoneCallback, soundEvent);
+        }        
 
-        var line = e.SoundSubtitle.ToString();
+        string line = e.SoundSubtitle.ToString();
         if (!string.IsNullOrWhiteSpace(line))
         {
             GuiManager.PlayerLayer.ShowMultiLineSubtitle(line);
@@ -76,21 +100,20 @@ internal static class VanillaEventOvr
         var callbackPlayer = in_cookie.Cast<CellSoundPlayer>();
         callbackPlayer?.Recycle();
     }
+    
+    private static void ToggleDimensionLights(bool mode, eDimensionIndex dimension)
+    {
+        pEnvironmentInteraction state = default;
+        state.EnvironmentStateChangeType = EnvironmentStateChangeType.LightModeAll;
+        state.LightsEnabled = mode;
+        state.DimensionIndex = dimension;
+        pEnvironmentInteraction interaction = state;
+        EnvironmentStateManager.LogEnvironmentState("SetLightMode Attempt");
+        EnvironmentStateManager.Current.AttemptInteract(interaction);
+    }
 
     static IEnumerator SpawnEnemyOnPoint(WardenObjectiveEventData e)
     {
-        if (e.SoundID > 0u)
-        {
-            WOManager.Current.m_sound.Post(e.SoundID, true);
-            var line = e.SoundSubtitle.ToString();
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                GuiManager.PlayerLayer.ShowMultiLineSubtitle(line);
-            }
-        }
-
-        if (!SNet.IsMaster) yield break;
-
         int count = e.Count < 2 ? 1 : e.Count;
 
         Vector3 pos = WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(e.WorldEventObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject)

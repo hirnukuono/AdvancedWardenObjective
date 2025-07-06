@@ -18,10 +18,7 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         {
             LogError("Door is open!");
             return;
-        }
-
-        state.status = eDoorStatus.Closed_LockedWithNoKey;
-        door.m_sync.SetStateUnsynced(state);
+        }        
 
         WorldEventManager.ExecuteEvent(new()
         {
@@ -30,6 +27,9 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
             DimensionIndex = e.DimensionIndex,
             LocalIndex = e.LocalIndex
         });
+        
+        state.status = eDoorStatus.Closed_LockedWithNoKey;
+        door.m_sync.SetStateUnsynced(state);
 
         var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
         if (intMessage != null && e.SpecialText != LocaleText.Empty)

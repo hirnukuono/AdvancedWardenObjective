@@ -195,6 +195,6 @@ internal abstract class BaseEvent
         return Vector3.zero;
     }
 
-    public static void ExecuteWardenEvents(List<WardenObjectiveEventData> events, bool ignoreTrigger = false) 
-        => WOManager.CheckAndExecuteEventsOnTrigger(events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None, ignoreTrigger);
+    public static void ExecuteWardenEvents(List<WardenObjectiveEventData> events) 
+        => WOManager.CheckAndExecuteEventsOnTrigger(events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None, ignoreTrigger: true);
 }

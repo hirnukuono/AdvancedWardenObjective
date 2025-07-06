@@ -61,7 +61,7 @@ internal sealed class StartEventLoop : BaseEvent
             }
             
             Logger.Debug("StartEventLoop", $"EventLoop {index} repeating #{repeatNum + 1}");
-            WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None);
+            WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None, ignoreTrigger: true);
 
             yield return delay;
             repeatNum++;

@@ -50,7 +50,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 }
                 else if (!SpecialHuds.TryAdd(specHud.Index, null))
                 {
-                    LogError($"Timed SpecialHud {specHud.Index} is already active...");
+                    LogError($"SpecialHud {specHud.Index} is already active...");
                     return;
                 }
                 LogDebug($"Starting Timed SpecialHud with index: {specHud.Index}");
@@ -60,7 +60,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             case SpecialHudType.StartPersistent: // start persistent specialhud
                 if (!SpecialHuds.TryAdd(specHud.Index, null))
                 {
-                    LogError($"Persistent SpecialHud {specHud.Index} is already active...");
+                    LogError($"SpecialHud {specHud.Index} is already active...");
                     return;
                 }
                 LogDebug($"Starting Persistent SpecialHud with index: {specHud.Index}");
@@ -82,7 +82,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             case SpecialHudType.StopAll: // stop all specialhuds with index
                 SpecialHuds.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
                 SpecialHuds.Clear();
-                LogDebug("Stopped all SpecialHuds (with an index)");
+                LogDebug("Stopping all indexed SpecialHuds");
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
                 break;

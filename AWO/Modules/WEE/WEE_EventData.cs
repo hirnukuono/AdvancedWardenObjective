@@ -202,6 +202,7 @@ public sealed class WEE_ZoneLightData
 public sealed class WEE_SpawnHibernateData
 {
     public int AreaIndex { get; set; } = -1; 
+    public int[] AreaBlacklist { get; set; } = Array.Empty<int>();
     public uint EnemyID { get; set; } = 0u;
     public int Count { get; set; } = 0;
     public Vector3 Position { get; set; } = Vector3.zero;
@@ -210,7 +211,8 @@ public sealed class WEE_SpawnHibernateData
 
 public sealed class WEE_SpawnScoutData
 {
-    public int AreaIndex { get; set; } = -1; 
+    public int AreaIndex { get; set; } = -1;
+    public int[] AreaBlacklist { get; set; } = Array.Empty<int>();
     public eEnemyGroupType GroupType { get; set; }
     public eEnemyRoleDifficulty Difficulty { get; set; }
     public int Count { get; set; } = 0;

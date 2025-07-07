@@ -1,8 +1,11 @@
-﻿using Enemies;
+﻿using AIGraph;
+using Enemies;
+using ExteriorRendering;
 using GameData;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
+using static FlyerAttackEffectsController;
 
 namespace AWO.Modules.WEE.Events;
 internal class SpawnScoutInZoneEvent : BaseEvent
@@ -28,8 +31,9 @@ internal class SpawnScoutInZoneEvent : BaseEvent
     static IEnumerator DoSpawn(WEE_SpawnScoutData ss, LG_Zone zone, Vector3 pos, int count)
     {
         WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
+        var areas = zone.m_areas;
 
-        for (int SpawnCount = 0; SpawnCount < count; SpawnCount++)
+        for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
             if (!EnemySpawnManager.TryCreateEnemyGroupRandomizer(ss.GroupType, ss.Difficulty, out EnemyGroupRandomizer? r))
             {
@@ -39,12 +43,26 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
             EnemyGroupDataBlock randomGroup = r.GetRandomGroup(MasterRand.NextFloat());
             float popPoints = randomGroup.MaxScore * MasterRand.NextRange(1.0f, 1.2f);
-            var node = ss.AreaIndex != -1 ? zone.m_areas[ss.AreaIndex].m_courseNode : zone.m_areas[MasterRand.Next(zone.m_areas.Count)].m_courseNode;
+
+            AIG_CourseNode spawnNode;
+            if (ss.AreaIndex != -1)
+            {
+                spawnNode = areas[ss.AreaIndex].m_courseNode;
+            }
+            else
+            {
+                int randArea;
+                do
+                {
+                    randArea = MasterRand.Next(areas.Count);
+                } while (ss.AreaBlacklist.Contains(randArea));
+                spawnNode = areas[randArea].m_courseNode;
+            }
 
             var scoutSpawnData = EnemyGroup.GetSpawnData
             (
-                pos == Vector3.zero ? node.GetRandomPositionInside() : pos, 
-                node, 
+                pos == Vector3.zero ? spawnNode.GetRandomPositionInside() : pos, 
+                spawnNode, 
                 EnemyGroupType.Hibernating, 
                 eEnemyGroupSpawnType.RandomInArea, 
                 randomGroup.persistentID, 

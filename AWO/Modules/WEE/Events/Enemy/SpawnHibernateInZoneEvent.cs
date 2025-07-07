@@ -38,17 +38,29 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, int count, bool enabled)
     {
-        AgentMode mode = AgentMode.Hibernate;
         WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
-
         var areas = zone.m_areas;
 
         for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
-            AIG_CourseNode spawnNode = sh.AreaIndex != -1 ? areas[sh.AreaIndex].m_courseNode : areas[MasterRand.Next(areas.Count)].m_courseNode;
+            AIG_CourseNode spawnNode;
             Vector3 pos;
             int attempts = 0;
             bool isValidPos;
+            
+            if (sh.AreaIndex != -1)
+            {
+                spawnNode = areas[sh.AreaIndex].m_courseNode;
+            }
+            else
+            {
+                int randArea;
+                do
+                {
+                    randArea = MasterRand.Next(areas.Count);
+                } while (sh.AreaBlacklist.Contains(randArea));
+                spawnNode = areas[randArea].m_courseNode;
+            }
 
             do
             {
@@ -86,7 +98,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
             }
 
             Quaternion rotation = Quaternion.Euler(0, MasterRand.NextRange(0, 360), 0);
-            EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, mode, pos, rotation);
+            EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, AgentMode.Hibernate, pos, rotation);
 
             yield return spawnInterval;
         }

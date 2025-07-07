@@ -89,7 +89,7 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
             if (isNormal)
             {
                 var weakLock = doorButton.GetComponentInChildren<LG_WeakLock>();
-                if (weakLock == null || weakLock.Status == eWeakLockStatus.Unlocked)
+                if (weakLock != null && weakLock.Status != eWeakLockStatus.Unlocked)
                 {
                     doorButton.m_enabled = false;
                 }

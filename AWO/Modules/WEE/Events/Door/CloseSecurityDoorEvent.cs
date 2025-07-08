@@ -12,7 +12,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
         var state = door.m_sync.GetCurrentSyncState();
-        if (state.status != eDoorStatus.Open || state.status != eDoorStatus.Opening)
+        if (state.status != eDoorStatus.Open && state.status != eDoorStatus.Opening)
         {
             LogError("Door is already closed!");
             return;

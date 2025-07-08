@@ -78,7 +78,7 @@ internal static class VanillaEventOvr
 
     private static void PlaySound(WardenObjectiveEventData e)
     {        
-        if (e.Type != VEO_Type.PlaySound || e.Position == Vector3.zero)
+        if (e.Type != VEO_Type.PlaySound)
         {
             WOManager.Current.m_sound.Post(e.SoundID, true);
         }
@@ -86,7 +86,7 @@ internal static class VanillaEventOvr
         {
             CellSoundPlayer soundEvent = new();
             soundEvent.Post(e.SoundID, e.Position, 1u, (AkEventCallback)SoundDoneCallback, soundEvent);
-        }        
+        }
 
         string line = e.SoundSubtitle.ToString();
         if (!string.IsNullOrWhiteSpace(line))
@@ -108,7 +108,7 @@ internal static class VanillaEventOvr
         state.LightsEnabled = mode;
         state.DimensionIndex = dimension;
         pEnvironmentInteraction interaction = state;
-        EnvironmentStateManager.LogEnvironmentState("SetLightMode Attempt");
+        EnvironmentStateManager.LogEnvironmentState("VEO SetLightMode Attempt");
         EnvironmentStateManager.Current.AttemptInteract(interaction);
     }
 

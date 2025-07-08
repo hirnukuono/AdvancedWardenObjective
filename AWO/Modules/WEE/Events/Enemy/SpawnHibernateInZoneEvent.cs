@@ -54,11 +54,13 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
             }
             else
             {
-                int randArea;
-                do
+                var validAreas = Enumerable.Range(0, areas.Count).Except(sh.AreaBlacklist).ToList();
+                if (validAreas.Count == 0)
                 {
-                    randArea = MasterRand.Next(areas.Count);
-                } while (sh.AreaBlacklist.Contains(randArea));
+                    Logger.Error($"No valid areas to spawn hibernate! Area count: {areas.Count}, Blacklist: [{string.Join(", ", sh.AreaBlacklist)}]");
+                    yield break;
+                }
+                int randArea = validAreas[MasterRand.Next(validAreas.Count)];
                 spawnNode = areas[randArea].m_courseNode;
             }
 

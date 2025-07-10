@@ -8,9 +8,9 @@ internal sealed class KillAllPlayersEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        foreach (var agent in PlayerManager.PlayerAgentsInLevel)
+        foreach (var player in PlayerManager.PlayerAgentsInLevel)
         {
-            agent.Damage.ExplosionDamage(agent.Damage.DamageMax, default, default);
+            player.Damage.OnIncomingDamage(player.Damage.DamageMax, default);
         }
     }
 }

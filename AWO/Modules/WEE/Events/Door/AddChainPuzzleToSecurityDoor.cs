@@ -1,5 +1,4 @@
-﻿using BepInEx.Logging;
-using ChainedPuzzles;
+﻿using ChainedPuzzles;
 using GameData;
 using LevelGeneration;
 
@@ -70,7 +69,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                         eSecurityDoorType.Bulkhead => "ClosedIdle",
                         _ => string.Empty
                     });                    
-                    Logger.Verbose(LogLevel.Debug, $"Door has recieved new chained puzzle {chainPuzzle}");
+                    LogDebug($"Door has recieved new chained puzzle {chainPuzzle}");
                     break;
 
                 default:

@@ -41,7 +41,7 @@ internal static class Logger
                     Debug(Dev, data);
                     return;
                 case LogLevel.Error:
-                    Debug(Dev, data);
+                    Error(Dev, data);
                     return;
                 case LogLevel.Warning:
                     Warn(Dev, data);

@@ -1,11 +1,9 @@
 ﻿using AIGraph;
 using Enemies;
-using ExteriorRendering;
 using GameData;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
-using static FlyerAttackEffectsController;
 
 namespace AWO.Modules.WEE.Events;
 internal class SpawnScoutInZoneEvent : BaseEvent
@@ -54,7 +52,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
                 var validAreas = Enumerable.Range(0, areas.Count).Except(ss.AreaBlacklist).ToList();
                 if (validAreas.Count == 0)
                 {
-                    Logger.Error($"No valid areas to spawn hibernate! Area count: {areas.Count}, Blacklist: [{string.Join(", ", ss.AreaBlacklist)}]");
+                    Logger.Error("SpawnScoutInZoneEvent", $"No valid areas to spawn scout! Area count: {areas.Count}, Blacklist: [{string.Join(", ", ss.AreaBlacklist)}]");
                     yield break;
                 }
                 int randArea = validAreas[MasterRand.Next(validAreas.Count)];

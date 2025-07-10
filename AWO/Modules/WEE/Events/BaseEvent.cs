@@ -104,7 +104,7 @@ internal abstract class BaseEvent
 
     public bool TryGetZoneEntranceSecDoor(LG_Zone zone, [NotNullWhen(true)] out LG_SecurityDoor? door)
     {
-        door = zone.m_sourceGate?.SpawnedDoor.TryCast<LG_SecurityDoor>();
+        door = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>();
         if (door != null)
         { 
             return true;

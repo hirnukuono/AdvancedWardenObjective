@@ -1,6 +1,5 @@
 ﻿using AWO.Jsons;
 using AWO.Modules.TSL;
-using GameData;
 using LevelGeneration;
 
 namespace AWO.Modules.WEE.Events;
@@ -18,18 +17,17 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         {
             LogError("Door is open!");
             return;
-        }        
-
-        WorldEventManager.ExecuteEvent(new()
+        }
+        else if (state.status == eDoorStatus.Closed_LockedWithKeyItem)
         {
-            Type = eWardenObjectiveEventType.LockSecurityDoor,
-            Layer = e.Layer,
-            DimensionIndex = e.DimensionIndex,
-            LocalIndex = e.LocalIndex
-        });
+            LogWarning("Door is Closed_LockedWithKeyItem, so there won't be any way to use the keycard if this door is unlocked again");
+        }
+
+        var sync = door.m_sync.TryCast<LG_Door_Sync>();
+        if (sync == null) return;
         
         state.status = eDoorStatus.Closed_LockedWithNoKey;
-        door.m_sync.SetStateUnsynced(state);
+        sync.m_stateReplicator.State = state;
 
         var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
         if (intMessage != null && e.SpecialText != LocaleText.Empty)

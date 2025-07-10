@@ -18,10 +18,13 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
             return;
         }
 
+        var sync = door.m_sync.TryCast<LG_Door_Sync>();
+        if (sync == null) return;
+
         LogDebug("Door closing...");
         state.status = eDoorStatus.Closed;
         state.hasBeenOpenedDuringGame = false;
-        door.m_sync.SetStateUnsynced(state);
+        sync.m_stateReplicator.State = state;        
 
         var gate = door.Gate;
         gate.HasBeenOpenedDuringPlay = false;
@@ -40,9 +43,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
     private static void DespawnEnemiesInNearNodes(ushort searchID, AIG_CourseNode sourceNode)
     {
-        if (sourceNode == null) return;
-
-        if (sourceNode.m_portals == null) return;
+        if (sourceNode?.m_portals == null) return;
 
         foreach (var enemy in sourceNode.m_enemiesInNode.ToArray())
         {
@@ -51,9 +52,7 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
         foreach (var portal in sourceNode.m_portals)
         {
-            if (portal == null) continue;
-
-            if (portal.m_searchID == searchID) continue;
+            if (portal == null || portal.m_searchID == searchID) continue;
 
             portal.m_searchID = searchID;
             if (portal.IsProgressionLocked) continue;

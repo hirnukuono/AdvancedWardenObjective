@@ -11,6 +11,9 @@ namespace AWO.Modules.TSL;
 public static class SerialLookupManager
 {
     public static readonly Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
+    internal static readonly Dictionary<(int, int, int), LG_ComputerTerminal> ReactorTerminals = new();
+    private static readonly Queue<LG_SecurityDoor_Locks> LocksQueue = new();
+
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
     private const string Terminal = "TERMINAL";
     private const string Zone = "ZONE";
@@ -19,25 +22,32 @@ public static class SerialLookupManager
     internal static void Init()
     {
         LevelAPI.OnBuildDone += BuildSerialMap;
+        LevelAPI.OnEnterLevel += OnEnterLevel;
         LevelAPI.OnLevelCleanup += Cleanup;
     }
 
     private static void BuildSerialMap()
     {
+        Logger.Verbose(LogLevel.Debug, "Building serial map...");
         int count = 0;
 
-        try
+        // collect all general terminal items
+        foreach (var serial in LG_LevelInteractionManager.GetAllTerminalInterfaces())
         {
-            // collect all general terminal items
-            foreach (var serial in LG_LevelInteractionManager.GetAllTerminalInterfaces())
+            try
             {
-                if (serial?.Value?.SpawnNode == null) continue;
+                if (serial.Key == null || serial.Value?.SpawnNode == null) continue;
                 int split = serial.Key.LastIndexOf('_');
                 if (split == -1) continue;
                 string itemName = serial.Key.Substring(0, split);
                 string serialNumber = serial.Key.Substring(split + 1);
-
-                if (itemName == Terminal) continue; // skip terminals here
+                
+                if (serial.Value.FloorItemType == eFloorInventoryObjectType.Terminal) continue; // skip terminals here
+                else if (!int.TryParse(serialNumber, out _))
+                {
+                    Logger.Warn(Module, $"{serial.Key} does not have a serial number");
+                    continue;
+                }
 
                 int dimension = (int)serial.Value.SpawnNode.m_dimension.DimensionIndex;
                 int layer = (int)serial.Value.SpawnNode.LayerType;
@@ -47,66 +57,110 @@ public static class SerialLookupManager
                 SerialMap.GetOrAddNew(itemName).GetOrAddNew(globalIndex).Add(serialNumber);
                 count++;
             }
-
-            // collect all terminals and zone alias numbers
-            foreach (var zone in Builder.CurrentFloor.allZones)
+            catch (Exception ex)
             {
+                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through LG_LevelInteractionManager.GetAllTerminalInterfaces [{count + 1}]:\n{ex}");
+                continue;
+            }
+        }
+
+        // collect all terminals and zone alias numbers
+        foreach (var zone in Builder.CurrentFloor.allZones)
+        {
+            try
+            {
+                if (zone == null) continue;
                 var globalIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
                 SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalIndex).Add(zone.Alias.ToString());
                 count++;
 
+                if (zone.TerminalsSpawnedInZone == null) continue;
+                else if (ReactorTerminals.TryGetValue(globalIndex, out var reactorTerm)) zone.TerminalsSpawnedInZone.Add(reactorTerm);
+
                 foreach (var term in zone.TerminalsSpawnedInZone)
                 {
+                    if (term == null) continue;
                     int split = term.m_terminalItem.TerminalItemKey.LastIndexOf('_');
                     if (split == -1) continue;
                     string serialNumber = term.m_terminalItem.TerminalItemKey.Substring(split + 1);
 
                     SerialMap.GetOrAddNew(Terminal).GetOrAddNew(globalIndex).Add(serialNumber);
                     count++;
-                }
-            }
+                } 
 
-            // parse door interaction text
-            foreach (var locks in UnityEngine.Object.FindObjectsOfType<LG_SecurityDoor_Locks>())
-            {
-                locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
-                locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
+                var door = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>();
+                if (door == null) continue;
+                var locks = door.m_locks?.TryCast<LG_SecurityDoor_Locks>();
+                if (locks == null) continue;
+                LocksQueue.Enqueue(locks);
             }
-        }
-        catch (Exception e)
-        {
-            Logger.Error(Module, $"We had to exit early because an error occured:\n{e}");
+            catch (Exception ex)
+            {
+                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through ({zone.DimensionIndex}, {zone.Layer.m_type}, {zone.LocalIndex})'s TerminalsSpawnedInZone and LG_SecurityDoor_Locks:\n{ex}");
+                continue;
+            }
         }
 
         Logger.Verbose(LogLevel.Debug, PrintSerialMap());
         Logger.Info(Module, $"On build done, collected {count} serial numbers");
     }
 
-    private static void Cleanup()
+    private static void OnEnterLevel()
     {
-        SerialMap.Clear();
+        while (LocksQueue.Count > 0)
+        {
+            var locks = LocksQueue.Dequeue();
+            locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
+            locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
+        }
     }
 
-    public static string ParseTextFragments(string input)
+    private static void Cleanup()
     {
-        if (input.IsNullOrWhiteSpace()) return input;
-
-        StringBuilder result = new(input);
-        foreach (Match match in Regex.Matches(input, Pattern))
-        {
-            if (match.Success && TryFindSerialNumber(match, out string serialStr))
-            {
-                result.Replace(match.Value, serialStr);
-            }
-        }
-
-        return result.ToString();
+        LocksQueue.Clear();
+        ReactorTerminals.Clear();        
+        SerialMap.Clear();        
     }
 
     public static LocaleText ParseLocaleText(LocaleText input)
     {
         if (input == LocaleText.Empty) return input;
         return new(ParseTextFragments(input));
+    }
+
+    public static string ParseTextFragments(string input)
+    {
+        if (input.IsNullOrWhiteSpace()) return input;
+        
+        var spans = new List<(int start, int end)>();
+        var stack = new Stack<int>();
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '[')
+            {
+                stack.Push(i);
+            }
+            else if (input[i] == ']' && stack.Count > 0)
+            {
+                int top = stack.Pop();
+                spans.Add((top, i));
+            }
+        }
+        
+        StringBuilder result = new(input);
+        var tagIndicesPairs = spans.Where(s => !spans.Any(t => t.start > s.start && t.end < s.end)).ToList();
+        foreach (var (start, end) in tagIndicesPairs)
+        {
+            string spanText = input.Substring(start, end - start + 1);
+            var match = Regex.Match(spanText, Pattern);
+
+            if (match.Success && TryFindSerialNumber(match, out var serialStr))
+            {
+                result.Replace(spanText, serialStr);
+            }
+        }
+
+        return result.ToString();
     }
 
     public static bool TryFindSerialNumber(Match match, out string serialStr)
@@ -116,8 +170,9 @@ public static class SerialLookupManager
         int layer = int.Parse(match.Groups["Layer"].Value);
         int zone = int.Parse(match.Groups["Zone"].Value);
         int instanceIndex = match.Groups["InstanceIndex"].Success ? int.Parse(match.Groups["InstanceIndex"].Value) : 0;
+        var globalIndex = (dimension, layer, zone);
 
-        if (SerialMap.TryGetValue(itemName, out var localSerialMap) && localSerialMap.TryGetValue((dimension, layer, zone), out var serialList))
+        if (SerialMap.TryGetValue(itemName, out var localSerialMap) && localSerialMap.TryGetValue(globalIndex, out var serialList))
         {
             if (instanceIndex < serialList.Count)
             {

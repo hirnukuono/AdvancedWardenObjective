@@ -25,22 +25,23 @@ internal sealed class SetTerminalLog : BaseEvent
         var eLog = e.SetTerminalLog;
         if (!TryGetTerminalFromZone(e, eLog.TerminalIndex, out var term)) return;
 
+        string filename = eLog.FileName.ToUpper();
         if (eLog.Type == LogEventType.Add)
         {
-            if (term.GetLocalLogs().ContainsKey(eLog.FileName.ToUpper()))
+            if (term.GetLocalLogs().ContainsKey(filename))
             {
-                LogError($"A log file with filename {eLog.FileName.ToUpper()} is already present on terminal!");
+                LogError($"A log file with filename {filename} is already present on terminal!");
                 return;
             }
             else if (eLog.FileContent == LocaleText.Empty)
             {
-                LogError("Terminal log 'FileContent' cannot be empty.");
+                LogError("Terminal log's FileContent cannot be empty.");
                 return;
             }
             
             term.AddLocalLog(new()
             {
-                FileName = eLog.FileName.ToUpper(),
+                FileName = filename,
                 FileContent = eLog.FileContent,
                 FileContentOriginalLanguage = eLog.FileContentOriginalLanguage,
                 AttachedAudioFile = eLog.AttachedAudioFile,
@@ -48,11 +49,11 @@ internal sealed class SetTerminalLog : BaseEvent
                 PlayerDialogToTriggerAfterAudio = eLog.PlayerDialogToTriggerAfterAudio
             });
 
-            LogEventQueue.Add((term.SyncID, eLog.FileName), new(eLog.EventsOnFileRead));
+            LogEventQueue.Add((term.SyncID, filename), new(eLog.EventsOnFileRead));
         }
-         else if (eLog.Type == LogEventType.Remove)
+        else if (eLog.Type == LogEventType.Remove)
         {
-            term.RemoveLocalLog(eLog.FileName);
+            term.RemoveLocalLog(filename);
         }
     }
 }

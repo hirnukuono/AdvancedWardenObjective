@@ -13,7 +13,7 @@ internal sealed class KillPlayersInZoneEvent : BaseEvent
         foreach (var player in PlayerManager.PlayerAgentsInLevel)
         {
             if (player.CourseNode.m_zone.ID == id) 
-                player.Damage.ExplosionDamage(player.Damage.DamageMax, default, default);
+                player.Damage.OnIncomingDamage(player.Damage.DamageMax, default);
         }
     }
 }

@@ -227,10 +227,27 @@ public sealed class WEE_AddTerminalCommand
     public string Command { get; set; } = string.Empty;
     public LocaleText CommandDesc { get; set; } = LocaleText.Empty;
     public bool AutoIndentCommandDesc { get; set; } = false;
-    public List<TerminalOutput> PostCommandOutputs { get; set; } = new();
+    public List<LocaleTerminalOutput> PostCommandOutputs { get; set; } = new();
     public List<WardenObjectiveEventData> CommandEvents { get; set; } = new();
     public bool ProgressWaitBeforeEvents { get; set; } = false;
     public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
+
+    public struct LocaleTerminalOutput
+    {
+        public TerminalLineType LineType { get; set; }
+        public LocaleText Output { get; set; }
+        public float Time { get; set; }
+
+        public readonly TerminalOutput ToTerminalOutput()
+        {
+            return new()
+            {
+                LineType = LineType,
+                Output = Output,
+                Time = Time,
+            };
+        }
+    }
 }
 
 public sealed class WEE_HideTerminalCommand

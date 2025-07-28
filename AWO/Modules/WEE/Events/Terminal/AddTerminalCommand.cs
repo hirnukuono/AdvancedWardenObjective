@@ -65,8 +65,8 @@ internal sealed class AddTerminalCommand : BaseEvent
             }
         }
 
-        term.m_command.m_commandPostOutputMap.Add(c_num, addcmd.PostCommandOutputs.ToIl2Cpp());
-        term.TrySyncSetCommandShow(c_num);
+        var postCmdOutputs = addcmd.PostCommandOutputs.Select(locale => locale.ToTerminalOutput()).ToList();
+        term.m_command.m_commandPostOutputMap.Add(c_num, postCmdOutputs.ToIl2Cpp());
         term.TrySyncSetCommandRule(c_num, addcmd.SpecialCommandRule);
     }
 }

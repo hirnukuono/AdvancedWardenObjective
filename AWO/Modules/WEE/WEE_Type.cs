@@ -58,5 +58,8 @@ public enum WEE_Type
     SetPocketItem,
     DoInteractWeakDoorsInZone,
     ToggleInteractWeakDoorsInZone,
-    PickupSentries
+    PickupSentries,
+
+    // Dinorush AWO Events:
+    SetActiveEnemyWave = WEE_EnumInjector.ExtendedIndex + 20000
 }

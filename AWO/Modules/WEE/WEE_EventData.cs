@@ -88,6 +88,9 @@ public sealed class WEE_EventData
     public WEE_SetTerminalLog SetTerminalLog { get; set; } = new();
     public WEE_SetTerminalLog TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
+
+    // Dinorush
+    public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
 }
 
 #region OG_EVENTS

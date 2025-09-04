@@ -33,6 +33,9 @@ public enum WEE_Type
     UnhideTerminalCommand,
     AddChainPuzzleToSecurityDoor,
 
+    // Dinorush AWO Events:
+    SetActiveEnemyWave,
+
     // Amor AWO Events:
     NestedEvent = WEE_EnumInjector.ExtendedIndex + 10000,
     StartEventLoop,
@@ -58,5 +61,5 @@ public enum WEE_Type
     SetPocketItem,
     DoInteractWeakDoorsInZone,
     ToggleInteractWeakDoorsInZone,
-    PickupSentries
+    PickupSentries,
 }

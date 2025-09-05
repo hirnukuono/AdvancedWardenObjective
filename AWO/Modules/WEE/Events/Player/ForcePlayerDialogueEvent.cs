@@ -101,12 +101,12 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
 
     private static bool TryGetPlayerCharacter(WEE_ForcePlayerDialogue dialog, Vector3 pos, [NotNullWhen(true)] out PlayerAgent? player, out List<DialogCharFilter> charFilterList)
     {
-        charFilterList = new();
         player = null;
+        charFilterList = new();
 
         var charFiltersInLevel = PlayerDialogManager.GetAllRegistredPlayerCharacterFilters();
-        float minDist = float.PositiveInfinity;
         bool flag = false;
+        float minDist = float.PositiveInfinity;
         foreach (DialogCharFilter charFilter in charFiltersInLevel)
         {
             charFilterList.Add(charFilter);
@@ -125,13 +125,10 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
                 flag = true;
                 continue;
             }
-            else if (dialog.Type == DialogueType.Closest)
+            else if (dialog.Type == DialogueType.Closest && currentPlayer.Position.IsWithinSqrDistance(pos, minDist, out float dist))
             {
-                if (currentPlayer.Position.IsWithinSqrDistance(pos, minDist, out float dist))
-                {
-                    minDist = dist;
-                    player = currentPlayer;
-                }
+                minDist = dist;
+                player = currentPlayer;
             }
         }
 

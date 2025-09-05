@@ -1,6 +1,7 @@
 ﻿using Agents;
 using AIGraph;
 using AWO.Jsons;
+using AWO.Modules.TSL;
 using Enemies;
 using GameData;
 using LevelGeneration;
@@ -246,7 +247,7 @@ public sealed class WEE_AddTerminalCommand
             return new()
             {
                 LineType = LineType,
-                Output = Output,
+                Output = SerialLookupManager.ParseLocaleText(Output),
                 Time = Time,
             };
         }
@@ -497,7 +498,8 @@ public sealed class WEE_SpecialHudTimer
     public LocaleText Message { get; set; } = LocaleText.Empty;
     public ePUIMessageStyle Style { get; set; } = ePUIMessageStyle.Default;
     public int Priority { get; set; } = -2;
-    public bool ShowTimeInProgressBar { get; set; } = true;    
+    public bool ShowTimeInProgressBar { get; set; } = true; 
+    public bool InvertProgress { get; set; } = false;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
     public enum SpecialHudType : byte

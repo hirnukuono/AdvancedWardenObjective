@@ -80,6 +80,6 @@ internal sealed class SetPocketItemEvent : BaseEvent
                 nearestPlayer = currentPlayer;
             }
         }
-        return nearestPlayer?.PlayerName ?? null;
+        return nearestPlayer?.PlayerName;
     }
 }

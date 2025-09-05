@@ -93,7 +93,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
     {
         int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
         float time = 0.0f;
-        float percentage;
+        float percentage, invertPercent;
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
         bool hasTags = msg.Contains(Timer) || msg.Contains(Percent);
 
@@ -114,9 +114,10 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             }
 
             percentage = time / duration;
+            invertPercent = 1.0f - percentage;
             if (hud.ShowTimeInProgressBar)
             {
-                GuiManager.InteractionLayer.SetMessageTimer(percentage);
+                GuiManager.InteractionLayer.SetMessageTimer(!hud.InvertProgress ? percentage : invertPercent);
             }
 
             if (!hasTags)
@@ -125,9 +126,9 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             }
             else
             {
-                var timeSpan = TimeSpan.FromSeconds(duration - time);
+                var timeSpan = TimeSpan.FromSeconds(!hud.InvertProgress ? duration - time : time);
                 string tagTime = $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
-                string tagPercent = $"{percentage * 100:F0}%";
+                string tagPercent = $"{(!hud.InvertProgress ? percentage : invertPercent) * 100:F0}%";
                 string formattedMsg = msg.Replace(Timer, tagTime, StringComparison.Ordinal).Replace(Percent, tagPercent, StringComparison.Ordinal);
 
                 GuiManager.InteractionLayer.SetMessage(formattedMsg, hud.Style, hud.Priority);

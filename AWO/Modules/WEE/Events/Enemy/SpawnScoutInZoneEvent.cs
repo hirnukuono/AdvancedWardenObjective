@@ -28,7 +28,8 @@ internal class SpawnScoutInZoneEvent : BaseEvent
 
     static IEnumerator DoSpawn(WEE_SpawnScoutData ss, LG_Zone zone, Vector3 pos, int count)
     {
-        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
+        float interval = Math.Min(0.25f, TimeToCompleteSpawn / count); // max 4 enemies per second
+        WaitForSeconds spawnInterval = new(interval);
         var areas = zone.m_areas;
 
         for (int spawnCount = 0; spawnCount < count; spawnCount++)

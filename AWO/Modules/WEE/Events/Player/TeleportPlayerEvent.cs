@@ -23,7 +23,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         var tp = e.TeleportPlayer;
         var playersInLevel = PlayerManager.PlayerAgentsInLevel;
-        
+
         if (tp.TPData.Count == 0) // convert old to new format
         {
             LogWarning($"No TPData provided, we will convert! {Name} has been changed (see AWO wiki)");
@@ -69,7 +69,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                     Dimension = ResolveFieldsFallback(e.DimensionIndex, playerData.Dimension, false),
                     Position = GetPositionFallback(ResolveFieldsFallback(e.Position, playerData.Position, false), ResolveFieldsFallback(e.SpecialText, playerData.WorldEventObjectFilter, false)),
                     LookDirV3 = ResolveFieldsFallback(GetLookDirV3(player, playerData.LookDir), playerData.LookDirV3, false),
-                    PlayWarpAnimation = playerData.PlayWarpAnimation,
+                    PlayWarpAnimation = tp.PlayWarpAnimation || playerData.PlayWarpAnimation,
                     Duration = ResolveFieldsFallback(e.Duration, playerData.Duration, tp.FlashTeleport),
                     LastDimension = player.DimensionIndex,
                     LastPosition = player.Position,
@@ -101,11 +101,11 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if (!tp.FlashTeleport && tp.WarpBigPickups && lobby.Count == tp.TPData.Count 
+            if (!tp.FlashTeleport && tp.WarpBigPickups && lobby.Count == tp.TPData.Count
                 && bigPickup != null && bigPickup.CanWarp && bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
             {
                 itemAssignment.GetOrAddNew(tp.SendBPUsToHost ? PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex : MasterRand.Next(lobby.Count)).Add(item);
-            }            
+            }
         }
 
         return itemAssignment;
@@ -185,8 +185,8 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             _ => Vector3.forward,
         };
     }
-    
-    private static Vector3 CamDirIfNotBot(PlayerAgent player) => !player.Owner.IsBot ? player.FPSCamera.CameraRayDir : Vector3.forward;
+
+    private static Vector3 CamDirIfNotBot(PlayerAgent player) => !player.Owner.IsBot ? player.FPSCamera?.CameraRayDir ?? Vector3.forward : Vector3.forward; // FPSCamera is not for non-local players
 
     private static AIG_NodeCluster? GetNodeFromDimPos(eDimensionIndex dimensionIndex, Vector3 position)
     {

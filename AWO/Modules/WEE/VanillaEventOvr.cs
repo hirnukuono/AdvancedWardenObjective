@@ -128,11 +128,12 @@ internal static class VanillaEventOvr
         AgentMode mode = e.Enabled switch 
         {
             true => AgentMode.Agressive,
-            false when (e.EnemyID == 20) => AgentMode.Scout, // mimicks vanilla behavior
+            false when (e.EnemyID == 20) => AgentMode.Scout, // mimicks r7 vanilla behavior?
             _ => AgentMode.Hibernate
         };
 
-        WaitForSeconds spawnInterval = new(2.0f / count);
+        float interval = Math.Min(0.25f, 2.0f / count); // max 4 enemies per second
+        WaitForSeconds spawnInterval = new(interval); 
         for (int i = 0; i < count; i++)
         {
             EnemyAgent.SpawnEnemy(e.EnemyID, pos, courseNode, mode);

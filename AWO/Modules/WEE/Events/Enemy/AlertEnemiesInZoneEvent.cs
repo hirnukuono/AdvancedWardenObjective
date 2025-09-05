@@ -48,7 +48,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             raycastFirstNode = false
         });
 
-        if (TryGetClosestAlivePlayerByNode(node, out var minae))
+        if (TryGetClosestAlivePlayerByNodeDist(node, out var minae))
         {
             foreach (var enemy in node.m_enemiesInNode)
             {
@@ -65,7 +65,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
     }
 
-    public static bool TryGetClosestAlivePlayerByNode(AIG_CourseNode node, [NotNullWhen(true)] out PlayerAgent? player)
+    public static bool TryGetClosestAlivePlayerByNodeDist(AIG_CourseNode node, [NotNullWhen(true)] out PlayerAgent? player)
     {
         PlayerAgent? humanPlayer = null;        
         PlayerAgent? botPlayer = null;
@@ -102,8 +102,8 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             }
         }
 
-        player = humanPlayer ?? botPlayer;
-        Logger.Verbose(LogLevel.Debug, $"Closest alive player target to node {node.m_zone.m_courseNodes.IndexOf(node)}: {player?.PlayerName ?? "null"})");
+        player = humanDist <= botDist ? humanPlayer : botPlayer;
+        Logger.Verbose(LogLevel.Debug, $"Closest alive player to node {node.m_zone.m_courseNodes.IndexOf(node)} by node dist: {player?.PlayerName ?? "null"})");
         return player != null;
     }
 }

@@ -27,9 +27,9 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
                 door.SetupActiveEnemyWaveData(waveData);
                 if (!waveData.HasActiveEnemyWave)
                 {
-                    door.m_graphics.SetActiveEnemyWaveEnabled(enabled: false);
-                    door.m_locks.SetActiveEnemyWaveEnabled(enabled: false);
-                    door.m_anim.SetActiveEnemyWaveEnabled(enabled: false);
+                    door.m_graphics.SetActiveEnemyWaveEnabled(false);
+                    door.m_locks.SetActiveEnemyWaveEnabled(false);
+                    door.m_anim.SetActiveEnemyWaveEnabled(false);
                 }
                 LogDebug($"Set enemy wave - Active: {waveData.HasActiveEnemyWave}, GroupInFront: {waveData.EnemyGroupInfrontOfDoor}, GroupInArea: {waveData.EnemyGroupInArea}");
                 break;

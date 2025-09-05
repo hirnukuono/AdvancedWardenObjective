@@ -38,7 +38,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     static IEnumerator DoSpawn(WEE_SpawnHibernateData sh, LG_Zone zone, int count, bool enabled)
     {
-        WaitForSeconds spawnInterval = new(TimeToCompleteSpawn / count);
+        float interval = Math.Min(0.25f, TimeToCompleteSpawn / count); // max 4 enemies per second
+        WaitForSeconds spawnInterval = new(interval);
         var areas = zone.m_areas;
 
         for (int spawnCount = 0; spawnCount < count; spawnCount++)
@@ -71,7 +72,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 3.5f, out _))
+                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 12.25f, out _)) // 3.5^2
                     {
                         isValidPos = false;
                         Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player");
@@ -83,7 +84,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 {
                     foreach (var enemy in spawnNode.m_enemiesInNode)
                     {
-                        if (enemy.Position.IsWithinSqrDistance(pos, 2.3f, out _))
+                        if (enemy.Position.IsWithinSqrDistance(pos, 5.29f, out _)) // 2.3^2
                         {
                             isValidPos = false;
                             Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy");

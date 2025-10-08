@@ -13,7 +13,7 @@
 		<DebugType>None</DebugType>
 		<AssemblyName>AdvancedWardenObjective</AssemblyName>
 		<RootNamespace>$(SolutionName)</RootNamespace>
-		<BepInEx>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx</BepInEx>
+		<BepInEx>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx</BepInEx>
 		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
 		<OutputPath>$(BuildDirectory)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

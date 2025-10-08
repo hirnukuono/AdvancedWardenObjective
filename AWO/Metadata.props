@@ -3,6 +3,6 @@
 		<PluginName>AdvancedWardenObjective</PluginName>
 		<RootNamespace>AWO</RootNamespace>
 		<AssemblyName>$(PluginName)</AssemblyName>
-		<Version>2.2.5</Version>
+		<Version>2.2.6</Version>
 	</PropertyGroup>
 </Project>

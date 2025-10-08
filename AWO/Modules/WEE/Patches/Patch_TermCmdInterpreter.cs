@@ -37,7 +37,7 @@ internal static class Patch_TermCmdInterpreter
         yield return new WaitForSeconds(3.0f); // wait for line output done, i.e. log viewable
         while (eData.Count > 0)
         {
-            WOManager.CheckAndExecuteEventsOnTrigger(eData.Dequeue(), eWardenObjectiveEventTrigger.None);
+            WOManager.CheckAndExecuteEventsOnTrigger(eData.Dequeue(), eWardenObjectiveEventTrigger.None, true);
         }
     }
 }

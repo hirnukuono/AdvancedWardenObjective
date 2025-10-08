@@ -331,6 +331,7 @@ public sealed partial class WEE_TeleportPlayer // new
     public bool WarpSentries { get; set; } = true;
     public bool WarpBigPickups { get; set; } = true;
     public bool SendBigPickupsToHost { get => SendBPUsToHost; set => SendBPUsToHost = value; }
+    public bool FullTeamOverflow { get; set; } = false;
     public List<TeleportData> TPData { get; set; } = new();
     public struct TeleportData
     { 

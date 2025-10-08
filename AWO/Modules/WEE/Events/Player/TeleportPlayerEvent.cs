@@ -31,25 +31,22 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
             for (int i = 0; i < playersInLevel.Count; i++)
             {
-                if (activeSlotIndices.Contains(i))
+                if (!activeSlotIndices.Contains(i)) continue;                
+                var (pos, dir) = i switch
                 {
-                    var (pos, dir) = i switch
-                    {
-                        0 => (tp.Player0Position, tp.P0LookDir),
-                        1 => (tp.Player1Position, tp.P1LookDir),
-                        2 => (tp.Player2Position, tp.P2LookDir),
-                        3 => (tp.Player3Position, tp.P3LookDir),
-                        _ => (playersInLevel[i].Position, 4)
-                    };
-
-                    tp.TPData.Add(new()
-                    {
-                        PlayerIndex = (PlayerIndex)i,
-                        Position = pos,
-                        LookDir = dir,
-                        PlayWarpAnimation = tp.PlayWarpAnimation
-                    });
-                }
+                    0 => (tp.Player0Position, tp.P0LookDir),
+                    1 => (tp.Player1Position, tp.P1LookDir),
+                    2 => (tp.Player2Position, tp.P2LookDir),
+                    3 => (tp.Player3Position, tp.P3LookDir),
+                    _ => (playersInLevel[i].Position, 4)
+                };
+                tp.TPData.Add(new()
+                {
+                    PlayerIndex = (PlayerIndex)i,
+                    Position = pos,
+                    LookDir = dir,
+                    PlayWarpAnimation = tp.PlayWarpAnimation
+                });
             }
         }
 
@@ -57,33 +54,32 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         for (int j = 0; j < playersInLevel.Count; j++)
         {
-            if (tp.TPData.Any(tpd => (int)tpd.PlayerIndex == j))
+            bool overflow = j >= 4 && tp.FullTeamOverflow && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
+            int p = overflow ? (j % 4) : j;
+            int idx = tp.TPData.FindIndex(tpd => (int)tpd.PlayerIndex == p);
+            if (idx == -1) continue;
+            var playerData = tp.TPData[idx];
+
+            PlayerAgent player = playersInLevel[j];
+            var tpData = new TeleportData()
             {
-                PlayerAgent player = playersInLevel[j];
-                var playerData = tp.TPData[j];
-
-                var tpData = new TeleportData()
-                {
-                    Player = player,
-                    PlayerIndex = playerData.PlayerIndex,
-                    Dimension = ResolveFieldsFallback(e.DimensionIndex, playerData.Dimension, false),
-                    Position = GetPositionFallback(ResolveFieldsFallback(e.Position, playerData.Position, false), ResolveFieldsFallback(e.SpecialText, playerData.WorldEventObjectFilter, false)),
-                    LookDirV3 = ResolveFieldsFallback(GetLookDirV3(player, playerData.LookDir), playerData.LookDirV3, false),
-                    PlayWarpAnimation = tp.PlayWarpAnimation || playerData.PlayWarpAnimation,
-                    Duration = ResolveFieldsFallback(e.Duration, playerData.Duration, tp.FlashTeleport),
-                    LastDimension = player.DimensionIndex,
-                    LastPosition = player.Position,
-                    LastLookDirV3 = CamDirIfNotBot(player),
-                    ItemsToWarp = itemAssignment.GetOrAddNew(j)
-                };
-
-                if (tp.FlashTeleport)
-                {
-                    CoroutineManager.StartCoroutine(FlashBack(tpData).WrapToIl2Cpp());
-                }
-
-                DoTeleport(tpData);
+                Player = player,
+                PlayerIndex = playerData.PlayerIndex,
+                Dimension = ResolveFieldsFallback(e.DimensionIndex, playerData.Dimension, false),
+                Position = GetPositionFallback(ResolveFieldsFallback(e.Position, playerData.Position, false), ResolveFieldsFallback(e.SpecialText, playerData.WorldEventObjectFilter, false)),
+                LookDirV3 = ResolveFieldsFallback(GetLookDirV3(player, playerData.LookDir), playerData.LookDirV3, false),
+                PlayWarpAnimation = tp.PlayWarpAnimation || playerData.PlayWarpAnimation,
+                Duration = ResolveFieldsFallback(e.Duration, playerData.Duration, tp.FlashTeleport),
+                LastDimension = player.DimensionIndex,
+                LastPosition = player.Position,
+                LastLookDirV3 = CamDirIfNotBot(player),
+                ItemsToWarp = itemAssignment.GetOrAddNew(j)
+            };
+            if (tp.FlashTeleport)
+            {
+                CoroutineManager.StartCoroutine(FlashBack(tpData).WrapToIl2Cpp());
             }
+            DoTeleport(tpData);
         }
     }
 
@@ -186,7 +182,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         };
     }
 
-    private static Vector3 CamDirIfNotBot(PlayerAgent player) => !player.Owner.IsBot ? player.FPSCamera?.CameraRayDir ?? Vector3.forward : Vector3.forward; // FPSCamera is not for non-local players
+    private static Vector3 CamDirIfNotBot(PlayerAgent player) => player.Owner.IsBot ? Vector3.forward : player.Sync.m_locomotionData.LookDir.Value;
 
     private static AIG_NodeCluster? GetNodeFromDimPos(eDimensionIndex dimensionIndex, Vector3 position)
     {

@@ -16,11 +16,11 @@
 
 
 	<PropertyGroup>
-		<BIELibsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\core</BIELibsFolder>
-		<BIECacheFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\cache</BIECacheFolder>
+		<BIELibsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\core</BIELibsFolder>
+		<BIECacheFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\cache</BIECacheFolder>
 		<CorLibsFolder>$(GameFolder)\dotnet\corlib</CorLibsFolder>
-		<InteropLibsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\interop</InteropLibsFolder>
-		<PluginsFolder>$(AppData)\r2modmanPlus-local\GTFO\profiles\$(Profile)\BepInEx\plugins</PluginsFolder>
+		<InteropLibsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\interop</InteropLibsFolder>
+		<PluginsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\plugins</PluginsFolder>
 		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
 		<OutputPath>$(BuildDirectory)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

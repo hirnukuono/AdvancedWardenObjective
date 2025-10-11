@@ -58,10 +58,7 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
 
             if (terminal.gameObject.TryAndGetComponent(out GUIX_VirtualSceneLink guixSceneLink) && guixSceneLink.m_virtualScene != null)
             {
-                var virtCam = guixSceneLink.m_virtualScene.virtualCamera;
-                float nearClip = isNormal ? 0.3f : 0.0f;
-                float farClip = isNormal ? 1000.0f : 0.0f;
-                virtCam.SetFovAndClip(virtCam.paramCamera.fieldOfView, nearClip, farClip);
+                guixSceneLink.m_virtualScene.gameObject.SetActive(isNormal);
             }
 
             if (terminal.m_text != null)

@@ -54,7 +54,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         for (int j = 0; j < playersInLevel.Count; j++)
         {
-            bool overflow = j >= 4 && tp.FullTeamOverflow && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
+            bool overflow = j >= 4 && tp.FullTeamOverflow && tp.TPData.Count == 4 && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
             int p = overflow ? (j % 4) : j;
             int idx = tp.TPData.FindIndex(tpd => (int)tpd.PlayerIndex == p);
             if (idx == -1) continue;

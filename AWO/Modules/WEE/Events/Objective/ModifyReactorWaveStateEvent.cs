@@ -27,8 +27,31 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
             }
             else if (state.status is eReactorStatus.Startup_intro or eReactorStatus.Startup_intense or eReactorStatus.Startup_waitForVerify or eReactorStatus.Startup_complete)
             {
-                state.stateCount = e.Reactor.Wave;
-                state.stateProgress = e.Reactor.Progress;
+                // only change wave number if it is different from -1
+                // should be ok for existing mdos that use this.
+                if (e.Reactor.Wave != -1)
+                    state.stateCount = e.Reactor.Wave;
+
+                // only change duration if different from -1
+                if (e.Reactor.Duration != -1)
+                {
+                    // calculate how many seconds passed to make sure seconds passed remains the exact same
+                    // notice this change is done prior to the e.Reactor.Progress check which means it does nothing
+                    // if e.Reactor.Progress != -1
+                    var secondsPassed = reactor.m_currentDuration * state.stateProgress;
+                    var newPercent = secondsPassed / e.Reactor.Duration;
+                    // updates the total timer so that:
+                    // 1. the timer from now progresses slower.
+                    // 2. the bar at the top updates properly.
+                    reactor.m_currentDuration = e.Reactor.Duration;
+                    state.stateProgress = newPercent;
+                }
+
+                // only change progress if different from -1
+                // this should be OK? for existing mods that use this.
+                if (e.Reactor.Progress != -1)
+                    state.stateProgress = e.Reactor.Progress;
+
                 state.verifyFailed = false;
                 state.status = e.Reactor.State switch
                 {
@@ -37,6 +60,7 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                     WEE_ReactorEventData.WaveState.Verify => eReactorStatus.Startup_waitForVerify,
                     _ => eReactorStatus.Startup_intro
                 };
+
                 reactor.m_stateReplicator.State = state;
             }
             else

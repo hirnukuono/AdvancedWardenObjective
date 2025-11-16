@@ -92,6 +92,9 @@ public sealed class WEE_EventData
 
     // Dinorush
     public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
+
+    // Tgb03
+
 }
 
 #region OG_EVENTS
@@ -119,7 +122,7 @@ public sealed class WEE_ReactorEventData
     public WaveState State { get; set; } = WaveState.Intro;
     public int Wave { get; set; } = 1;
     public float Progress { get; set; } = 0.0f;
-    public float Duration { get; set; } = -1f;
+    public float? Duration { get; set; } = null;
 
     public enum WaveState
     {

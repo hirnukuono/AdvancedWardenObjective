@@ -33,7 +33,7 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                     state.stateCount = e.Reactor.Wave;
 
                 // only change duration if different from -1
-                if (e.Reactor.Duration != -1)
+                if (e.Reactor.Duration != null && e.Reactor.Duration > 0)
                 {
                     // calculate how many seconds passed to make sure seconds passed remains the exact same
                     // notice this change is done prior to the e.Reactor.Progress check which means it does nothing
@@ -43,8 +43,8 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
                     // updates the total timer so that:
                     // 1. the timer from now progresses slower.
                     // 2. the bar at the top updates properly.
-                    reactor.m_currentDuration = e.Reactor.Duration;
-                    state.stateProgress = newPercent;
+                    reactor.m_currentDuration = (float) e.Reactor.Duration;
+                    state.stateProgress = (float) newPercent;
                 }
 
                 // only change progress if different from -1

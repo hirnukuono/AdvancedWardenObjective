@@ -113,8 +113,8 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     {
         if (s_storedPreviousMusic != 0)
         {
-            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = music;
-            s_storedSuccessText = 0;
+            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = s_storedPreviousMusic;
+            s_storedPreviousMusic = 0;
             LevelAPI.OnBuildStart -= RestoreSuccessMusic;
         }
     }

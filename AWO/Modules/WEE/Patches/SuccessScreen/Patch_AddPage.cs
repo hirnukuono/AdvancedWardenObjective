@@ -6,12 +6,11 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.AddPage))]
 internal static class Patch_AddPage
 {
     public static bool McBased = false;
 
-    [HarmonyPatch(typeof(MainMenuGuiLayer), nameof(MainMenuGuiLayer.AddPage))]
     [HarmonyPrefix]
     [HarmonyWrapSafe]
     private static bool Pre_AddPage(MainMenuGuiLayer __instance, eCM_MenuPage pageEnum, string pageResourcePath, ref CM_PageBase __result)

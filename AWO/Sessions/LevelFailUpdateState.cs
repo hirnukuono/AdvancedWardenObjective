@@ -1,4 +1,4 @@
-﻿using AWO.Networking;
+﻿using AmorLib.Networking.StateReplicators;
 using GTFO.API;
 using LevelGeneration;
 
@@ -16,7 +16,7 @@ internal struct LevelFailCheck
     public LevelFailMode mode;
 }
 
-internal sealed class LevelFailUpdateState
+internal static class LevelFailUpdateState
 {
     public static StateReplicator<LevelFailCheck>? Replicator;
     public static bool LevelFailAllowed { get; private set; } = true;
@@ -25,14 +25,14 @@ internal sealed class LevelFailUpdateState
     internal static void AssetLoaded()
     {
         Replicator = StateReplicator<LevelFailCheck>.Create(1u, new() { mode = LevelFailMode.Default }, LifeTimeType.Permanent);
+        Replicator!.OnStateChanged += OnStateChanged;
+        LevelAPI.OnLevelCleanup += LevelCleanup;
+
         LG_Factory.add_OnFactoryBuildStart(new Action(() =>
         {
-            Replicator.ClearAllRecallSnapshot();
-            Replicator.SetState(new() { mode = LevelFailMode.Default });
-        }));
-
-        Replicator.OnStateChanged += OnStateChanged;
-        LevelAPI.OnLevelCleanup += LevelCleanup;
+            Replicator?.ClearAllRecallSnapshot();
+            Replicator?.SetState(new() { mode = LevelFailMode.Default });
+        }));        
     }
 
     private static void LevelCleanup()

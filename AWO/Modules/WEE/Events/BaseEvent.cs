@@ -18,6 +18,7 @@ internal abstract class BaseEvent
     protected static bool HasMaster => SNet.HasMaster;
     public static System.Random MasterRand { get; } = new(Guid.NewGuid().GetHashCode());
     public abstract WEE_Type EventType { get; }
+    public virtual bool WhitelistArrayableGlobalIndex => false;
 
     public void Setup()
     {
@@ -115,7 +116,7 @@ internal abstract class BaseEvent
 
     public bool TryGetTerminalFromZone(WEE_EventData e, int index, [NotNullWhen(true)] out LG_ComputerTerminal? terminal)
     {
-        if (TryGetZone(e, out var zone))
+        if (TryGetZone(e, out var zone) && index >= 0 && index < zone.TerminalsSpawnedInZone.Count)
         {
             terminal = zone.TerminalsSpawnedInZone[index];
             return terminal != null;

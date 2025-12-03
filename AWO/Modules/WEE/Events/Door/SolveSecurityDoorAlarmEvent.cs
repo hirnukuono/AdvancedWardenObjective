@@ -6,6 +6,7 @@ namespace AWO.Modules.WEE.Events;
 internal class SolveSecurityDoorAlarmEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SolveSecurityDoorAlarm;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

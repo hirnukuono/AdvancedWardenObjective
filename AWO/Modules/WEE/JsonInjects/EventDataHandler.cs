@@ -6,6 +6,7 @@ using InjectLib.JsonNETInjection.Supports;
 using InjectLib.JsonNETInjection.Handler;
 
 namespace AWO.Modules.WEE.JsonInjects;
+
 internal class EventDataHandler : Il2CppJsonReferenceTypeHandler<WardenObjectiveEventData>
 {
     public override void OnRead(in Il2CppSystem.Object result, in JToken jToken)

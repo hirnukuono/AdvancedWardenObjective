@@ -1,4 +1,6 @@
 ﻿using Agents;
+using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using Enemies;
 using GameData;
@@ -7,7 +9,6 @@ using Player;
 using SNetwork;
 using System.Collections;
 using UnityEngine;
-using AkEventCallback = AkCallbackManager.EventCallback;
 using VEO_Type = GameData.eWardenObjectiveEventType;
 
 namespace AWO.Modules.WEE;
@@ -33,7 +34,13 @@ internal static class VanillaEventOvr
         float delay = Mathf.Max(e.Delay - currentDuration, 0f);
         if (delay > 0f)
         {
+            int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
             yield return new WaitForSeconds(delay);
+            if (reloadCount < CheckpointManager.Current.m_stateReplicator.State.reloadCount)
+            {
+                Logger.Warn($"Delayed event {type} aborted due to checkpoint reload");
+                yield break;
+            }
         }
 
         if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
@@ -85,7 +92,7 @@ internal static class VanillaEventOvr
         else
         {
             CellSoundPlayer soundEvent = new();
-            soundEvent.Post(e.SoundID, e.Position, 1u, (AkEventCallback)SoundDoneCallback, soundEvent);
+            soundEvent.PostWithCleanup(e.SoundID, e.Position);
         }
 
         string line = e.SoundSubtitle.ToString();
@@ -93,12 +100,6 @@ internal static class VanillaEventOvr
         {
             GuiManager.PlayerLayer.ShowMultiLineSubtitle(line);
         }
-    }
-
-    private static void SoundDoneCallback(Il2CppSystem.Object in_cookie, AkCallbackType in_type, AkCallbackInfo callbackInfo)
-    {
-        var callbackPlayer = in_cookie.Cast<CellSoundPlayer>();
-        callbackPlayer?.Recycle();
     }
     
     private static void ToggleDimensionLights(bool mode, eDimensionIndex dimension)
@@ -119,7 +120,8 @@ internal static class VanillaEventOvr
         Vector3 pos = WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(e.WorldEventObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject)
             ? weObject.gameObject.transform.position
             : e.Position;
-        if (!Dimension.TryGetCourseNodeFromPos(pos, out var courseNode))
+        var courseNode = CourseNodeUtil.GetCourseNode(pos, pos.GetDimension().DimensionIndex);
+        if (courseNode == null)
         {
             Logger.Error("SpawnEnemyOnPoint", "Failed to find valid CourseNode from Position!");
             yield break;

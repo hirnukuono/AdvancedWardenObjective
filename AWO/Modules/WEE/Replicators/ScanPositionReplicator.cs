@@ -1,5 +1,6 @@
 ﻿using AIGraph;
-using AWO.Networking;
+using AmorLib.Networking.StateReplicators;
+using AmorLib.Utils;
 using ChainedPuzzles;
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using LevelGeneration;
@@ -41,7 +42,8 @@ public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHold
 
     public void TryUpdatePosition(Vector3 position)
     {
-        if (AIG_CourseNode.TryGetCourseNode(position.GetDimension().DimensionIndex, position, 6.0f, out var node))
+        var node = CourseNodeUtil.GetCourseNode(position, position.GetDimension().DimensionIndex);
+        if (node != null)
         {
             Replicator?.SetState(new()
             {

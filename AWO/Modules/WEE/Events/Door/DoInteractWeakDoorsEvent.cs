@@ -6,6 +6,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class DoInteractWeakDoorsEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.DoInteractWeakDoorsInZone;
+    public override bool WhitelistArrayableGlobalIndex => true;
     public static readonly Dictionary<int, HashSet<LG_WeakDoor>> WeakDoors = new();
 
     protected override void OnSetup()

@@ -1,4 +1,5 @@
-﻿using GTFO.API;
+﻿using AmorLib.Utils;
+using GTFO.API;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -22,32 +23,36 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        int index = ResolveFieldsFallback(e.NavMarker.Index, e.Count, false);
-
-        if (!NavMarkers.TryGetValue(index, out var marker))
+        foreach (var eNav in e.NavMarker.Values)
         {
-            var trackingObj = new GameObject($"AMAWO_{index}") 
-            { 
-                transform = { position = GetPositionFallback(e.Position, e.SpecialText) } 
-            };
-            marker = GuiManager.NavMarkerLayer.PlaceCustomMarker(e.NavMarker.Style, trackingObj, e.NavMarker.Title, e.Duration);
-            marker.SetColor(e.NavMarker.Color);
-            marker.SetPinEnabled(e.NavMarker.UsePin);
-            if (Dimension.TryGetCourseNodeFromPos(e.Position, out var courseNode))
-            {
-                string str = "Z" + courseNode.m_area.m_navInfo.GetFormattedText(LG_NavInfoFormat.NumberOnly);
-                marker.SetSignInfo(str);
-            }
-            
-            NavMarkers.Add(index, marker);
+            int index = ResolveFieldsFallback(eNav.Index, e.Count, false);
 
-            if (e.Duration > 0.0f)
+            if (!NavMarkers.TryGetValue(index, out var marker))
             {
-                CoroutineManager.StartCoroutine(DestroyAfterDelay(index, e.Duration).WrapToIl2Cpp());
+                var trackingObj = new GameObject($"AMAWO_{index}")
+                {
+                    transform = { position = GetPositionFallback(e.Position, e.SpecialText) }
+                };
+                marker = GuiManager.NavMarkerLayer.PlaceCustomMarker(eNav.Style, trackingObj, eNav.Title, e.Duration);
+                marker.SetColor(eNav.Color);
+                marker.SetPinEnabled(eNav.UsePin);
+                var courseNode = CourseNodeUtil.GetCourseNode(e.Position, e.Position.GetDimension().DimensionIndex);
+                if (courseNode != null)
+                {
+                    string str = "Z" + courseNode.m_area.m_navInfo.GetFormattedText(LG_NavInfoFormat.NumberOnly);
+                    marker.SetSignInfo(str);
+                }
+
+                NavMarkers.Add(index, marker);
+
+                if (e.Duration > 0.0f)
+                {
+                    CoroutineManager.StartCoroutine(DestroyAfterDelay(index, e.Duration).WrapToIl2Cpp());
+                }
             }
+
+            marker.SetVisible(e.Enabled);
         }
-
-        marker.SetVisible(e.Enabled);
     }
 
     static IEnumerator DestroyAfterDelay(int index, float duration)

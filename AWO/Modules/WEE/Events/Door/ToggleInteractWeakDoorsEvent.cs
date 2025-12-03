@@ -6,7 +6,8 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class ToggleInteractWeakDoorsEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.ToggleInteractWeakDoorsInZone;
-    
+    public override bool WhitelistArrayableGlobalIndex => true;
+
     protected override void TriggerCommon(WEE_EventData e)
     {
         if (TryGetZone(e, out var zone) && WeakDoors.TryGetValue(zone.ID, out var weakDoors))

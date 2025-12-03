@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using AmorLib.Utils.Extensions;
+using BepInEx;
 using GTFO.API;
 using Player;
 using SNetwork;
@@ -10,7 +11,6 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetPocketItemEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetPocketItem;
-
     public static readonly Dictionary<int, WEE_SetPocketItem> PocketItemsMap = new();
     public static bool HasEmptyPockets => PocketItemsMap.Count == 0;
     public static string TopItems { get; private set; } = string.Empty;

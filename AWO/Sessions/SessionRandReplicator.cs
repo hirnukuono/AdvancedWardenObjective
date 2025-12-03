@@ -1,4 +1,4 @@
-﻿using AWO.Networking;
+﻿using AmorLib.Networking.StateReplicators;
 using BepInEx.Logging;
 
 namespace AWO.Sessions;

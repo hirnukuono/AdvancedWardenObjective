@@ -1,5 +1,5 @@
 ﻿using AK;
-using AkEventCallback = AkCallbackManager.EventCallback;
+using AmorLib.Utils.Extensions;
 using RoarSound = AWO.Modules.WEE.WEE_PlayWaveDistantRoar.WaveRoarSound;
 using RoarSize = AWO.Modules.WEE.WEE_PlayWaveDistantRoar.WaveRoarSize;
 
@@ -36,12 +36,6 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
         });
 
         waveRoar.SetSwitch(SWITCHES.ENVIROMENT.GROUP, e.WaveRoarSound.IsOutside ? SWITCHES.ENVIROMENT.SWITCH.DESERT : SWITCHES.ENVIROMENT.SWITCH.COMPLEX);
-        waveRoar.Post(EVENTS.PLAY_WAVE_DISTANT_ROAR, GetPositionFallback(e.Position, e.SpecialText), 1u, (AkEventCallback)SoundDoneCallback, waveRoar);
-    }
-    
-    private static void SoundDoneCallback(Il2CppSystem.Object in_cookie, AkCallbackType in_type, AkCallbackInfo callbackInfo)
-    {
-        var callbackPlayer = in_cookie.Cast<CellSoundPlayer>();
-        callbackPlayer?.Recycle();
+        waveRoar.PostWithCleanup(EVENTS.PLAY_WAVE_DISTANT_ROAR, GetPositionFallback(e.Position, e.SpecialText));
     }
 }

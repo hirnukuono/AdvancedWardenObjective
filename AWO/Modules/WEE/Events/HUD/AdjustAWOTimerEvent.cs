@@ -1,4 +1,4 @@
-﻿using AWO.Jsons;
+﻿using AmorLib.Utils.JsonElementConverters;
 using static AWO.Modules.TSL.SerialLookupManager;
 
 namespace AWO.Modules.WEE.Events;

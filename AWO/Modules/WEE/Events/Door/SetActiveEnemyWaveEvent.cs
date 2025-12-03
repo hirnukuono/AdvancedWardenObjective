@@ -6,6 +6,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetActiveEnemyWaveEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetActiveEnemyWave;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

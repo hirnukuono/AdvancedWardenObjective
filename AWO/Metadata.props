@@ -1,8 +1,0 @@
-﻿<Project>
-	<PropertyGroup>
-		<PluginName>AdvancedWardenObjective</PluginName>
-		<RootNamespace>AWO</RootNamespace>
-		<AssemblyName>$(PluginName)</AssemblyName>
-		<Version>2.3.2</Version>
-	</PropertyGroup>
-</Project>

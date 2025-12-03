@@ -1,5 +1,6 @@
 ﻿using Agents;
 using AIGraph;
+using AmorLib.Utils.JsonElementConverters;
 using AWO.Jsons;
 using AWO.Modules.TSL;
 using Enemies;
@@ -27,8 +28,11 @@ public sealed class WEE_EventData
     public bool UseStaticBioscanPoints { get; set; } = false;
 
     // General Fields
+    public Arrayable<eDimensionIndex> ArrayableDimension { get; set; } = eDimensionIndex.Reality;
+    public Arrayable<LG_LayerType> ArrayableLayer { get; set; } = LG_LayerType.MainLayer;
+    public Arrayable<eLocalZoneIndex> ArrayableZone { get; set; } = eLocalZoneIndex.Zone_0;
     public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
-    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;    
+    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
@@ -53,17 +57,17 @@ public sealed class WEE_EventData
     public WEE_ReactorEventData Reactor { get; set; } = new();
     public WEE_CountdownData Countdown { get; set; } = new();
     public WEE_ZoneLightData SetZoneLight { get; set; } = new();
-    public WEE_CleanupEnemiesData CleanupEnemies { get; set; } = new();
-    public WEE_SpawnHibernateData SpawnHibernates { get; set; } = new();
-    public WEE_SpawnScoutData SpawnScouts { get; set; } = new();
+    public Arrayable<WEE_CleanupEnemiesData> CleanupEnemies { get; set; } = new();
+    public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new();
+    public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new();
 
     // Hirnu
-    public WEE_AddTerminalCommand AddTerminalCommand { get; set; } = new();
-    public WEE_AddTerminalCommand AddCommand { get => AddTerminalCommand; set => AddTerminalCommand = value; }
-    public WEE_HideTerminalCommand HideTerminalCommand { get; set; } = new();
-    public WEE_HideTerminalCommand HideCommand { get => HideTerminalCommand; set => HideTerminalCommand = value; }
-    public WEE_UnhideTerminalCommand UnhideTerminalCommand { get; set; } = new();
-    public WEE_UnhideTerminalCommand UnhideCommand { get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
+    public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new();
+    public Arrayable<WEE_AddTerminalCommand> AddCommand { get => AddTerminalCommand; set => AddTerminalCommand = value; }
+    public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new();
+    public Arrayable<WEE_HideTerminalCommand> HideCommand { get => HideTerminalCommand; set => HideTerminalCommand = value; }
+    public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new();
+    public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
     // Amor
     public WEE_NestedEvent NestedEvent { get; set; } = new();
@@ -75,7 +79,7 @@ public sealed class WEE_EventData
     public WEE_RevivePlayer RevivePlayer { get; set; } = new();
     public WEE_AdjustTimer AdjustTimer { get; set; } = new();
     public WEE_CountupData Countup { get; set; } = new();
-    public WEE_NavMarkerData NavMarker { get; set; } = new();
+    public Arrayable<WEE_NavMarkerData> NavMarker { get; set; } = new();
     public WEE_ShakeScreen CameraShake { get; set; } = new();
     public WEE_StartPortalMachine Portal { get; set; } = new();
     public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
@@ -86,9 +90,10 @@ public sealed class WEE_EventData
     public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
     public WEE_SpecialHudTimer SpecialHud { get => SpecialHudTimer; set => SpecialHudTimer = value; }
     public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
-    public WEE_SetTerminalLog SetTerminalLog { get; set; } = new();
-    public WEE_SetTerminalLog TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
+    public Arrayable<WEE_SetTerminalLog> SetTerminalLog { get; set; } = new();
+    public Arrayable<WEE_SetTerminalLog> TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
+    public WEE_SetOutsideDimensionData DimensionData { get; set; } = new();
 
     // Dinorush
     public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
@@ -144,6 +149,7 @@ public sealed class WEE_CleanupEnemiesData
 {
     public CleanUpType Type { get; set; } = CleanUpType.Despawn;
     public int AreaIndex { get; set; } = -1;
+    public int[] AreaBlacklist { get; set; } = Array.Empty<int>();
     public bool IncludeHibernate { get; set; } = true;
     public bool IncludeAggressive { get; set; } = true;
     public bool IncludeScout { get; set; } = true;
@@ -364,6 +370,7 @@ public sealed partial class WEE_TeleportPlayer // new
 public sealed class WEE_InfectPlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3};
+    public bool AllPlayersExtendedLobby { get; set; } = true;
     public float InfectionAmount { get; set; } = 0.0f;
     public bool InfectOverTime { get; set; } = false;
     public float Interval { get; set; } = 1.0f;
@@ -373,6 +380,7 @@ public sealed class WEE_InfectPlayer
 public sealed class WEE_DamagePlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
+    public bool AllPlayersExtendedLobby { get; set; } = true;
     public float DamageAmount { get; set; } = 0.0f;
     public bool DamageOverTime { get; set; } = false;
     public float Interval { get; set; } = 1.0f;
@@ -382,6 +390,7 @@ public sealed class WEE_DamagePlayer
 public sealed class WEE_RevivePlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
+    public bool AllPlayersExtendedLobby { get; set; } = true;
 }
 
 public sealed class WEE_AdjustTimer
@@ -537,6 +546,10 @@ public sealed class WEE_SetTerminalLog
 {
     public int TerminalIndex { get; set; } = 0;
     public LogEventType Type { get; set; } = LogEventType.Add;
+    public eDimensionIndex TargetDimensionIndex { get; set; } = eDimensionIndex.Reality;
+    public LG_LayerType TargetLayer { get; set; } = LG_LayerType.MainLayer;
+    public eLocalZoneIndex TargetLocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
+    public int TargetTerminalIndex { get; set; } = 0;
     public string FileName { get; set; } = string.Empty;    
     public LocaleText FileContent { get; set; } = LocaleText.Empty;
     public Language FileContentOriginalLanguage { get; set; } = Language.English;    
@@ -544,10 +557,23 @@ public sealed class WEE_SetTerminalLog
     public int AttachedAudioByteSize { get; set; } = 0;
     public uint PlayerDialogToTriggerAfterAudio { get; set; } = 0u;
     public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = new();
+
+    public bool TryGetTargetTerminal(out LG_ComputerTerminal targetTerm)
+    {
+        targetTerm = null!;
+        if (!Builder.CurrentFloor.TryGetZoneByLocalIndex(TargetDimensionIndex, TargetLayer, TargetLocalIndex, out var targetZone))
+            return false;
+        if (TargetTerminalIndex < 0 || TargetTerminalIndex >= targetZone.TerminalsSpawnedInZone.Count)
+            return false;
+        targetTerm = targetZone.TerminalsSpawnedInZone[TargetTerminalIndex];
+        return targetTerm != null;
+    }
+
     public enum LogEventType : byte
     {
         Add,
-        Remove
+        Remove,
+        Move
     }
 }
 
@@ -578,5 +604,36 @@ public sealed class WEE_SetPocketItem
         Random,
         Closest
     }
+}
+
+public sealed class WEE_SetOutsideDimensionData
+{
+    public bool IsOutside { get; set; } = true;
+    public ValueBase LightAzimuth { get; set; } = ValueBase.Unchanged;
+    public ValueBase LightElevation { get; set; } = ValueBase.Unchanged;
+    public ValueBase LightIntensity { get; set; } = ValueBase.Unchanged;
+    public ValueBase AmbientIntensity { get; set; } = ValueBase.Unchanged;
+    public ValueBase ReflectionsIntensity { get; set; } = ValueBase.Unchanged;
+    public ValueBase GodrayRange { get; set; } = ValueBase.Unchanged;
+    public ValueBase GodrayExponent { get; set; } = ValueBase.Unchanged;
+    public uint AtmosphereData { get; set; } = 0u;
+    public ValueBase AtmosphereDensity { get; set; } = ValueBase.Unchanged;
+    public ValueBase Exposure { get; set; } = ValueBase.Unchanged;
+    public ValueBase AerialScale { get; set; } = ValueBase.Unchanged;
+    public ValueBase MieScattering { get; set; } = ValueBase.Unchanged;
+    public ValueBase MieG { get; set; } = ValueBase.Unchanged;
+    public ValueBase MultipleScattering { get; set; } = ValueBase.Unchanged;
+    public uint CloudsData { get; set; } = 0u;
+    public ValueBase CloudsCoverage { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsDensity { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsSharpness { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsShadowOpacity { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsTimescale { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsCrawling { get; set; } = ValueBase.Unchanged;
+    public ValueBase CloudsFade { get; set; } = ValueBase.Unchanged;
+    public BoolBase Sandstorm { get; set; } = BoolBase.Unchanged;
+    public ValueBase SandstormEdgeA { get; set; } = ValueBase.Unchanged;
+    public ValueBase SandstormEdgeB { get; set; } = ValueBase.Unchanged;
+    public ValueBase SandstormMinFog { get; set; } = ValueBase.Unchanged;
 }
 #endregion

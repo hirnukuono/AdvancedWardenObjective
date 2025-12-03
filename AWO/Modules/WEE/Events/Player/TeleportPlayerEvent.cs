@@ -1,4 +1,6 @@
 ﻿using AIGraph;
+using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using LevelGeneration;
 using Player;
@@ -161,7 +163,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                     bigPickup.pItemData.custom,
                     tpData.Position,
                     Quaternion.identity,
-                    GetNodeFromDimPos(tpData.Dimension, tpData.Position)?.CourseNode,
+                    CourseNodeUtil.GetCourseNode(tpData.Position, tpData.Dimension),
                     true,
                     true
                 );
@@ -183,18 +185,4 @@ internal sealed class TeleportPlayerEvent : BaseEvent
     }
 
     private static Vector3 CamDirIfNotBot(PlayerAgent player) => player.Owner.IsBot ? Vector3.forward : player.Sync.m_locomotionData.LookDir.Value;
-
-    private static AIG_NodeCluster? GetNodeFromDimPos(eDimensionIndex dimensionIndex, Vector3 position)
-    {
-        if (!AIG_GeomorphNodeVolume.TryGetGeomorphVolume(0, dimensionIndex, position, out var resultingGeoVolume)
-            || !resultingGeoVolume.m_voxelNodeVolume.TryGetPillar(position, out var pillar)
-            || !pillar.TryGetVoxelNode(position.y, out var bestNode)
-            || !AIG_NodeCluster.TryGetNodeCluster(bestNode.ClusterID, out var nodeCluster)
-           )
-        {
-            return null;
-        }
-
-        return nodeCluster;
-    }
 }

@@ -1,4 +1,4 @@
-﻿using AWO.Jsons;
+﻿using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
 using System.Collections;
 using UnityEngine;
@@ -44,11 +44,11 @@ internal sealed class CountdownEvent : BaseEvent
 
         while (time <= duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
+            if (startTime < EntryPoint.Coroutines.CountdownStarted)
             {
                 yield break; // someone has started a new countdown while we were here, exit
             }
-            if (CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
             {
                 // checkpoint has been used
                 ObjHudTimer.SetTimerActive(false, false);

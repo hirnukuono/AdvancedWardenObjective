@@ -3,6 +3,7 @@ using GameData;
 using InjectLib.FieldInjection;
 
 namespace AWO.CustomFields;
+
 internal static class WOEventDataFields
 {
     internal static void Init()

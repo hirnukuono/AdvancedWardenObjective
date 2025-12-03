@@ -1,61 +1,45 @@
-﻿<Project InitialTargets ="ValidateGamePath">
-
-	<!--
-     Add a GameFolder.props file to the solution to set your game path:
-    <Project>
-      <PropertyGroup>
-        <GameFolder>C:\Program Files (x86)\Steam\steamapps\common\GTFO</GameFolder>
-       </PropertyGroup>
-    </Project>
-  -->
-
-	<Import Project ="$(MSBuildThisFileDirectory)/GameFolder.props" Condition="Exists('$(MSBuildThisFileDirectory)/GameFolder.props')" />
+﻿<Project InitialTargets="ValidateGamePath">
+	<Import Project="$(MSBuildThisFileDirectory)\GameFolder.props" Condition="Exists('$(MSBuildThisFileDirectory)\GameFolder.props')" />
+	<!-- Add a GameFolder.props file to this solution to set your game path -->
+	<!-- 
+		<Project>
+		  <PropertyGroup>
+			<GameFolder>C:\Program Files (x86)\Steam\steamapps\common\GTFO</GameFolder>
+		   </PropertyGroup>
+		</Project>
+    -->
 	<Target Name="ValidateGamePath">
-		<Error Text="The GameFolder property must be set to the GTFO game folder." Condition="'$(GameFolder)' == '' or !Exists('$(GameFolder)')" />
+		<Error Text="The GameFolder property must be set to the Game folder." Condition="'$(GameFolder)' == '' or !Exists('$(GameFolder)')" />
 	</Target>
 
-
+	<!-- Path Properties -->
 	<PropertyGroup>
-		<BIELibsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\core</BIELibsFolder>
-		<BIECacheFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\cache</BIECacheFolder>
-		<CorLibsFolder>$(GameFolder)\dotnet\corlib</CorLibsFolder>
-		<InteropLibsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\interop</InteropLibsFolder>
-		<PluginsFolder>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx\plugins</PluginsFolder>
-		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
-		<OutputPath>$(BuildDirectory)</OutputPath>
-		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Platforms>AnyCPU;x64</Platforms>
+		<BIELibsFolder>$(BepInEx)\core</BIELibsFolder>
+		<PluginsFolder>$(BepInEx)\plugins</PluginsFolder>
+		<InteropLibsFolder>$(BepInEx)\interop</InteropLibsFolder>
 	</PropertyGroup>
-
-	<!-- NuGet Packages -->
-	<ItemGroup>
-		<PackageReference Include="VersionInfoGenerator" Version="2.0.0" PrivateAssets="all" />
-	</ItemGroup>
 
 	<!-- Assemblies -->
 	<ItemGroup>
 		<!-- BepInEx -->
 		<Reference Include="$(BIELibsFolder)\BepInEx.*.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\0Harmony.dll" Private="false" />
-		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\Il2CppInterop.*.dll" Private="false" />
-		<Reference Include="$(BIECacheFolder)\Il2CppJsonNet.dll" Private="false" />
+		<Reference Include="$(BIELibsFolder)\..\cache\Il2CppJsonNet.dll" Private="false" />
+		<Reference Include="$(BIELibsFolder)\MonoMod.RuntimeDetour.dll" Private="false" />
 		<Reference Include="$(BIELibsFolder)\SemanticVersioning.dll" Private="false" />
 
-		<!-- CoreCLR -->
-		<Reference Include="$(CorLibsFolder)\*.dll" Private="false" />
-		<Reference Include="$(CorLibsFolder)\..\System.Private.CoreLib.dll" Private="false" />
-
-		<!-- Interop -->
+		<!-- Game Assemblies -->
 		<Reference Include="$(InteropLibsFolder)/*.dll" Private="false" />
 		<Reference Remove="$(InteropLibsFolder)/netstandard.dll" />
+		<Reference Remove="$(InteropLibsFolder)/mscorlib.dll" />
 		<Reference Remove="$(InteropLibsFolder)/Newtonsoft.Json.dll" />
 	</ItemGroup>
 
-	<!--Other plugin dependencies -->
+	<!-- Plugins -->
 	<ItemGroup>
-		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="False"/>
+		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="false" />
 		<Reference Include="$(PluginsFolder)\**\InjectLib.dll" Private="false" />
-		<Reference Include="$(PluginsFolder)\**\MTFO.Ext.PartialData.dll" Private="false" />
-	</ItemGroup>	
+		<Reference Include="$(PluginsFolder)\**\AmorLib.dll" Private="false" />
+	</ItemGroup>
 </Project>

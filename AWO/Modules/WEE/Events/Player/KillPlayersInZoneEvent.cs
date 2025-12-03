@@ -4,6 +4,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class KillPlayersInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.KillPlayersInZone;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {

@@ -1,23 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="Metadata.props" />
 	<PropertyGroup>
-
-		<!--
-		Use the following property to set your preferred r2modman profile
-		-->
+		<!-- Use the following property to set your preferred Thunderstore profile to compile in -->
 		<Profile>Plugin Testing</Profile>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<TargetFramework>net6</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<DebugType>None</DebugType>
+
+		<!-- Thunderstore author's name as in $(BuildDirectory) -->
+		<Author>hirnukuono</Author>
+
+		<!-- Name of the dll -->
 		<AssemblyName>AdvancedWardenObjective</AssemblyName>
+
+		<!-- Mod manager name -->
+		<ModManager>com.kesomannen.gale</ModManager>
+
+		<BepInEx>$(AppData)\$(ModManager)\GTFO\profiles\$(Profile)\BepInEx</BepInEx>
+		<BuildDirectory>$(BepInEx)\plugins\$(Author)-$(SolutionName)\</BuildDirectory>
 		<RootNamespace>$(SolutionName)</RootNamespace>
-		<BepInEx>$(AppData)\com.kesomannen.gale\GTFO\profiles\$(Profile)\BepInEx</BepInEx>
-		<BuildDirectory>$(BepInEx)\plugins\hirnukuono-$(SolutionName)\</BuildDirectory>
 		<OutputPath>$(BuildDirectory)</OutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<Platforms>AnyCPU;x64</Platforms>
+		<TargetFramework>net6</TargetFramework>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<DebugType>None</DebugType>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<Target Name="PostBuild" BeforeTargets="PostBuildEvent">
 		<Delete Files="$(OutputPath)$(AssemblyName).deps.json" />

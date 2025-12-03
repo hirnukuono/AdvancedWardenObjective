@@ -17,7 +17,7 @@ internal static class Patch_IncomingFragments
 
     [HarmonyPatch(typeof(LG_SecurityDoor_Locks), nameof(LG_SecurityDoor_Locks.OnDoorState))]
     [HarmonyPostfix]
-    [HarmonyAfter]
+    [HarmonyPriority(Priority.Low)]
     [HarmonyWrapSafe]
     private static void InteractText_OnDoorState(LG_SecurityDoor_Locks __instance, pDoorState state)
     {

@@ -1,4 +1,4 @@
-﻿using AWO.Jsons;
+﻿using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
 using LevelGeneration;
 
@@ -7,6 +7,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class LockSecurityDoorEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.LockSecurityDoor;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

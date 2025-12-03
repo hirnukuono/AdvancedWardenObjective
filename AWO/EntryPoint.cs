@@ -1,5 +1,5 @@
-﻿global using AWO.CustomFields;
-using AWO.Jsons;
+﻿using AmorLib.Dependencies;
+using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
 using AWO.Modules.WEE;
 //using AWO.Modules.WOE;
@@ -12,21 +12,22 @@ using UnityEngine;
 
 namespace AWO;
 
-[BepInPlugin("GTFO.AWO", "AWO", VersionInfo.Version)]
+[BepInPlugin("GTFO.AWO", "AWO", "2.4.0")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency("GTFO.InjectLib", BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency("MTFO.Extension.PartialBlocks", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal class EntryPoint : BasePlugin
 {
     /* Globals */
-    public static bool PartialDataIsLoaded { get; private set; } = false;
     public static BlackoutState BlackoutState { get; private set; } = new();
     public static SessionRandReplicator SessionRand { get; private set; } = new();
-    public struct Coroutines
+    
+    internal static class Coroutines
     {
         public static float CountdownStarted { get; set; }
     }
-    public struct TimerMods
+    internal static class TimerMods
     {
         public static float TimeModifier { get; set; }
         public static Color TimerColor { get; set; }
@@ -37,12 +38,6 @@ internal class EntryPoint : BasePlugin
 
     public unsafe override void Load()
     {
-        if (IL2CPPChainloader.Instance.Plugins.TryGetValue("MTFO.Extension.PartialBlocks", out var plugin) && plugin.Metadata.Version.CompareTo(new(1, 5, 2)) >= 0)
-        {
-            Logger.Debug("Flowaria's PartialData v1.5.2(+) support found");
-            PartialDataIsLoaded = true;
-        }
-
         Configuration.Init();
         WardenEventExt.Initialize();
         //WardenObjectiveExt.Initialize();
@@ -68,7 +63,7 @@ internal class EntryPoint : BasePlugin
 
     private void OnLevelCleanup()
     {
-        WOManager.m_exitEventsTriggered &= false;
+        WOManager.m_exitEventsTriggered = false;
         BlackoutState.Cleanup();
         SessionRand.Cleanup();
     }

@@ -1,4 +1,5 @@
-﻿using static AWO.Modules.WEE.Events.StartEventLoop;
+﻿using AmorLib.Utils.Extensions;
+using static AWO.Modules.WEE.Events.StartEventLoop;
 
 namespace AWO.Modules.WEE.Events;
 

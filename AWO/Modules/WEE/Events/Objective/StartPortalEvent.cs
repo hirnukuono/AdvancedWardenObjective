@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using AmorLib.Utils;
+using GameData;
 using GTFO.API;
 using LevelGeneration;
 using Player;
@@ -24,7 +25,7 @@ internal sealed class StartPortalEvent : BaseEvent
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        if (!Portals.TryGetValue(new(zone.DimensionIndex, zone.Layer.m_type, zone.LocalIndex), out var portalMachine))
+        if (!Portals.TryGetValue(zone.ToStruct(), out var portalMachine))
         {
             LogError("Cannot find Portal!");
             return;

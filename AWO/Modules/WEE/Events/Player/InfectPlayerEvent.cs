@@ -7,6 +7,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class InfectPlayerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.InfectPlayer;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
@@ -17,7 +18,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
             PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
-            if (!activeSlotIndices.Contains(i) || player.Owner.IsBot)
+            if (!e.InfectPlayer.AllPlayersExtendedLobby || !activeSlotIndices.Contains(i) || player.Owner.IsBot)
                 continue; // Player not in PlayerFilter or is bot, continue
             if (player.CourseNode?.m_zone == null)
                 continue; // Node is null, continue

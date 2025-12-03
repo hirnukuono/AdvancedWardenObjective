@@ -1,4 +1,5 @@
-﻿using AWO.Jsons;
+﻿using AmorLib.Utils.Extensions;
+using AmorLib.Utils.JsonElementConverters;
 using BepInEx;
 using BepInEx.Logging;
 using GTFO.API;
@@ -11,7 +12,6 @@ namespace AWO.Modules.TSL;
 public static class SerialLookupManager
 {
     public static readonly Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
-    internal static readonly Dictionary<(int, int, int), LG_ComputerTerminal> ReactorTerminals = new();
     private static readonly Queue<LG_SecurityDoor_Locks> LocksQueue = new();
 
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
@@ -75,7 +75,6 @@ public static class SerialLookupManager
                 count++;
 
                 if (zone.TerminalsSpawnedInZone == null) continue;
-                else if (ReactorTerminals.TryGetValue(globalIndex, out var reactorTerm)) zone.TerminalsSpawnedInZone.Add(reactorTerm);
 
                 foreach (var term in zone.TerminalsSpawnedInZone)
                 {
@@ -118,7 +117,6 @@ public static class SerialLookupManager
     private static void Cleanup()
     {
         LocksQueue.Clear();
-        ReactorTerminals.Clear();        
         SerialMap.Clear();        
     }
 

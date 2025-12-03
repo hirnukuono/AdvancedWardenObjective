@@ -1,4 +1,5 @@
-﻿using AWO.Modules.TSL;
+﻿using AmorLib.Utils.Extensions;
+using AWO.Modules.TSL;
 using GTFO.API;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -113,7 +114,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 yield break;
             }
 
-            percentage = time / duration;
+            percentage = Mathf.Clamp01(time / duration);
             invertPercent = 1.0f - percentage;
             if (hud.ShowTimeInProgressBar)
             {

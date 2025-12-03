@@ -7,6 +7,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AddChainPuzzleToSecurityDoor;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

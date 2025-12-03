@@ -3,22 +3,27 @@
 internal class CleanupEnemiesInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CleanupEnemiesInZone;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        var data = e.CleanupEnemies;
-        if (data.AreaIndex == -1)
+        foreach (var ce in e.CleanupEnemies.Values)
         {
-            foreach (var node in zone.m_courseNodes)
+            if (ce.AreaIndex == -1)
             {
-                data.DoClear(node);
+                foreach (var node in zone.m_courseNodes)
+                {
+                    if (ce.AreaBlacklist.Contains(zone.m_courseNodes.IndexOf(node)))
+                        continue;
+                    ce.DoClear(node);
+                }
             }
-        }
-        else if (IsValidAreaIndex(data.AreaIndex, zone))
-        {
-            data.DoClear(zone.m_areas[data.AreaIndex].m_courseNode);
+            else if (IsValidAreaIndex(ce.AreaIndex, zone))
+            {
+                ce.DoClear(zone.m_areas[ce.AreaIndex].m_courseNode);
+            }
         }
     }
 }

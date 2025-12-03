@@ -5,10 +5,9 @@ using SNetwork;
 
 namespace AWO.Modules.WEE.Patches;
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(CM_PageExpeditionSuccess), nameof(CM_PageExpeditionSuccess.Update))]
 internal static class Patch_SuccessPageExitButton
 {
-    [HarmonyPatch(typeof(CM_PageExpeditionSuccess), nameof(CM_PageExpeditionSuccess.Update))]
     [HarmonyPrefix]
     private static void Pre_FixButtonText(CM_PageExpeditionSuccess __instance)
     {

@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using AmorLib.Utils.Extensions;
+using GameData;
 using GTFO.API;
 using GTFO.API.Extensions;
 using System.Collections;
@@ -57,7 +58,8 @@ internal sealed class StartEventLoop : BaseEvent
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
             {
-                break; // not in level or checkpoint was used, exit
+                ActiveEventLoops.TryRemove(index, out _);
+                yield break; // not in level or checkpoint was used, exit
             }
             
             Logger.Debug("StartEventLoop", $"EventLoop {index} repeating #{repeatNum + 1}");

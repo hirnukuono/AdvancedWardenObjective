@@ -1,4 +1,4 @@
-﻿using AWO.Jsons;
+﻿using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
 
 namespace AWO.Modules.WEE.Events;
@@ -6,6 +6,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetDoorInteractionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetDoorInteraction;
+    public override bool WhitelistArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

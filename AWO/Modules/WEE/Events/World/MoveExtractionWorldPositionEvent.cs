@@ -17,7 +17,7 @@ internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnEnterLevel += PostFactoryDone; // change to on factory build done when gtfo.api updates
+        LevelAPI.OnFactoryDone += PostFactoryDone;
         LevelAPI.OnLevelCleanup += () => HasFailed = false;
     }
 

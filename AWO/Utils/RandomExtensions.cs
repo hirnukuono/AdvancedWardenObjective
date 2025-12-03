@@ -20,6 +20,6 @@ public static class RandomExtensions
 
     public static float NextFloat(this Random rand)
     {
-        return (float)rand.NextDouble();
+        return rand.NextSingle();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Agents;
 using AIGraph;
+using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using Enemies;
 using LevelGeneration;
@@ -12,26 +13,28 @@ namespace AWO.Modules.WEE.Events;
 internal class SpawnHibernateInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnHibernateInZone;
-
+    public override bool WhitelistArrayableGlobalIndex => true;
     private const float TimeToCompleteSpawn = 2.0f;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        var sh = e.SpawnHibernates;
-        if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
-        {
-            Vector3 pos = GetPositionFallback(ResolveFieldsFallback(e.Position, sh.Position, false), e.SpecialText, false);
-            int count = ResolveFieldsFallback(e.Count, sh.Count);
+        foreach (var sh in e.SpawnHibernates.Values)
+        { 
+            if (sh.AreaIndex == -1 || IsValidAreaIndex(sh.AreaIndex, zone))
+            {
+                Vector3 pos = GetPositionFallback(ResolveFieldsFallback(e.Position, sh.Position, false), e.SpecialText, false);
+                int count = ResolveFieldsFallback(e.Count, sh.Count);
 
-            if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
-            {
-                EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));
-            }
-            else
-            {
-                CoroutineManager.StartCoroutine(DoSpawn(sh, zone, count, e.Enabled).WrapToIl2Cpp());
+                if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
+                {
+                    EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));
+                }
+                else
+                {
+                    CoroutineManager.StartCoroutine(DoSpawn(sh, zone, count, e.Enabled).WrapToIl2Cpp());
+                }
             }
         }
     }
@@ -72,7 +75,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 foreach (var player in PlayerManager.PlayerAgentsInLevel)
                 {
-                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 12.25f, out _)) // 3.5^2
+                    if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 12.25f)) // 3.5^2
                     {
                         isValidPos = false;
                         Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player");
@@ -84,7 +87,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 {
                     foreach (var enemy in spawnNode.m_enemiesInNode)
                     {
-                        if (enemy.Position.IsWithinSqrDistance(pos, 5.29f, out _)) // 2.3^2
+                        if (enemy.Position.IsWithinSqrDistance(pos, 5.29f)) // 2.3^2
                         {
                             isValidPos = false;
                             Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby enemy");

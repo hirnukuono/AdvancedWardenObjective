@@ -62,4 +62,5 @@ public enum WEE_Type
     DoInteractWeakDoorsInZone,
     ToggleInteractWeakDoorsInZone,
     PickupSentries,
+    SetOutsideDimensionData
 }

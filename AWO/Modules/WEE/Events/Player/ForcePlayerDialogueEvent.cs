@@ -1,11 +1,11 @@
 ﻿using AK;
-using AWO.Jsons;
+using AmorLib.Utils.Extensions;
+using AmorLib.Utils.JsonElementConverters;
 using GameData;
 using Localization;
 using Player;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
-using AkEventCallback = AkCallbackManager.EventCallback;
 using DialogueType = AWO.Modules.WEE.WEE_ForcePlayerDialogue.DialogueType;
 using IntensityState = AWO.Modules.WEE.WEE_ForcePlayerDialogue.PlayerIntensityState;
 
@@ -89,7 +89,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         uint subtitle = dialogueVariation.m_data.SubtitleIDs[index];
 
         AkSoundEngine.SetRandomSeed(EntryPoint.SessionRand.Next());
-        dialogue.Post(lineEvent, player.Position, 1u, (AkEventCallback)VoiceDoneCallback, dialogue);
+        dialogue.PostWithCleanup(lineEvent, player.Position);
 
         WOManager.Current.m_sound.Post(e.SoundID, true);
         if (e.SoundSubtitle != LocaleText.Empty)
@@ -133,11 +133,5 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         }
 
         return player != null;
-    }
-
-    private static void VoiceDoneCallback(Il2CppSystem.Object in_cookie, AkCallbackType in_type, AkCallbackInfo callbackInfo)
-    {
-        var callbackPlayer = in_cookie.Cast<CellSoundPlayer>();
-        callbackPlayer?.Recycle();
     }
 }

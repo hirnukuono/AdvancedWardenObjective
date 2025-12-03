@@ -14,7 +14,7 @@ internal sealed class RevivePlayerEvent : BaseEvent
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
             PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
-            if (activeSlotIndices.Contains(i) && !player.Alive)
+            if ((e.RevivePlayer.AllPlayersExtendedLobby || activeSlotIndices.Contains(i)) && !player.Alive)
             {
                 AgentReplicatedActions.PlayerReviveAction(player, player, player.Position);
             }

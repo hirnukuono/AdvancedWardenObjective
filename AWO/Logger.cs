@@ -10,7 +10,7 @@ internal static class Logger
 
     static Logger()
     {
-        MLS = new ManualLogSource(VersionInfo.RootNamespace);
+        MLS = new ManualLogSource("AWO");
         BepInEx.Logging.Logger.Sources.Add(MLS);
     }
 

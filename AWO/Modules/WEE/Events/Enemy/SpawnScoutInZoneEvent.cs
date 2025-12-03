@@ -6,23 +6,26 @@ using System.Collections;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
+
 internal class SpawnScoutInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnScoutInZone;
-
+    public override bool WhitelistArrayableGlobalIndex => true;
     private const float TimeToCompleteSpawn = 2.0f;
 
     protected override void TriggerMaster(WEE_EventData e) 
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        var ss = e.SpawnScouts;
-        if (ss.AreaIndex == -1 || IsValidAreaIndex(ss.AreaIndex, zone))
+        foreach (var ss in e.SpawnScouts.Values)
         {
-            Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
-            int count = ResolveFieldsFallback(e.Count, ss.Count);
+            if (ss.AreaIndex == -1 || IsValidAreaIndex(ss.AreaIndex, zone))
+            {
+                Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
+                int count = ResolveFieldsFallback(e.Count, ss.Count);
 
-            CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
+                CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
+            }
         }
     }
 

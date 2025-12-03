@@ -11,6 +11,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.SetSuccessScreen;
 
     private static string s_storedSuccessText = string.Empty;
+    private static uint s_storedPreviousMusic = 0;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -43,6 +44,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         }
 
         SetSuccessText(e.SpecialText);
+        SetSuccessMusic(e.SuccessScreen.OverrideMusic);
     }
 
     static IEnumerator FakeScreen(WEE_EventData e)
@@ -77,7 +79,24 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         }
 
         MainMenuGuiLayer.Current.PageExpeditionSuccess.m_header.SetText(text);
-        Logger.Verbose(LogLevel.Debug, $"Set success screen text to {text})");
+        Logger.Verbose(LogLevel.Debug, $"Set success screen text to {text}.");
+    }
+    
+    private static void SetSuccessMusic(uint music)
+    {
+        if (music == 0)
+        {
+            return;
+        }
+
+        if (s_storedPreviousMusic == 0)
+        {
+            s_storedPreviousMusic = MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic;
+            LevelAPI.OnBuildStart += RestoreSuccessMusic; // Any event that fires after the player leaves the success screen
+        }
+
+        MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = music;
+        Logger.Verbose(LogLevel.Debug, $"Set success screen music to sound id {music}.");
     }
 
     private static void RestoreSuccessText()
@@ -87,6 +106,16 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
             MainMenuGuiLayer.Current.PageExpeditionSuccess.m_header.SetText(s_storedSuccessText);
             s_storedSuccessText = string.Empty;
             LevelAPI.OnBuildStart -= RestoreSuccessText;
+        }
+    }
+    
+    private static void RestoreSuccessMusic()
+    {
+        if (s_storedPreviousMusic != 0)
+        {
+            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = s_storedPreviousMusic;
+            s_storedPreviousMusic = 0;
+            LevelAPI.OnBuildStart -= RestoreSuccessMusic;
         }
     }
 }

@@ -458,6 +458,7 @@ public sealed class WEE_SetSuccessScreen
     public ScreenType Type { get; set; } = ScreenType.SetSuccessScreen;
     public WinScreen CustomSuccessScreen { get; set; } = WinScreen.Empty;
     public eCM_MenuPage FakeEndScreen { get; set; } = eCM_MenuPage.CMP_EXPEDITION_SUCCESS;
+    public uint OverrideMusic { get; set; } = 0;
     public enum ScreenType : byte
     {
         SetSuccessScreen,

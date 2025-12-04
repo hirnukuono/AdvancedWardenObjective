@@ -90,18 +90,22 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
             Logger.Error($"Failed to find enabled LightSettingsDataBlock {state.lightData}!");
             return;
         }
-
-        System.Random rand = new(state.lightSeed);
-        for (int i = 0; i < LightsInZone.Length; i++, rand.Next())
+        
+        for (int i = 0; i < LightsInZone.Length; i++)
         {
-            ApplyLightMod(block, isRecall ? 0.0f : state.duration, rand, i); // set new light settings
+            ApplyLightMod(block, isRecall ? 0.0f : state.duration, state.lightSeed, i); // set new light settings
         }
     }
 
-    [HideFromIl2Cpp]
-    private void ApplyLightMod(LightSettingsDataBlock lightDB, float duration, System.Random rand, int ixseed)
+    private void ApplyLightMod(LightSettingsDataBlock lightDB, float duration, int seed, int subseed)
     {
-        var worker = LightsInZone[ixseed];
+        System.Random rand = new(seed);
+        for (int i = 0; i < Mathf.Abs(subseed); i++)
+        {
+            rand.Next();
+        }
+
+        var worker = LightsInZone[subseed];
         var light = worker.Light;
         var mod = worker.AddModifier(light.m_color, light.m_intensity, light.enabled);
 
@@ -113,7 +117,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         
         var selector = new LightSettingSelector();
         selector.Setup(worker.Light.m_category, lightDB);
-        if (selector.TryGetRandomSetting((uint)ixseed, out var setting))
+        if (selector.TryGetRandomSetting((uint)subseed, out var setting))
         {
             worker.ToggleLightFlicker(false);
 

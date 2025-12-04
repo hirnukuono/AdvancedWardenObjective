@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
+using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.WEE.Replicators;
 using GTFO.API;
 using LevelGeneration;
@@ -48,29 +49,34 @@ internal sealed class SetOutsideDimensionDataEvent : BaseEvent
         var r = replicator.OutsideData!;
         return new float[]
         {
-            d.LightAzimuth.GetAbsValue(r.LightAzimuth),
-            d.LightElevation.GetAbsValue(r.LightElevation),
-            d.LightIntensity.GetAbsValue(r.LightIntensity),
-            d.AmbientIntensity.GetAbsValue(r.AmbientIntensity),
-            d.ReflectionsIntensity.GetAbsValue(r.ReflectionsIntensity),
-            d.GodrayRange.GetAbsValue(r.GodrayRange),
-            d.GodrayExponent.GetAbsValue(r.GodrayExponent),
-            d.AtmosphereDensity.GetAbsValue(r.AtmosphereDensity),
-            d.Exposure.GetAbsValue(r.Exposure),
-            d.AerialScale.GetAbsValue(r.AerialScale),
-            d.MieScattering.GetAbsValue(r.MieScattering),
-            d.MieG.GetAbsValue(r.MieG),
-            d.MultipleScattering.GetAbsValue(r.MultipleScattering),
-            d.CloudsCoverage.GetAbsValue(r.CloudsCoverage),
-            d.CloudsDensity.GetAbsValue(r.CloudsDensity),
-            d.CloudsSharpness.GetAbsValue(r.CloudsSharpness),
-            d.CloudsShadowOpacity.GetAbsValue(r.CloudsShadowOpacity),
-            d.CloudsTimescale.GetAbsValue(r.CloudsTimescale),
-            d.CloudsCrawling.GetAbsValue(r.CloudsCrawling),
-            d.CloudsFade.GetAbsValue(r.CloudsFade),
-            d.SandstormEdgeA.GetAbsValue(r.SandstormEdgeA),
-            d.SandstormEdgeB.GetAbsValue(r.SandstormEdgeB),
-            d.SandstormMinFog.GetAbsValue(r.SandstormMinFog)
+            Pack(d.LightAzimuth, r.LightAzimuth),
+            Pack(d.LightElevation, r.LightElevation),
+            Pack(d.LightIntensity, r.LightIntensity),
+            Pack(d.AmbientIntensity, r.AmbientIntensity),
+            Pack(d.ReflectionsIntensity, r.ReflectionsIntensity),
+            Pack(d.GodrayRange, r.GodrayRange),
+            Pack(d.GodrayExponent, r.GodrayExponent),
+            Pack(d.AtmosphereDensity, r.AtmosphereDensity),
+            Pack(d.Exposure, r.Exposure),
+            Pack(d.AerialScale, r.AerialScale),
+            Pack(d.MieScattering, r.MieScattering),
+            Pack(d.MieG, r.MieG),
+            Pack(d.MultipleScattering, r.MultipleScattering),
+            Pack(d.CloudsCoverage, r.CloudsCoverage),
+            Pack(d.CloudsDensity, r.CloudsDensity),
+            Pack(d.CloudsSharpness, r.CloudsSharpness),
+            Pack(d.CloudsShadowOpacity, r.CloudsShadowOpacity),
+            Pack(d.CloudsTimescale, r.CloudsTimescale),
+            Pack(d.CloudsCrawling, r.CloudsCrawling),
+            Pack(d.CloudsFade, r.CloudsFade),
+            Pack(d.SandstormEdgeA, r.SandstormEdgeA),
+            Pack(d.SandstormEdgeB, r.SandstormEdgeB),
+            Pack(d.SandstormMinFog, r.SandstormMinFog)
         };
-    }
+        
+        static float Pack(ValueBase d, float r)
+        {
+            return (d.Mode == ValueMode.Rel && d.Value == 1) ? float.NaN : d.GetAbsValue(r);
+        }
+    }    
 }

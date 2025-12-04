@@ -173,7 +173,6 @@ public class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<Outsi
                 _fieldMap[i].Set(dimData, value);
             }
 
-            //EnvironmentStateManager.Current.UpdateAtmosphereAndClouds();
             yield return null;
         }
 

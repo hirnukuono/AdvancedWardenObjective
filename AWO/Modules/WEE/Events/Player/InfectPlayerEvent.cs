@@ -17,9 +17,10 @@ internal sealed class InfectPlayerEvent : BaseEvent
 
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
+            bool overflow = i >= 4 && e.InfectPlayer.FullTeamOverflow && activeSlotIndices.Count == 4 && activeSlotIndices.Max() < 4;
             PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
-            if (!e.InfectPlayer.AllPlayersExtendedLobby || !activeSlotIndices.Contains(i) || player.Owner.IsBot)
-                continue; // Player not in PlayerFilter or is bot, continue
+            if ((!overflow && !activeSlotIndices.Contains(i)) || player.Owner.IsBot)
+                continue; // Player is neither in PlayerFilter nor is bot, continue
             if (player.CourseNode?.m_zone == null)
                 continue; // Node is null, continue
 

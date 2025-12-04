@@ -370,7 +370,7 @@ public sealed partial class WEE_TeleportPlayer // new
 public sealed class WEE_InfectPlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3};
-    public bool AllPlayersExtendedLobby { get; set; } = true;
+    public bool FullTeamOverflow { get; set; } = true;
     public float InfectionAmount { get; set; } = 0.0f;
     public bool InfectOverTime { get; set; } = false;
     public float Interval { get; set; } = 1.0f;
@@ -380,7 +380,7 @@ public sealed class WEE_InfectPlayer
 public sealed class WEE_DamagePlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
-    public bool AllPlayersExtendedLobby { get; set; } = true;
+    public bool FullTeamOverflow { get; set; } = true;
     public float DamageAmount { get; set; } = 0.0f;
     public bool DamageOverTime { get; set; } = false;
     public float Interval { get; set; } = 1.0f;
@@ -390,7 +390,7 @@ public sealed class WEE_DamagePlayer
 public sealed class WEE_RevivePlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
-    public bool AllPlayersExtendedLobby { get; set; } = true;
+    public bool FullTeamOverflow { get; set; } = true;
 }
 
 public sealed class WEE_AdjustTimer

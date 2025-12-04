@@ -17,8 +17,9 @@ internal sealed class DamagePlayerEvent : BaseEvent
 
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
+            bool overflow = i >= 4 && e.DamagePlayer.FullTeamOverflow && activeSlotIndices.Count == 4 && activeSlotIndices.Max() < 4;
             PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
-            if (!e.DamagePlayer.AllPlayersExtendedLobby || !activeSlotIndices.Contains(i))
+            if (!overflow && !activeSlotIndices.Contains(i))
                 continue; // Player not in PlayerFilter, continue
             if (player.CourseNode?.m_zone == null)
                 continue; // Node is null, continue

@@ -37,16 +37,21 @@ public sealed class SessionRandReplicator : IStateReplicatorHolder<SessionRandSt
     
     public void OnStateChange(SessionRandState oldState, SessionRandState state, bool isRecall)
     {
-        if (state.currentStep != Step)
+        if (state.currentStep == Step)
         {
-            Logger.Debug($"Jumping ahead from local step {Step} to session step {state.currentStep}");
-            Step = state.currentStep;
-            Jump(Step);            
+            Logger.Verbose(LogLevel.Debug, $"No change in SessionRand step from received state, isRecall: {isRecall}");
+            return;
         }
-        else
+        else if (state.currentStep < Step)
         {
-            Logger.Verbose(LogLevel.Debug, "No change in SessionRand step from received state");
+            Logger.Verbose(LogLevel.Warning, $"SessionRand step cannot be lowered by received state, isRecall: {isRecall}");
+            Replicator?.SetStateUnsynced(new() { currentStep = Step });
+            return;
         }
+
+        Logger.Debug($"Jumping ahead from local step {Step} to session step {state.currentStep}, isRecall: {isRecall}");
+        Step = state.currentStep;
+        Jump(Step);        
     }
 
     // Adapted from https://rosettacode.org/wiki/Pseudo-random_numbers/Splitmix64 + TommyYettinger and bryc

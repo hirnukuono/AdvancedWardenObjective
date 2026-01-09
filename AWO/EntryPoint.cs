@@ -17,7 +17,7 @@ namespace AWO;
 [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-internal class EntryPoint : BasePlugin
+internal sealed class EntryPoint : BasePlugin
 {
     /* Globals */
     public static BlackoutState BlackoutState { get; private set; } = new();
@@ -40,7 +40,7 @@ internal class EntryPoint : BasePlugin
     {
         Configuration.Init();
         WardenEventExt.Initialize();
-        //WardenObjectiveExt.Initialize();
+        // WardenObjectiveExt.Initialize();
 
         new Harmony("AWO.Harmony").PatchAll();
 

@@ -11,7 +11,9 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SpecialHudTimerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpecialHudTimer;
+
     public static readonly ConcurrentDictionary<int, Coroutine?> SpecialHuds = new();
+
     private const string Timer = "[TIMER]";
     private const string Percent = "[PERCENT]";
 
@@ -28,7 +30,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        var specHud = e.SpecialHudTimer;
+        var specHud = e.SpecialHudTimer ?? new();
         float duration = ResolveFieldsFallback(e.Duration, specHud.Duration);
 
         switch (specHud.Type)
@@ -40,7 +42,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug("Starting new Timed SpecialHud (no index, cannot be stopped once started)");
-                CoroutineManager.StartCoroutine(DoSpecialHudTimed(e.SpecialHudTimer, duration).WrapToIl2Cpp());
+                CoroutineManager.StartCoroutine(DoSpecialHudTimed(specHud, duration).WrapToIl2Cpp());
                 break;
 
             case SpecialHudType.StartIndexTimer: // start timed specialhud with index
@@ -55,7 +57,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug($"Starting Timed SpecialHud with index: {specHud.Index}");
-                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudTimed(e.SpecialHudTimer, duration).WrapToIl2Cpp());
+                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudTimed(specHud, duration).WrapToIl2Cpp());
                 break;
 
             case SpecialHudType.StartPersistent: // start persistent specialhud
@@ -65,7 +67,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug($"Starting Persistent SpecialHud with index: {specHud.Index}");
-                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudPersistent(e.SpecialHudTimer).WrapToIl2Cpp());
+                SpecialHuds[specHud.Index] = CoroutineManager.StartCoroutine(DoSpecialHudPersistent(specHud).WrapToIl2Cpp());
                 break;
 
             case SpecialHudType.StopIndex: // stop specialhud with index
@@ -92,7 +94,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     static IEnumerator DoSpecialHudTimed(WEE_SpecialHudTimer hud, float duration)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int reloadCount = CheckpointManager.CheckpointUsage;
         float time = 0.0f;
         float percentage, invertPercent;
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
@@ -107,7 +109,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         while (time <= duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
@@ -171,7 +173,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
     static IEnumerator DoSpecialHudPersistent(WEE_SpecialHudTimer hud)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int reloadCount = CheckpointManager.CheckpointUsage;
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
 
         GuiManager.InteractionLayer.MessageVisible = true;
@@ -179,7 +181,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         while (true)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;

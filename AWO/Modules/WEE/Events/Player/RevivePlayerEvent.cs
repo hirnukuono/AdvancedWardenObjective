@@ -9,6 +9,7 @@ internal sealed class RevivePlayerEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
+        e.RevivePlayer ??= new();
         var activeSlotIndices = new HashSet<int>(e.RevivePlayer.PlayerFilter.Select(filter => (int)filter));
         
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)

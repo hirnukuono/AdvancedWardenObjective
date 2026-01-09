@@ -6,7 +6,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CloseSecurityDoorEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CloseSecurityDoor;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {

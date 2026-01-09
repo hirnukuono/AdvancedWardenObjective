@@ -9,7 +9,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AlertEnemiesInZone;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {

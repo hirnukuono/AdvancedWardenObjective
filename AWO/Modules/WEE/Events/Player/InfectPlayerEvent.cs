@@ -7,10 +7,11 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class InfectPlayerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.InfectPlayer;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
+        e.InfectPlayer ??= new();
         var activeSlotIndices = new HashSet<int>(e.InfectPlayer.PlayerFilter.Select(filter => (int)filter));
 
         if (!TryGetZone(e, out var zone)) return;
@@ -33,14 +34,14 @@ internal sealed class InfectPlayerEvent : BaseEvent
 
     private static IEnumerator InfectOverTime(WEE_EventData e, PlayerAgent player, int id)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float infectionPerSecond = e.InfectPlayer.InfectionAmount / e.Duration;
+        int reloadCount = CheckpointManager.CheckpointUsage;
+        float infectionPerSecond = e.InfectPlayer!.InfectionAmount / e.Duration;
         float elapsed = 0.0f;
         WaitForSeconds delay = new(e.InfectPlayer.Interval);
 
         while (elapsed < e.Duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 yield break; // checkpoint was used or not in level, exit
             }

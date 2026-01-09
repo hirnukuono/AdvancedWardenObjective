@@ -10,7 +10,8 @@ namespace AWO.Modules.WEE.Events;
 internal class SpawnScoutInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnScoutInZone;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
+
     private const float TimeToCompleteSpawn = 2.0f;
 
     protected override void TriggerMaster(WEE_EventData e) 

@@ -24,6 +24,7 @@ internal static class Patch_IncomingFragments
         if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle || state.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
         {
             __instance.m_intOpenDoor.InteractionMessage = ParseTextFragments(__instance.m_intOpenDoor.InteractionMessage);
+            __instance.m_intCustomMessage.m_message = ParseTextFragments(__instance.m_intCustomMessage.m_message);
         }
     }
 }

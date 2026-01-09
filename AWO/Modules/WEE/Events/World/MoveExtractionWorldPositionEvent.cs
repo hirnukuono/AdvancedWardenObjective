@@ -9,6 +9,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class MoveExtractionWorldPositionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MoveExtractionWorldPosition;
+
     private static ScanPositionReplicator? EntranceScanReplicator;
     private static ScanPositionReplicator? ExitScanReplicator;
     

@@ -13,6 +13,7 @@ internal sealed class ShakeScreenEvent : BaseEvent
         effect.transform.parent = PlayerManager.GetLocalPlayerAgent().transform;
         effect.transform.localPosition = Vector3.zero;
 
+        e.CameraShake ??= new();
         effect.Radius = e.CameraShake.Radius;
         effect.Duration = ResolveFieldsFallback(e.Duration, e.CameraShake.Duration);
         effect.Amplitude = e.CameraShake.Amplitude;

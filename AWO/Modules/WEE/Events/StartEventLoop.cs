@@ -11,6 +11,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartEventLoop : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartEventLoop;
+
     public static readonly ConcurrentDictionary<int, Coroutine?> ActiveEventLoops = new();
 
     protected override void OnSetup()
@@ -26,37 +27,38 @@ internal sealed class StartEventLoop : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (e.StartEventLoop.LoopDelay < 1.0f)
+        var sel = e.StartEventLoop ?? new();
+
+        if (sel.LoopDelay < 1.0f)
         {
             LogError("LoopDelay must be greater than or equal to 1.0 seconds");
             return;
         }
 
-        if (!ActiveEventLoops.TryAdd(e.StartEventLoop.LoopIndex, null))
+        if (!ActiveEventLoops.TryAdd(sel.LoopIndex, null))
         {
-            LogError($"EventLoop {e.StartEventLoop.LoopIndex} is already active...");
+            LogError($"EventLoop {sel.LoopIndex} is already active...");
             return;
         }
 
-        LogDebug($"Starting EventLoop Index: {e.StartEventLoop.LoopIndex}");
-        ActiveEventLoops[e.StartEventLoop.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(e).WrapToIl2Cpp());
+        LogDebug($"Starting EventLoop Index: {sel.LoopIndex}");
+        ActiveEventLoops[sel.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(sel).WrapToIl2Cpp());
     }
 
-    static IEnumerator DoLoop(WEE_EventData e)
+    static IEnumerator DoLoop(WEE_StartEventLoop sel)
     {
-        var sel = e.StartEventLoop;
         int index = sel.LoopIndex;
         int repeatNum = 0;
         int repeatMax = sel.LoopCount;
         bool repeatInf = repeatMax == -1;
 
         var eData = sel.EventsToActivate.ToIl2Cpp();
-        int myReloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int myReloadCount = CheckpointManager.CheckpointUsage;
         WaitForSeconds delay = new(sel.LoopDelay);
 
         while (repeatNum < repeatMax || repeatInf)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > myReloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || myReloadCount < CheckpointManager.CheckpointUsage)
             {
                 ActiveEventLoops.TryRemove(index, out _);
                 yield break; // not in level or checkpoint was used, exit

@@ -13,7 +13,8 @@ namespace AWO.Modules.WEE.Events;
 internal class SpawnHibernateInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnHibernateInZone;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
+
     private const float TimeToCompleteSpawn = 2.0f;
 
     protected override void TriggerMaster(WEE_EventData e)

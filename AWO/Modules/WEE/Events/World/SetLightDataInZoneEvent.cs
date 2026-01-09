@@ -9,7 +9,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetLightDataInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetLightDataInZone;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void OnSetup()
     {
@@ -30,7 +30,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
     {
         if (!TryGetZone(e, out var zone)) return;
 
-        var setting = e.SetZoneLight;
+        var setting = e.SetZoneLight ?? new();
         if (!zone.gameObject.TryAndGetComponent<ZoneLightReplicator>(out var replicator))
         {
             LogError("Unable to find ZoneLightReplicator component in zone?");

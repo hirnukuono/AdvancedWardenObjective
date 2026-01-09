@@ -11,7 +11,7 @@ internal sealed class NestedEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        var nested = e.NestedEvent;
+        var nested = e.NestedEvent ?? new();
 
         List<WardenObjectiveEventData> eventList = nested.Type switch
         {

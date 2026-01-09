@@ -8,23 +8,24 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CountdownEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countdown;
+
     private static PUI_ObjectiveTimer ObjHudTimer => GuiManager.PlayerLayer.m_objectiveTimer;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        float duration = ResolveFieldsFallback(e.Duration, e.Countdown.Duration);
+        float duration = ResolveFieldsFallback(e.Duration, e.Countdown?.Duration ?? 0.0f);
         if (duration <= 0.0f)
         {
             LogWarning("Duration should generally be greater than 0 seconds");
         }
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
-        CoroutineManager.StartCoroutine(DoCountdown(e.Countdown, duration).WrapToIl2Cpp());
+        CoroutineManager.StartCoroutine(DoCountdown(e.Countdown ?? new(), duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoCountdown(WEE_CountdownData cd, float duration)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int reloadCount = CheckpointManager.CheckpointUsage;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float time = 0.0f;        
         LocaleText timerTitle = SerialLookupManager.ParseLocaleText(cd.TimerText);
@@ -48,7 +49,7 @@ internal sealed class CountdownEvent : BaseEvent
             {
                 yield break; // someone has started a new countdown while we were here, exit
             }
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 // checkpoint has been used
                 ObjHudTimer.SetTimerActive(false, false);
@@ -90,14 +91,18 @@ internal sealed class CountdownEvent : BaseEvent
 
             yield return null;
         }
-
-        ObjHudTimer.SetTimerActive(false, true);
-
+        
         while (cachedProgressEvents.Count > 0)
         {
             ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
         }
         ExecuteWardenEvents(cd.EventsOnDone);
+
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
+        {
+            yield break; // catch for if new timer started at the last moment
+        }
+        ObjHudTimer.SetTimerActive(false, true);        
     }
 
     public static void UpdateTimerText(float time, float duration, Color color, bool showHours)

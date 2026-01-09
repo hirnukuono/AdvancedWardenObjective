@@ -8,6 +8,8 @@ internal sealed class ModifyReactorWaveStateEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
+        e.Reactor ??= new();
+
         foreach (var keyValue in WOManager.Current.m_wardenObjectiveItem)
         {
             if (keyValue.Key.Layer != e.Layer) continue;

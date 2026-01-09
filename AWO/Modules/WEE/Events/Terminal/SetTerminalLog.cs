@@ -9,7 +9,8 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class SetTerminalLog : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SetTerminalLog;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
+
     public static readonly Dictionary<(uint, string), Queue<WardenObjectiveEventData>> LogEventQueue = new();
 
     protected override void OnSetup()

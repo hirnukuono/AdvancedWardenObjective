@@ -15,6 +15,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
+        e.SuccessScreen ??= new();
         switch (e.SuccessScreen.Type)
         {
             case ScreenType.SetSuccessScreen:
@@ -28,7 +29,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     private static void SetScreen(WEE_EventData e)
     {
-        string pageResourcePath = e.SuccessScreen.CustomSuccessScreen;
+        string pageResourcePath = e.SuccessScreen!.CustomSuccessScreen;
         if (pageResourcePath != string.Empty)
         {
             try
@@ -51,7 +52,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     {
         Logger.Verbose(LogLevel.Debug, "Enabling fake end screen... Disabled map and menu toggle");
         SetSuccessText(e.SpecialText);
-        FocusStateManager.EnterMenu(e.SuccessScreen.FakeEndScreen, force: true);
+        FocusStateManager.EnterMenu(e.SuccessScreen!.FakeEndScreen, force: true);
         FocusStateManager.MapToggleAllowed = false;
         FocusStateManager.MenuToggleAllowed = false;
 

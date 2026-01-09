@@ -1,4 +1,5 @@
-﻿using AmorLib.Utils.Extensions;
+﻿using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using AmorLib.Utils.JsonElementConverters;
 using BepInEx;
 using BepInEx.Logging;
@@ -11,7 +12,7 @@ namespace AWO.Modules.TSL;
 
 public static class SerialLookupManager
 {
-    public static readonly Dictionary<string, Dictionary<(int, int, int), List<String>>> SerialMap = new();
+    public static readonly Dictionary<string, Dictionary<(int, int, int), List<string>>> SerialMap = new();
     private static readonly Queue<LG_SecurityDoor_Locks> LocksQueue = new();
 
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
@@ -24,6 +25,14 @@ public static class SerialLookupManager
         LevelAPI.OnBuildDone += BuildSerialMap;
         LevelAPI.OnEnterLevel += OnEnterLevel;
         LevelAPI.OnLevelCleanup += Cleanup;
+
+        InteropAPI.RegisterCall("TSL-ParseTextFragments", args =>
+        {
+            if (args?.Length > 0 && args[0] is string input)
+                return ParseTextFragments(input);
+
+            return null;
+        });
     }
 
     private static void BuildSerialMap()
@@ -49,11 +58,7 @@ public static class SerialLookupManager
                     continue;
                 }
 
-                int dimension = (int)serial.Value.SpawnNode.m_dimension.DimensionIndex;
-                int layer = (int)serial.Value.SpawnNode.LayerType;
-                int zone = (int)serial.Value.SpawnNode.m_zone.LocalIndex;
-                var globalIndex = (dimension, layer, zone);
-
+                var globalIndex = serial.Value.SpawnNode.m_zone.ToIntTuple();
                 SerialMap.GetOrAddNew(itemName).GetOrAddNew(globalIndex).Add(serialNumber);
                 count++;
             }
@@ -70,7 +75,7 @@ public static class SerialLookupManager
             try
             {
                 if (zone == null) continue;
-                var globalIndex = ((int)zone.DimensionIndex, (int)zone.Layer.m_type, (int)zone.LocalIndex);
+                var globalIndex = zone.ToIntTuple();
                 SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalIndex).Add(zone.Alias.ToString());
                 count++;
 
@@ -87,9 +92,7 @@ public static class SerialLookupManager
                     count++;
                 } 
 
-                var door = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>();
-                if (door == null) continue;
-                var locks = door.m_locks?.TryCast<LG_SecurityDoor_Locks>();
+                var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
                 if (locks == null) continue;
                 LocksQueue.Enqueue(locks);
             }

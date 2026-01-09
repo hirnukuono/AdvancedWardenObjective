@@ -31,7 +31,7 @@ internal sealed class SetOutsideDimensionDataEvent : BaseEvent
             return;
         }
 
-        var dimData = e.DimensionData;
+        var dimData = e.DimensionData ?? new();
         replicator.SetOutsideData(new OutsideDataState()
         {
             duration = e.Duration,
@@ -39,14 +39,14 @@ internal sealed class SetOutsideDimensionDataEvent : BaseEvent
             isOutside = dimData.IsOutside,
             atmosphereData = dimData.AtmosphereData,
             cloudsData = dimData.CloudsData,
-            sandstorm = dimData.Sandstorm.GetValue(replicator.OutsideData!.Sandstorm),
+            sandstorm = dimData.Sandstorm.GetValue(replicator.OutsideData.Sandstorm),
             fieldData = PackFields(dimData, replicator)
         });
     }
 
     private static float[] PackFields(WEE_SetOutsideDimensionData d, OutsideDataReplicator replicator)
     {
-        var r = replicator.OutsideData!;
+        var r = replicator.OutsideData;
         return new float[]
         {
             Pack(d.LightAzimuth, r.LightAzimuth),

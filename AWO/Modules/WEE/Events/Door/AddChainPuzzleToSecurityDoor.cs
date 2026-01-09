@@ -1,4 +1,5 @@
-﻿using ChainedPuzzles;
+﻿using AmorLib.Utils;
+using ChainedPuzzles;
 using GameData;
 using LevelGeneration;
 
@@ -7,15 +8,14 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AddChainPuzzleToSecurityDoor;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
         if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
 
         uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle;
-        var block = ChainedPuzzleDataBlock.GetBlock(chainPuzzle);
-        if (block == null || !block.internalEnabled)
+        if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(chainPuzzle, out var block))
         {
             LogError($"Failed to find enabled ChainedPuzzleDataBlock {chainPuzzle}!");
             return;

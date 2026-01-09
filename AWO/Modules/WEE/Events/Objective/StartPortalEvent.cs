@@ -9,6 +9,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class StartPortalEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.StartPortalMachine;
+
     public static Dictionary<GlobalZoneIndex, LG_DimensionPortal> Portals { get; set; } = new();
 
     protected override void OnSetup()
@@ -31,6 +32,7 @@ internal sealed class StartPortalEvent : BaseEvent
             return;
         }
 
+        e.Portal ??= new();
         portalMachine.m_targetDimension = e.Portal.TargetDimension;
         portalMachine.m_teleportDelay = e.Portal.TeleportDelay;
         portalMachine.m_portalEventData = new()

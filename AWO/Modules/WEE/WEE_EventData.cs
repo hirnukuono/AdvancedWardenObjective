@@ -28,9 +28,9 @@ public sealed class WEE_EventData
     public bool UseStaticBioscanPoints { get; set; } = false;
 
     // General Fields
-    public Arrayable<eDimensionIndex> ArrayableDimension { get; set; } = eDimensionIndex.Reality;
-    public Arrayable<LG_LayerType> ArrayableLayer { get; set; } = LG_LayerType.MainLayer;
-    public Arrayable<eLocalZoneIndex> ArrayableZone { get; set; } = eLocalZoneIndex.Zone_0;
+    //public Arrayable<eDimensionIndex> DimensionIndex { get; set; } = eDimensionIndex.Reality;
+    //public Arrayable<LG_LayerType> Layer { get; set; } = LG_LayerType.MainLayer;
+    //public Arrayable<eLocalZoneIndex> LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
     public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
     public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
@@ -46,7 +46,7 @@ public sealed class WEE_EventData
     public bool SpecialBool { get; set; } = false;
     public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
-    public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = new(value); }
+    public string WorldEventObjectFilter { get => SpecialText; set => SpecialText = new(value); } // public getter
 
     // Common Updater
     public WEE_SubObjectiveData SubObjective { get; set; } = new();
@@ -54,46 +54,46 @@ public sealed class WEE_EventData
 
     // Command Specific
     public bool CleanUpEnemiesBehind { get; set; } = true;
-    public WEE_ReactorEventData Reactor { get; set; } = new();
-    public WEE_CountdownData Countdown { get; set; } = new();
-    public WEE_ZoneLightData SetZoneLight { get; set; } = new();
-    public Arrayable<WEE_CleanupEnemiesData> CleanupEnemies { get; set; } = new();
-    public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new();
-    public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new();
+    public WEE_ReactorEventData? Reactor { get; set; } = null;
+    public WEE_CountdownData? Countdown { get; set; } = null;
+    public WEE_ZoneLightData? SetZoneLight { get; set; } = null;
+    public Arrayable<WEE_CleanupEnemiesData> CleanupEnemies { get; set; } = new WEE_CleanupEnemiesData();
+    public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new WEE_SpawnHibernateData();
+    public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new WEE_SpawnScoutData();
 
     // Hirnu
-    public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new();
-    public Arrayable<WEE_AddTerminalCommand> AddCommand { get => AddTerminalCommand; set => AddTerminalCommand = value; }
-    public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new();
-    public Arrayable<WEE_HideTerminalCommand> HideCommand { get => HideTerminalCommand; set => HideTerminalCommand = value; }
-    public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new();
-    public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
+    public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new WEE_AddTerminalCommand();
+    public Arrayable<WEE_AddTerminalCommand> AddCommand { private get => AddTerminalCommand; set => AddTerminalCommand = value; }
+    public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new WEE_HideTerminalCommand();
+    public Arrayable<WEE_HideTerminalCommand> HideCommand { private get => HideTerminalCommand; set => HideTerminalCommand = value; }
+    public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new WEE_UnhideTerminalCommand();
+    public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { private get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
     // Amor
-    public WEE_NestedEvent NestedEvent { get; set; } = new();
-    public WEE_StartEventLoop StartEventLoop { get; set; } = new();
-    public WEE_StartEventLoop EventLoop { get => StartEventLoop; set => StartEventLoop = value; }
-    public WEE_TeleportPlayer TeleportPlayer { get; set; } = new();
-    public WEE_InfectPlayer InfectPlayer { get; set; } = new();
-    public WEE_DamagePlayer DamagePlayer { get; set; } = new();
-    public WEE_RevivePlayer RevivePlayer { get; set; } = new();
+    public WEE_NestedEvent? NestedEvent { get; set; } = null;
+    public WEE_StartEventLoop? StartEventLoop { get; set; } = null;
+    public WEE_StartEventLoop? EventLoop { private get => StartEventLoop; set => StartEventLoop = value; }
+    public WEE_TeleportPlayer? TeleportPlayer { get; set; } = null;
+    public WEE_InfectPlayer? InfectPlayer { get; set; } = null;
+    public WEE_DamagePlayer? DamagePlayer { get; set; } = null;
+    public WEE_RevivePlayer? RevivePlayer { get; set; } = null;
     public WEE_AdjustTimer AdjustTimer { get; set; } = new();
-    public WEE_CountupData Countup { get; set; } = new();
-    public Arrayable<WEE_NavMarkerData> NavMarker { get; set; } = new();
-    public WEE_ShakeScreen CameraShake { get; set; } = new();
-    public WEE_StartPortalMachine Portal { get; set; } = new();
-    public WEE_SetSuccessScreen SuccessScreen { get; set; } = new();
+    public WEE_CountupData? Countup { get; set; } = null;
+    public Arrayable<WEE_NavMarkerData> NavMarker { get; set; } = new WEE_NavMarkerData();
+    public WEE_ShakeScreen? CameraShake { get; set; } = null;
+    public WEE_StartPortalMachine? Portal { get; set; } = null;
+    public WEE_SetSuccessScreen? SuccessScreen { get; set; } = null;
     public List<WEE_SubObjectiveData> MultiProgression { get; set; } = new();
-    public WEE_PlayWaveDistantRoar WaveRoarSound { get; set; } = new();
-    public WEE_CustomHudText CustomHudText { get; set; } = new();
-    public WEE_CustomHudText CustomHud { get => CustomHudText; set => CustomHudText = value; }
-    public WEE_SpecialHudTimer SpecialHudTimer { get; set; } = new();
-    public WEE_SpecialHudTimer SpecialHud { get => SpecialHudTimer; set => SpecialHudTimer = value; }
-    public WEE_ForcePlayerDialogue PlayerDialogue { get; set; } = new();
-    public Arrayable<WEE_SetTerminalLog> SetTerminalLog { get; set; } = new();
-    public Arrayable<WEE_SetTerminalLog> TerminalLog { get => SetTerminalLog; set => SetTerminalLog = value; }
+    public WEE_PlayWaveDistantRoar? WaveRoarSound { get; set; } = null;
+    public WEE_CustomHudText? CustomHudText { get; set; } = null;
+    public WEE_CustomHudText? CustomHud { private get => CustomHudText; set => CustomHudText = value; }
+    public WEE_SpecialHudTimer? SpecialHudTimer { get; set; } = new();
+    public WEE_SpecialHudTimer? SpecialHud { private get => SpecialHudTimer; set => SpecialHudTimer = value; }
+    public WEE_ForcePlayerDialogue? PlayerDialogue { get; set; } = null;
+    public Arrayable<WEE_SetTerminalLog> SetTerminalLog { get; set; } = new WEE_SetTerminalLog();
+    public Arrayable<WEE_SetTerminalLog> TerminalLog { private get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
-    public WEE_SetOutsideDimensionData DimensionData { get; set; } = new();
+    public WEE_SetOutsideDimensionData? DimensionData { get; set; } = null;
 
     // Dinorush
     public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;

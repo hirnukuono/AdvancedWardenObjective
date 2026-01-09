@@ -1,5 +1,4 @@
-﻿using AIGraph;
-using AmorLib.Utils;
+﻿using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using LevelGeneration;
@@ -23,7 +22,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             return;
         }
 
-        var tp = e.TeleportPlayer;
+        var tp = e.TeleportPlayer ?? new();
         var playersInLevel = PlayerManager.PlayerAgentsInLevel;
 
         if (tp.TPData.Count == 0) // convert old to new format
@@ -111,12 +110,12 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     static IEnumerator FlashBack(TeleportData tpData)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int reloadCount = CheckpointManager.CheckpointUsage;
         Logger.Verbose(LogLevel.Debug, $"{tpData.PlayerIndex} flash warp to {tpData.LastDimension} is queued...");
 
         yield return new WaitForSeconds(tpData.Duration);
 
-        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
         {
             yield break; // checkpoint was used or not in level, exit
         }
@@ -184,5 +183,14 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         };
     }
 
-    private static Vector3 CamDirIfNotBot(PlayerAgent player) => player.Owner.IsBot ? Vector3.forward : player.Sync.m_locomotionData.LookDir.Value;
+    private static Vector3 CamDirIfNotBot(PlayerAgent player)
+    {
+        if (player.Owner.IsBot)
+            return Vector3.forward;
+
+        if (player.IsLocallyOwned)
+            return player.FPSCamera.CameraRayDir.normalized;
+
+        return player.Sync.m_locomotionData.LookDir.Value;
+    }
 }

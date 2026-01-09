@@ -7,10 +7,11 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class DamagePlayerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.DamagePlayer;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
+        e.DamagePlayer ??= new();
         var activeSlotIndices = new HashSet<int>(e.DamagePlayer.PlayerFilter.Select(filter => (int)filter));
 
         if (!TryGetZone(e, out var zone)) return;
@@ -33,14 +34,14 @@ internal sealed class DamagePlayerEvent : BaseEvent
 
     private static IEnumerator DamageOverTime(WEE_EventData e, PlayerAgent player, int id)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
-        float damagePerSecond = e.DamagePlayer.DamageAmount / e.Duration;
+        int reloadCount = CheckpointManager.CheckpointUsage;
+        float damagePerSecond = e.DamagePlayer!.DamageAmount / e.Duration;
         float elapsed = 0.0f;
         WaitForSeconds delay = new(e.DamagePlayer.Interval);
 
         while (elapsed < e.Duration)
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 yield break; // checkpoint was used or not in level, exit
             }

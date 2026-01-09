@@ -1,4 +1,5 @@
-﻿using AmorLib.Utils.Extensions;
+﻿using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using GameData;
 using GTFO.API;
@@ -10,7 +11,8 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class AddTerminalCommand : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AddTerminalCommand;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
+
     public static readonly Dictionary<uint, List<TERM_Command>> ProgressWaitCommandMap = new();
 
     protected override void OnSetup()
@@ -52,8 +54,7 @@ internal sealed class AddTerminalCommand : BaseEvent
                 WardenObjectiveEventData eventData = eventList[i];
                 if (eventData.ChainPuzzle != 0u)
                 {
-                    var block = GameDataBlockBase<ChainedPuzzleDataBlock>.GetBlock(eventData.ChainPuzzle);
-                    if (block == null || !block.internalEnabled)
+                    if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(eventData.ChainPuzzle, out var block))
                     {
                         LogWarning($"Failed to find enabled ChainedPuzzleDataBlock {eventData.ChainPuzzle}!");
                         continue;

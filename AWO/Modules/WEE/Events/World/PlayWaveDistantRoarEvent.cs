@@ -12,8 +12,9 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         CellSoundPlayer waveRoar = new();
+        var roarData = e.WaveRoarSound ?? new();
 
-        waveRoar.SetSwitch(SWITCHES.ENEMY_TYPE.GROUP, e.WaveRoarSound.RoarSound switch
+        waveRoar.SetSwitch(SWITCHES.ENEMY_TYPE.GROUP, roarData.RoarSound switch
         {
             RoarSound.Shooter => SWITCHES.ENEMY_TYPE.SWITCH.SHOOTER,
             RoarSound.Birther => SWITCHES.ENEMY_TYPE.SWITCH.BIRTHER,
@@ -28,14 +29,14 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
             _ => SWITCHES.ENEMY_TYPE.SWITCH.STRIKER
         });
 
-        waveRoar.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, e.WaveRoarSound.RoarSize switch
+        waveRoar.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, roarData.RoarSize switch
         {
             RoarSize.Medium => SWITCHES.ROAR_SIZE.SWITCH.MEDIUM,
             RoarSize.Big => SWITCHES.ROAR_SIZE.SWITCH.BIG,
             _ => SWITCHES.ROAR_SIZE.SWITCH.SMALL
         });
 
-        waveRoar.SetSwitch(SWITCHES.ENVIROMENT.GROUP, e.WaveRoarSound.IsOutside ? SWITCHES.ENVIROMENT.SWITCH.DESERT : SWITCHES.ENVIROMENT.SWITCH.COMPLEX);
+        waveRoar.SetSwitch(SWITCHES.ENVIROMENT.GROUP, roarData.IsOutside ? SWITCHES.ENVIROMENT.SWITCH.DESERT : SWITCHES.ENVIROMENT.SWITCH.COMPLEX);
         waveRoar.PostWithCleanup(EVENTS.PLAY_WAVE_DISTANT_ROAR, GetPositionFallback(e.Position, e.SpecialText));
     }
 }

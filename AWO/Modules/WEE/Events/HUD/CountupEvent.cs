@@ -8,6 +8,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CountupEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.Countup;
+
     private static PUI_ObjectiveTimer ObjHudTimer => GuiManager.PlayerLayer.m_objectiveTimer;
 
     private const string Tag = "[COUNTUP]";
@@ -15,19 +16,19 @@ internal sealed class CountupEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        float duration = ResolveFieldsFallback(e.Duration, e.Countup.Duration);
+        float duration = ResolveFieldsFallback(e.Duration, e.Countup?.Duration ?? 0.0f);
         if (duration <= 0.0f)
         {
             LogWarning("Duration should generally be greater than 0 seconds");
         }
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
-        CoroutineManager.StartCoroutine(DoCountup(e.Countup, duration).WrapToIl2Cpp());
+        CoroutineManager.StartCoroutine(DoCountup(e.Countup ?? new(), duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoCountup(WEE_CountupData cu, float duration)
     {
-        int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+        int reloadCount = CheckpointManager.CheckpointUsage;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
         float count = cu.StartValue;
         float speed = cu.Speed;
@@ -57,7 +58,7 @@ internal sealed class CountupEvent : BaseEvent
             {
                 yield break; // someone has started a new countup while we were here, exit
             }
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || CheckpointManager.Current.m_stateReplicator.State.reloadCount > reloadCount)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 ObjHudTimer.SetTimerActive(false, false);
                 ObjHudTimer.SetTimerTextEnabled(false);
@@ -108,14 +109,18 @@ internal sealed class CountupEvent : BaseEvent
 
             yield return null;
         }
-
-        ObjHudTimer.SetTimerActive(false, true);
-
+        
         while (cachedProgressEvents.Count > 0) 
         {
             ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
         }
         ExecuteWardenEvents(cu.EventsOnDone);
+
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
+        {
+            yield break; // catch for if new timer started at the last moment
+        }
+        ObjHudTimer.SetTimerActive(false, true);        
     }
 
     private static string[] ParseCustomText(string custom, float duration)

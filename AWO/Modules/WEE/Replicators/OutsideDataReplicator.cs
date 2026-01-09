@@ -16,12 +16,12 @@ public struct OutsideDataState
     public float[] fieldData;
 }
 
-public class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<OutsideDataState>
+public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<OutsideDataState>
 {
     [HideFromIl2Cpp]
     public StateReplicator<OutsideDataState>? Replicator { get; private set; }
-    public LG_Dimension? Dimension;
-    public DimensionData? OutsideData;
+    public LG_Dimension Dimension = null!;
+    public DimensionData OutsideData = null!;
     private OutsideDataState _origData;
     private Coroutine? _transitionCoroutine;
 
@@ -99,46 +99,42 @@ public class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<Outsi
     public void OnStateChange(OutsideDataState oldState, OutsideDataState state, bool isRecall)
     {
         if (_transitionCoroutine != null)
-            Dimension?.StopCoroutine(_transitionCoroutine);
+            Dimension.StopCoroutine(_transitionCoroutine);
 
-        _transitionCoroutine = Dimension?.StartCoroutine(OutsideTransition(state, isRecall).WrapToIl2Cpp());
+        _transitionCoroutine = Dimension.StartCoroutine(OutsideTransition(state, isRecall).WrapToIl2Cpp());
     }
 
     [HideFromIl2Cpp]
     private IEnumerator OutsideTransition(OutsideDataState data, bool isRecall)
     {
-        if (data.fieldData == null || data.fieldData.Length != _fieldMap.Length)
+        if (data.fieldData?.Length != _fieldMap.Length)
         {
             Logger.Error("OutsideDataReplicator", "Received fieldData does not match, aborting!");
             yield break;
         }
 
         float duration = isRecall ? 0.0f : data.duration;
-        if (data.revertToOriginal) 
-            data = _origData;
-        var dimData = OutsideData!;
-        dimData.IsOutside = data.isOutside;
-        if (data.atmosphereData != 0)
-            dimData.AtmosphereData = data.atmosphereData;
-        if (data.cloudsData != 0)
-            dimData.CloudsData = data.cloudsData;
-        dimData.Sandstorm = data.sandstorm;
+        data = data.revertToOriginal ? _origData : data;
+        OutsideData.IsOutside = data.isOutside;
+        OutsideData.AtmosphereData = data.atmosphereData != 0 ? data.atmosphereData : OutsideData.AtmosphereData;
+        OutsideData.CloudsData = data.cloudsData != 0 ? data.cloudsData : OutsideData.CloudsData;
+        OutsideData.Sandstorm = data.sandstorm;
 
-        float[] startValues = GetFieldArray(dimData);
-        float startAz = startValues[0];
-        float startEl = startValues[1];
-        float targetAz = data.fieldData[0];
-        float targetEl = data.fieldData[1];
-        bool azimuthOnly = !float.IsNaN(targetAz);
-        bool elevationOnly = !float.IsNaN(targetEl);
+        float[] startValues = GetFieldArray(OutsideData);
+        float startAzimuth = startValues[0];
+        float startElevation = startValues[1];
+        float endAzimuth = data.fieldData[0];
+        float endElevation = data.fieldData[1];
+        bool azimuthOnly = !float.IsNaN(endAzimuth);
+        bool elevationOnly = !float.IsNaN(endElevation);
 
         Vector3 startDir = Vector3.zero;
-        Vector3 targetDir = Vector3.zero;
+        Vector3 endDir = Vector3.zero;
         bool slerpFlag = azimuthOnly && elevationOnly;
         if (slerpFlag)
         {
-            startDir = DirFromDeg(startAz, startEl);
-            targetDir = DirFromDeg(targetAz, targetEl);
+            startDir = DirFromDeg(startAzimuth, startElevation);
+            endDir = DirFromDeg(endAzimuth, endElevation);
         }
 
         float time = 0f;
@@ -149,28 +145,29 @@ public class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<Outsi
 
             if (slerpFlag)
             {
-                Vector3 dir = Vector3.Slerp(startDir, targetDir, progress);
-                DegFromDir(dir, out float az, out float el);
-                _fieldMap[0].Set(dimData, az);
-                _fieldMap[1].Set(dimData, el);
+                Vector3 dir = Vector3.Slerp(startDir, endDir, progress).normalized;
+                float elDeg = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+                float azDeg = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg; // 0 = +Z, positive toward +X
+                _fieldMap[0].Set(OutsideData, azDeg);
+                _fieldMap[1].Set(OutsideData, elDeg);
             }
             else if (azimuthOnly)
             {
-                float azimuth = Mathf.LerpAngle(startAz, targetAz, progress);
-                _fieldMap[0].Set(dimData, azimuth);
+                float azimuth = Mathf.LerpAngle(startAzimuth, endAzimuth, progress);
+                _fieldMap[0].Set(OutsideData, azimuth);
             }
             else if (elevationOnly)
             {
-                float elevation = Mathf.Lerp(startEl, targetEl, progress);
-                _fieldMap[1].Set(dimData, elevation);
+                float elevation = Mathf.Lerp(startElevation, endElevation, progress);
+                _fieldMap[1].Set(OutsideData, elevation);
             }
 
             for (int i = 2; i < _fieldMap.Length; i++)
             {
-                float target = data.fieldData[i];
-                if (float.IsNaN(target)) continue;
-                float value = Mathf.Lerp(startValues[i], target, progress);
-                _fieldMap[i].Set(dimData, value);
+                float endValue = data.fieldData[i];
+                if (float.IsNaN(endValue)) continue;
+                float value = Mathf.Lerp(startValues[i], endValue, progress);
+                _fieldMap[i].Set(OutsideData, value);
             }
 
             yield return null;
@@ -185,13 +182,6 @@ public class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<Outsi
             float x = Mathf.Sin(az) * r;
             float z = Mathf.Cos(az) * r;
             return new Vector3(x, y, z).normalized;
-        }
-
-        static void DegFromDir(Vector3 dir, out float azDeg, out float elDeg)
-        {
-            dir = dir.normalized;
-            elDeg = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
-            azDeg = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg; // 0 = +Z, positive toward +X
         }
     }
 }

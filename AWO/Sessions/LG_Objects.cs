@@ -1,25 +1,24 @@
 ﻿using AmorLib.Utils.Extensions;
 using GTFO.API;
 using LevelGeneration;
+using System.Collections.Immutable;
 using UnityEngine;
 
 namespace AWO.Sessions;
 
 public static class LG_Objects
 {
-    public static Dictionary<Type, HashSet<Component>> TrackedTypes { get; private set; }
+    public static ImmutableDictionary<Type, HashSet<Component>> TrackedTypes { get; private set; } = ImmutableDictionary.CreateRange(new KeyValuePair<Type, HashSet<Component>>[]
+    {
+        new(typeof(LG_ComputerTerminal), new()),
+        new(typeof(LG_DoorButton), new()),
+        new(typeof(LG_HSUActivator_Core), new()),
+        new(typeof(LG_LabDisplay), new()),
+        new(typeof(LG_WeakLock), new())
+    });
 
     static LG_Objects()
     {
-        TrackedTypes = new()
-        {
-            { typeof(LG_ComputerTerminal), new() },
-            { typeof(LG_DoorButton), new() },
-            { typeof(LG_HSUActivator_Core), new() },
-            { typeof(LG_LabDisplay), new() },
-            { typeof(LG_WeakLock), new() }
-        };
-
         LevelAPI.OnLevelCleanup += Clear;
     }
 

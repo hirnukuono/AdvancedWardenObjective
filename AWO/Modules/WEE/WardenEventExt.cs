@@ -1,16 +1,18 @@
-﻿using AWO.Modules.WEE.JsonInjects;
-using AWO.Modules.WEE.Detours;
+﻿using AWO.Modules.WEE.Detours;
 using AWO.Modules.WEE.Events;
+using AWO.Modules.WEE.JsonInjects;
 using AWO.Modules.WEE.Replicators;
+using BepInEx.Logging;
 using GameData;
+using GTFO.API.Utilities;
+using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using InjectLib.JsonNETInjection;
+using LevelGeneration;
 using Player;
 using System.Collections;
+using System.Reflection;
 using UnityEngine;
-using BepInEx.Logging;
-using LevelGeneration;
-using AWO.Jsons;
 
 namespace AWO.Modules.WEE;
 
@@ -20,7 +22,7 @@ internal static class WardenEventExt
 
     static WardenEventExt()
     {
-        var eventTypes = typeof(BaseEvent).Assembly.GetTypes()
+        var eventTypes = AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly())
             .Where(x => !x.IsAbstract)
             .Where(x => x.IsAssignableTo(typeof(BaseEvent)));
 
@@ -33,6 +35,7 @@ internal static class WardenEventExt
                 Logger.Error($"With '{existing.Name}' and '{instance.Name}'");
                 continue;
             }
+
             instance.Setup();
             _EventsToTrigger[instance.EventType] = instance;
         }
@@ -47,58 +50,62 @@ internal static class WardenEventExt
         JsonInjector.SetConverter(new EventTypeConverter());
         JsonInjector.AddHandler(new EventDataHandler());
         JsonInjector.AddHandler(new TriggerDataHandler());
+
         WEE_EnumInjector.Inject();
         Detour_ExecuteEvent.Patch();
     }
 
     internal static void HandleEvent(WEE_Type type, WardenObjectiveEventData e, float currentDuration)
     {
-       // Logger.Debug($"We got Type {type} on WardenEventExt event");
-
         var weeData = e.GetWEEData();
         if (weeData == null)
         {
             Logger.Error($"WardenEvent Type is Extension ({type}), but it's not registered to any dataholder!");
             return;
         }
+
         if (!_EventsToTrigger.TryGetValue(type, out var eventInstance))
         {
             Logger.Error($"{type}Event does not exist in lookup!");
             return;
         }
 
-        if (!eventInstance.WhitelistArrayableGlobalIndex)
-        {
-            CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
-            return;
-        }
+        CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
+        return;
 
-        foreach (var (dim, layer, zone) in Expand(weeData.ArrayableDimension, weeData.ArrayableLayer, weeData.ArrayableZone))
-        {
-            var newData = weeData;
-            newData.DimensionIndex = dim;
-            newData.Layer = layer;
-            newData.LocalIndex= zone;
-            CoroutineManager.StartCoroutine(Handle(eventInstance, newData, currentDuration).WrapToIl2Cpp());
-        }
+        //if (!eventInstance.AllowArrayableGlobalIndex 
+        //    || !weeData.ArrayableDimension.Values.Any() && !weeData.ArrayableLayer.Values.Any() && !weeData.ArrayableZone.Values.Any())
+        //{
+        //    CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
+        //    return;
+        //}
+
+        //foreach (var (dim, layer, zone) in Expand(weeData))
+        //{
+        //    var newData = e.GetWEEData();
+        //    newData.DimensionIndex = dim;
+        //    newData.Layer = layer;
+        //    newData.LocalIndex= zone;
+        //    CoroutineManager.StartCoroutine(Handle(eventInstance, newData, currentDuration).WrapToIl2Cpp());
+        //}
     }
 
-    private static IEnumerable<(eDimensionIndex, LG_LayerType, eLocalZoneIndex)> Expand(Arrayable<eDimensionIndex> arrDim, Arrayable<LG_LayerType> arrlayer, Arrayable<eLocalZoneIndex> arrZone)
-    {
-        foreach (var d in arrDim.Values)
-            foreach (var l in arrlayer.Values)
-                foreach (var z in arrZone.Values)
-                    yield return (d, l, z);
-    }
+    //private static IEnumerable<(eDimensionIndex, LG_LayerType, eLocalZoneIndex)> Expand(WEE_EventData e)
+    //{
+    //    foreach (var d in e.ArrayableDimension.Values)
+    //        foreach (var l in e.ArrayableLayer.Values)
+    //            foreach (var z in e.ArrayableZone.Values)
+    //                yield return (d, l, z);
+    //}
 
     private static IEnumerator Handle(BaseEvent eventInstance, WEE_EventData e, float currentDuration)
     {
         float delay = Mathf.Max(e.Delay - currentDuration, 0f);
         if (delay > 0f)
         {
-            int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+            int reloadCount = CheckpointManager.CheckpointUsage;
             yield return new WaitForSeconds(delay);
-            if (reloadCount < CheckpointManager.Current.m_stateReplicator.State.reloadCount)
+            if (reloadCount < CheckpointManager.CheckpointUsage)
             {
                 Logger.Warn($"Delayed event {e.Type} aborted due to checkpoint reload");
                 yield break;
@@ -139,6 +146,6 @@ internal static class WardenEventExt
             EnvironmentStateManager.AttemptStartFogTransition(e.Fog.FogSetting, e.Fog.FogTransitionDuration, e.DimensionIndex);
         }
 
-        eventInstance.Trigger(e);
+        SafeInvoke.Invoke(eventInstance.Trigger, e);
     }
 }

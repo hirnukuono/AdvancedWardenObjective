@@ -8,6 +8,7 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class CustomHudTextEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CustomHudText;
+
     private static PUI_ObjectiveTimer ObjHudTimer => GuiManager.PlayerLayer.m_objectiveTimer;
 
     protected override void OnSetup()
@@ -34,8 +35,8 @@ internal sealed class CustomHudTextEvent : BaseEvent
         if (e.Enabled)
         {    
             CoroutineManager.BlinkIn(ObjHudTimer.gameObject);
-            ObjHudTimer.m_titleText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Title);
-            ObjHudTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText.Body);
+            ObjHudTimer.m_titleText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText?.Title ?? string.Empty);
+            ObjHudTimer.m_timerText.text = SerialLookupManager.ParseTextFragments(e.CustomHudText?.Body ?? string.Empty);
         }
         else
         {

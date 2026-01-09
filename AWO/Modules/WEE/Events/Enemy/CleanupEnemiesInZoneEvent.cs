@@ -3,7 +3,7 @@
 internal class CleanupEnemiesInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CleanupEnemiesInZone;
-    public override bool WhitelistArrayableGlobalIndex => true;
+    public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerMaster(WEE_EventData e)
     {

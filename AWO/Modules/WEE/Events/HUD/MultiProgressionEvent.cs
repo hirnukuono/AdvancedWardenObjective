@@ -3,18 +3,22 @@ using BepInEx;
 using GTFO.API;
 using LevelGeneration;
 using Player;
+using System.Collections.Immutable;
 
 namespace AWO.Modules.WEE.Events;
 
 internal sealed class MultiProgressionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MultiProgression;
-    public static readonly Dictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = new()
+
+    
+    public static ImmutableDictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = ImmutableDictionary.CreateRange(new KeyValuePair<LG_LayerType, List<LocalMPData>>[]
     {
-        { LG_LayerType.MainLayer, new() },
-        { LG_LayerType.SecondaryLayer, new() },
-        { LG_LayerType.ThirdLayer, new() }
-    };
+        new(LG_LayerType.MainLayer, new()),
+        new(LG_LayerType.SecondaryLayer, new()),
+        new(LG_LayerType.ThirdLayer, new())
+    });
+    
     private static PUI_GameObjectives ObjHud => GuiManager.PlayerLayer.WardenObjectives;
 
     public class LocalMPData

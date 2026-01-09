@@ -1,4 +1,5 @@
 ﻿using AK;
+using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using AmorLib.Utils.JsonElementConverters;
 using GameData;
@@ -17,14 +18,14 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        var block = PlayerDialogDataBlock.GetBlock(e.DialogueID);
-        if (block == null || !block.internalEnabled)
+        if (!DataBlockUtil.TryGetBlock<PlayerDialogDataBlock>(e.DialogueID, out var block))
         {
             LogError($"Failed to find enabled PlayerDialogDataBlock {e.DialogueID}!");
             return;
         }
 
-        if (!TryGetPlayerCharacter(e.PlayerDialogue, GetPositionFallback(e.Position, e.SpecialText, false), out var player, out var charFilterList))
+        var fpd = e.PlayerDialogue ?? new();
+        if (!TryGetPlayerCharacter(fpd, GetPositionFallback(e.Position, e.SpecialText, false), out var player, out var charFilterList))
         {
             LogError("Failed to find character!");
             return;
@@ -41,7 +42,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             _ => throw new NotImplementedException($"[{Name}] only supports default lobby size. Unknown CharacterID {player.CharacterID}")
         });
 
-        dialogue.SetSwitch(SWITCHES.INTENSITY_STATE.GROUP, e.PlayerDialogue.IntensityState switch
+        dialogue.SetSwitch(SWITCHES.INTENSITY_STATE.GROUP, fpd.IntensityState switch
         {
             IntensityState.Exploration => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_1_EXPLORATION,
             IntensityState.Stealth => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_2_STEALTH,
@@ -111,7 +112,8 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         {
             charFilterList.Add(charFilter);
             if (flag) continue;
-            PlayerAgent? currentPlayer = PlayerDialogManager.GetPlayerAgentForCharacter(charFilter);
+            var currentPlayer = PlayerDialogManager.GetPlayerAgentForCharacter(charFilter);
+            if (currentPlayer == null) continue;
 
             if (dialog.Type == DialogueType.Random)
             {

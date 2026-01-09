@@ -18,7 +18,7 @@ internal abstract class BaseEvent
     protected static bool HasMaster => SNet.HasMaster;
     public static System.Random MasterRand { get; } = new(Guid.NewGuid().GetHashCode());
     public abstract WEE_Type EventType { get; }
-    public virtual bool WhitelistArrayableGlobalIndex => false;
+    public virtual bool AllowArrayableGlobalIndex => false;
 
     public void Setup()
     {

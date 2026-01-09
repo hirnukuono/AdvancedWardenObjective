@@ -9,6 +9,8 @@ namespace AWO.Modules.WEE.Events;
 internal class SpawnNavMarkerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnNavMarker;
+
+
     public static readonly Dictionary<int, NavMarker> NavMarkers = new();
 
     protected override void OnSetup()

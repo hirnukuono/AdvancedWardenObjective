@@ -17,7 +17,7 @@ internal class EventTypeConverter : Il2CppJsonUnmanagedTypeConverter<eWardenObje
                 break;
 
             case JTokenType.String:
-                var str = (string)jToken;
+                string str = (string)jToken;
                 if (Enum.TryParse<WEE_Type>(str, ignoreCase: true, out var weeResult))
                 {
                     value = (int)weeResult;

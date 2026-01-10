@@ -13,11 +13,9 @@ internal sealed class CountdownEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        float duration = ResolveFieldsFallback(e.Duration, e.Countdown?.Duration ?? 0.0f);
-        if (duration <= 0.0f)
-        {
-            LogWarning("Duration should generally be greater than 0 seconds");
-        }
+        float duration = ResolveFieldsFallback(e.Duration, e.Countdown?.Duration ?? 0f);
+        if (duration <= 0f)
+            LogWarning("Duration should generally be more than 0 seconds");
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
         CoroutineManager.StartCoroutine(DoCountdown(e.Countdown ?? new(), duration).WrapToIl2Cpp());
@@ -27,11 +25,11 @@ internal sealed class CountdownEvent : BaseEvent
     {
         int reloadCount = CheckpointManager.CheckpointUsage;
         float startTime = EntryPoint.Coroutines.CountdownStarted;
-        float time = 0.0f;        
+        float time = 0f;        
         LocaleText timerTitle = SerialLookupManager.ParseLocaleText(cd.TimerText);
         Color color = cd.TimerColor;
 
-        EntryPoint.TimerMods.TimeModifier = 0.0f;        
+        EntryPoint.TimerMods.TimeModifier = 0f;        
         EntryPoint.TimerMods.TimerTitleText = timerTitle;
         EntryPoint.TimerMods.TimerColor = color;
 
@@ -47,7 +45,8 @@ internal sealed class CountdownEvent : BaseEvent
         {
             if (startTime < EntryPoint.Coroutines.CountdownStarted)
             {
-                yield break; // someone has started a new countdown while we were here, exit
+                // someone has started a new countdown while we were here, exit
+                yield break; 
             }
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
@@ -59,7 +58,7 @@ internal sealed class CountdownEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                if (nextProgress <= NormalizedPercent(time, 0.0f, duration))
+                if (nextProgress <= NormalizedPercent(time, 0f, duration))
                 {
                     ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
@@ -73,10 +72,10 @@ internal sealed class CountdownEvent : BaseEvent
             time += Time.deltaTime;
 
             #region TIMER_MODS
-            if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
+            if (EntryPoint.TimerMods.TimeModifier != 0f) // time mod
             {
                 time -= EntryPoint.TimerMods.TimeModifier;
-                EntryPoint.TimerMods.TimeModifier = 0.0f;
+                EntryPoint.TimerMods.TimeModifier = 0f;
             }
             if (EntryPoint.TimerMods.TimerTitleText != timerTitle) // title text mod
             {
@@ -100,7 +99,8 @@ internal sealed class CountdownEvent : BaseEvent
 
         if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
         {
-            yield break; // catch for if new timer started at the last moment
+            // catch for if new timer started at the last moment
+            yield break; 
         }
         ObjHudTimer.SetTimerActive(false, true);        
     }
@@ -108,16 +108,17 @@ internal sealed class CountdownEvent : BaseEvent
     public static void UpdateTimerText(float time, float duration, Color color, bool showHours)
     {
         ObjHudTimer.SetTimerTextEnabled(true);
-        float remainder = Math.Max(duration - time, 0.0f);
+        float remainder = Math.Max(duration - time, 0f);
         var timeSpan = TimeSpan.FromSeconds(remainder);
 
         ObjHudTimer.m_timerText.color = color;
-        ObjHudTimer.m_timerText.text = showHours && timeSpan.TotalSeconds >= 3600 ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}" : $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
+        ObjHudTimer.m_timerText.text = showHours && timeSpan.TotalSeconds >= 3600f ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}" : $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
     }
 
     public static float NormalizedPercent(float current, float min, float max)
     {
-        if (min == max) return float.NaN;
+        if (min == max) 
+            return float.NaN;
 
         float clamp = Math.Clamp(current, min, max);
         return (clamp - min) / (max - min);

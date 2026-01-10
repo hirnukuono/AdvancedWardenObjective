@@ -10,7 +10,8 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
         var state = door.m_sync.GetCurrentSyncState();
         if (state.status != eDoorStatus.Open && state.status != eDoorStatus.Opening)
@@ -20,7 +21,8 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
         }
 
         var sync = door.m_sync.TryCast<LG_Door_Sync>();
-        if (sync == null) return;
+        if (sync == null) 
+            return;
 
         LogDebug("Door closing...");
         state.status = eDoorStatus.Closed;
@@ -44,7 +46,8 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
     private static void DespawnEnemiesInNearNodes(ushort searchID, AIG_CourseNode sourceNode)
     {
-        if (sourceNode?.m_portals == null) return;
+        if (sourceNode?.m_portals == null) 
+            return;
 
         foreach (var enemy in sourceNode.m_enemiesInNode.ToArray())
         {
@@ -53,16 +56,16 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
 
         foreach (var portal in sourceNode.m_portals)
         {
-            if (portal == null || portal.m_searchID == searchID) continue;
+            if (portal == null || portal.m_searchID == searchID) 
+                continue;
 
             portal.m_searchID = searchID;
-            if (portal.IsProgressionLocked) continue;
+            if (portal.IsProgressionLocked) 
+                continue;
 
             var behindNode = portal.GetOppositeNode(sourceNode);
             if (behindNode != null)
-            {
                 DespawnEnemiesInNearNodes(searchID, behindNode);
-            }
         }
     }
 }

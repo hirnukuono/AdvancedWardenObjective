@@ -11,7 +11,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.SetSuccessScreen;
 
     private static string s_storedSuccessText = string.Empty;
-    private static uint s_storedPreviousMusic = 0;
+    private static uint s_storedPreviousMusic = 0u;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -21,6 +21,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
             case ScreenType.SetSuccessScreen:
                 SetScreen(e);
                 break;
+
             case ScreenType.FlashFakeScreen:
                 CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
                 break;
@@ -69,9 +70,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     private static void SetSuccessText(string text)
     {
         if (text == string.Empty)
-        {
             return;
-        }
 
         if (s_storedSuccessText == string.Empty)
         {
@@ -85,12 +84,10 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     private static void SetSuccessMusic(uint music)
     {
-        if (music == 0)
-        {
+        if (music == 0u)
             return;
-        }
 
-        if (s_storedPreviousMusic == 0)
+        if (s_storedPreviousMusic == 0u)
         {
             s_storedPreviousMusic = MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic;
             LevelAPI.OnBuildStart += RestoreSuccessMusic; // Any event that fires after the player leaves the success screen
@@ -112,10 +109,10 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     private static void RestoreSuccessMusic()
     {
-        if (s_storedPreviousMusic != 0)
+        if (s_storedPreviousMusic != 0u)
         {
             MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = s_storedPreviousMusic;
-            s_storedPreviousMusic = 0;
+            s_storedPreviousMusic = 0u;
             LevelAPI.OnBuildStart -= RestoreSuccessMusic;
         }
     }

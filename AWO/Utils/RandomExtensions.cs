@@ -4,10 +4,10 @@ public static class RandomExtensions
 {
     public static bool MeetProbability(this Random rand, float prob)
     {
-        if (prob >= 1.0f)
+        if (prob >= 1f)
             return true;
 
-        if (prob <= 0.0f)
+        if (prob <= 0f)
             return false;
 
         return prob >= rand.NextFloat();

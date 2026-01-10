@@ -102,6 +102,6 @@ public sealed class SessionRandReplicator : IStateReplicatorHolder<SessionRandSt
 
     public float NextFloat()
     {
-        return Next() * (1.0f / 4294967296.0f);
+        return Next() * (1f / 4294967296f);
     }
 }

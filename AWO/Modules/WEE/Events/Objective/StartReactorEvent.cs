@@ -8,10 +8,10 @@ internal sealed class StartReactorEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        foreach (var keyValue in WOManager.Current.m_wardenObjectiveItem)
+        foreach (var kvp in WOManager.Current.m_wardenObjectiveItem)
         {
-            if (keyValue.Key.Layer != e.Layer) continue;
-            var reactor = keyValue.Value.TryCast<LG_WardenObjective_Reactor>();
+            if (kvp.Key.Layer != e.Layer) continue;
+            var reactor = kvp.Value.TryCast<LG_WardenObjective_Reactor>();
             if (reactor == null) continue;
 
             var state = reactor.m_currentState;

@@ -118,9 +118,9 @@ internal static class VanillaEventOvr
         int count = e.Count < 2 ? 1 : e.Count;
 
         Vector3 pos = WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(e.WorldEventObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject)
-            ? weObject.gameObject.transform.position
+            ? weObject.transform.position
             : e.Position;
-        var courseNode = CourseNodeUtil.GetCourseNode(pos, pos.GetDimension().DimensionIndex);
+        var courseNode = weObject?.ParentArea?.m_courseNode ?? CourseNodeUtil.GetCourseNode(pos, pos.GetDimension().DimensionIndex);
         if (courseNode == null)
         {
             Logger.Error("SpawnEnemyOnPoint", "Failed to find valid CourseNode from Position!");
@@ -134,7 +134,7 @@ internal static class VanillaEventOvr
             _ => AgentMode.Hibernate
         };
 
-        float interval = Math.Min(0.25f, 2.0f / count); // max 4 enemies per second
+        float interval = Math.Min(0.25f, 2f / count); // max 4 enemies per second
         WaitForSeconds spawnInterval = new(interval); 
         for (int i = 0; i < count; i++)
         {

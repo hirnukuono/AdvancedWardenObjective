@@ -29,7 +29,7 @@ internal sealed class StartEventLoop : BaseEvent
     {
         var sel = e.StartEventLoop ?? new();
 
-        if (sel.LoopDelay < 1.0f)
+        if (sel.LoopDelay < 1f)
         {
             LogError("LoopDelay must be greater than or equal to 1.0 seconds");
             return;
@@ -65,7 +65,7 @@ internal sealed class StartEventLoop : BaseEvent
             }
             
             Logger.Debug("StartEventLoop", $"EventLoop {index} repeating #{repeatNum + 1}");
-            WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None, ignoreTrigger: true);
+            WOManager.CheckAndExecuteEventsOnTrigger(eData, eWardenObjectiveEventTrigger.None, true);
 
             yield return delay;
             repeatNum++;

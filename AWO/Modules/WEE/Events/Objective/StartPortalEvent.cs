@@ -24,7 +24,8 @@ internal sealed class StartPortalEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         if (!Portals.TryGetValue(zone.ToStruct(), out var portalMachine))
         {

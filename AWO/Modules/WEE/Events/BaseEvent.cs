@@ -121,7 +121,6 @@ internal abstract class BaseEvent
             terminal = zone.TerminalsSpawnedInZone[index];
             return terminal != null;
         }
-
         LogError($"Unable to find terminal {index} in {e.LocalIndex}!");
         terminal = null;
         return false;
@@ -135,7 +134,6 @@ internal abstract class BaseEvent
             LogError($"Invalid area index ({areaIndex}) for zone");
             return false;
         }
-
         return true;
     }
 
@@ -154,7 +152,6 @@ internal abstract class BaseEvent
         {
             LogWarning($"Both legacy-nested and field {nameof(value)} are default {typeof(S)}");
         }
-
         return default!;
     }
 
@@ -173,7 +170,6 @@ internal abstract class BaseEvent
         {
             LogWarning($"Both legacy-nested and field {nameof(value)} are null or empty strings");
         }
-
         return string.Empty;
     }
 
@@ -185,17 +181,16 @@ internal abstract class BaseEvent
         }
         else if (WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(weObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject) && weObject.enabled)
         {
-            return weObject.gameObject.transform.position;
+            return weObject.transform.position;
         }
 
         if (debug)
         {
             LogWarning($"Position is zero, or could not find enabled WorldEventObjectFilter {weObjectFilter}");
         }
-
         return Vector3.zero;
     }
 
-    public static void ExecuteWardenEvents(List<WardenObjectiveEventData> events) 
-        => WOManager.CheckAndExecuteEventsOnTrigger(events.ToIl2Cpp(), eWardenObjectiveEventTrigger.None, ignoreTrigger: true);
+    public static void ExecuteWardenEvents(List<WardenObjectiveEventData> events, eWardenObjectiveEventTrigger trigger = eWardenObjectiveEventTrigger.None, bool ignoreTrigger = true) 
+        => WOManager.CheckAndExecuteEventsOnTrigger(events.ToIl2Cpp(), trigger, ignoreTrigger);
 }

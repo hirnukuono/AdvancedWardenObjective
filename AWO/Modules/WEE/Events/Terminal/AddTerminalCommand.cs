@@ -29,7 +29,9 @@ internal sealed class AddTerminalCommand : BaseEvent
     {
         foreach (var addcmd in e.AddTerminalCommand.Values)
         {
-            if (!TryGetTerminalFromZone(e, addcmd.TerminalIndex, out var term)) continue;
+            if (!TryGetTerminalFromZone(e, addcmd.TerminalIndex, out var term)) 
+                continue;
+
             TERM_Command c_num = (TERM_Command)(50 + addcmd.CommandNumber);
             if (term.m_command.m_commandsPerEnum.ContainsKey(c_num))
             {
@@ -41,7 +43,7 @@ internal sealed class AddTerminalCommand : BaseEvent
             {
                 ProgressWaitCommandMap.GetOrAddNew(term.SyncID).Add(c_num);
             }
-            Il2CppSystem.Collections.Generic.List<WardenObjectiveEventData> eventList = addcmd.CommandEvents.ToIl2Cpp();
+            var eventList = addcmd.CommandEvents.ToIl2Cpp();
 
             term.m_command.m_commandsPerEnum.Add(c_num, addcmd.Command.ToLower());
             term.m_command.m_commandsPerString.Add(addcmd.Command.ToLower(), c_num);
@@ -51,21 +53,21 @@ internal sealed class AddTerminalCommand : BaseEvent
             ChainedPuzzleInstance? cmdChainPuzzle = null;
             for (int i = 0; i < eventList.Count; i++)
             {
-                WardenObjectiveEventData eventData = eventList[i];
+                var eventData = eventList[i];
                 if (eventData.ChainPuzzle != 0u)
                 {
                     if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(eventData.ChainPuzzle, out var block))
                     {
                         LogWarning($"Failed to find enabled ChainedPuzzleDataBlock {eventData.ChainPuzzle}!");
                         continue;
-                    }
-
-                    cmdChainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, term.SpawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, eventData.UseStaticBioscanPoints);
+                    }                    
+                    var spawnNode = term.SpawnNode ?? CourseNodeUtil.GetCourseNode(term.m_position, e.DimensionIndex);
+                    cmdChainPuzzle = ChainedPuzzleManager.CreatePuzzleInstance(block, spawnNode.m_area, term.m_wardenObjectiveSecurityScanAlign.position, term.m_wardenObjectiveSecurityScanAlign, eventData.UseStaticBioscanPoints);
                     term.SetChainPuzzleForCommand(c_num, i, cmdChainPuzzle);
                 }
                 if (cmdChainPuzzle != null)
                 {
-                    cmdChainPuzzle.OnPuzzleSolved += (Action)(() => WOManager.CheckAndExecuteEventsOnTrigger(eventData, eWardenObjectiveEventTrigger.None, ignoreTrigger: true));
+                    cmdChainPuzzle.OnPuzzleSolved += (Action)(() => WOManager.CheckAndExecuteEventsOnTrigger(eventData, eWardenObjectiveEventTrigger.None, true));
                 }
             }
 

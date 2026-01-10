@@ -33,7 +33,6 @@ internal class CompleteChainPuzzleEvent : BaseEvent
                 return true;
             }
         }
-
         puzzleInstance = null;
         return false;
     }
@@ -49,7 +48,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             var clusterCore = puzzleInstance.m_chainedPuzzleCores[i].TryCast<CP_Cluster_Core>();
             if (clusterCore != null)
             {
-                clusterCore.m_sync.SetStateData(eClusterStatus.Finished, 1.0f);
+                clusterCore.m_sync.SetStateData(eClusterStatus.Finished, 1f);
                 continue;
             }
 
@@ -68,8 +67,8 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
         basicCore.m_spline.SetVisible(false);
 
-        basicCore.m_playerScanner.ResetScanProgression(1.0f);
-        basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1.0f);
+        basicCore.m_playerScanner.ResetScanProgression(1f);
+        basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1f);
 
         yield return null;
 

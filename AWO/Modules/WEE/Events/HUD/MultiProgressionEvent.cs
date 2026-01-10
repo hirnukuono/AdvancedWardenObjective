@@ -118,7 +118,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
             {
                 LogDebug($"Removing SubObjective with Index: {sub.Index}");
                 ObjHud.RemoveProgressionObjective(key);
-                TrackedMPs.ForEachValue(list => list.RemoveAll(LocalMPData => LocalMPData.Index == key));
+                TrackedMPs.ForEachValue(list => list.RemoveAll(localMPData => localMPData.Index == key));
             }
         }
     }
@@ -158,12 +158,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
 
     public static string StyleText(string text, LG_LayerType layer, string tag, bool isHeader)
     {
-        string styledText = WOManager.ReplaceFragmentsInString
-        (
-            layer,
-            WOManager.GetCurrentChainIndex(layer),
-            text
-        );
+        string styledText = WOManager.ReplaceFragmentsInString(layer, WOManager.GetCurrentChainIndex(layer), text);
 
         return isHeader
             ? ObjHud.StyleMainObjText(styledText, false, tag)

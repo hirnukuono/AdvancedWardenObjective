@@ -113,7 +113,7 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
             yield break;
         }
 
-        float duration = isRecall ? 0.0f : data.duration;
+        float duration = isRecall ? 0f : data.duration;
         data = data.revertToOriginal ? _origData : data;
         OutsideData.IsOutside = data.isOutside;
         OutsideData.AtmosphereData = data.atmosphereData != 0 ? data.atmosphereData : OutsideData.AtmosphereData;

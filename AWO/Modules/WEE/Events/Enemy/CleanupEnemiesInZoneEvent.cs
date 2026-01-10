@@ -7,7 +7,8 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         foreach (var ce in e.CleanupEnemies.Values)
         {
@@ -15,8 +16,7 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
             {
                 foreach (var node in zone.m_courseNodes)
                 {
-                    if (ce.AreaBlacklist.Contains(zone.m_courseNodes.IndexOf(node)))
-                        continue;
+                    if (ce.AreaBlacklist.Contains(zone.m_courseNodes.IndexOf(node))) continue;
                     ce.DoClear(node);
                 }
             }

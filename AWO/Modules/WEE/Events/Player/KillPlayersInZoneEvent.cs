@@ -8,7 +8,8 @@ internal sealed class KillPlayersInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         int id = zone.ID;
         foreach (var player in PlayerManager.PlayerAgentsInLevel)

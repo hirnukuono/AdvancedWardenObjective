@@ -18,7 +18,8 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
 
     private void OnAfterBuildBatch(LG_Factory.BatchName batch)
     {
-        if (batch != LG_Factory.BatchName.ZoneLights) return;
+        if (batch != LG_Factory.BatchName.ZoneLights) 
+            return;
 
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
@@ -28,7 +29,8 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         var setting = e.SetZoneLight ?? new();
         if (!zone.gameObject.TryAndGetComponent<ZoneLightReplicator>(out var replicator))

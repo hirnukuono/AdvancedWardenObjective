@@ -12,11 +12,12 @@ internal class SpawnScoutInZoneEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.SpawnScoutInZone;
     public override bool AllowArrayableGlobalIndex => true;
 
-    private const float TimeToCompleteSpawn = 2.0f;
+    private const float TimeToCompleteSpawn = 2f;
 
     protected override void TriggerMaster(WEE_EventData e) 
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         foreach (var ss in e.SpawnScouts.Values)
         {
@@ -24,7 +25,6 @@ internal class SpawnScoutInZoneEvent : BaseEvent
             {
                 Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
                 int count = ResolveFieldsFallback(e.Count, ss.Count);
-
                 CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
             }
         }
@@ -45,7 +45,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
             }
 
             EnemyGroupDataBlock randomGroup = r.GetRandomGroup(MasterRand.NextFloat());
-            float popPoints = randomGroup.MaxScore * MasterRand.NextRange(1.0f, 1.2f);
+            float popPoints = randomGroup.MaxScore * MasterRand.NextRange(1f, 1.2f);
 
             AIG_CourseNode spawnNode;
             if (ss.AreaIndex != -1)
@@ -75,7 +75,6 @@ internal class SpawnScoutInZoneEvent : BaseEvent
             ) with { respawn = false };
 
             EnemyGroup.Spawn(scoutSpawnData);
-
             yield return spawnInterval;
         }
     }

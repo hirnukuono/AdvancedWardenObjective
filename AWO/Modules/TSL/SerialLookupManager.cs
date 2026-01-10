@@ -29,7 +29,9 @@ public static class SerialLookupManager
         InteropAPI.RegisterCall("TSL-ParseTextFragments", args =>
         {
             if (args?.Length > 0 && args[0] is string input)
+            {
                 return ParseTextFragments(input);
+            }
 
             return null;
         });
@@ -131,7 +133,8 @@ public static class SerialLookupManager
 
     public static string ParseTextFragments(string input)
     {
-        if (input.IsNullOrWhiteSpace()) return input;
+        if (input.IsNullOrWhiteSpace()) 
+            return input;
         
         var spans = new List<(int start, int end)>();
         var stack = new Stack<int>();

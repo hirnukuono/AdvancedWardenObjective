@@ -11,7 +11,8 @@ internal sealed class HideTerminalCommand : BaseEvent
     {
         foreach (var hidecmd in e.HideTerminalCommand.Values)
         {
-            if (!TryGetTerminalFromZone(e, hidecmd.TerminalIndex, out var term)) continue;
+            if (!TryGetTerminalFromZone(e, hidecmd.TerminalIndex, out var term)) 
+                continue;
 
             TERM_Command c_num = (TERM_Command)(50 + hidecmd.CommandNumber);
             TERM_Command command;

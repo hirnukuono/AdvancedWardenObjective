@@ -32,7 +32,6 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         }
         
         CellSoundPlayer dialogue = new();
-
         dialogue.SetSwitch(SWITCHES.CHARACTER.GROUP, player.CharacterID switch
         {
             0 => SWITCHES.CHARACTER.SWITCH.CH_01,
@@ -41,7 +40,6 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             3 => SWITCHES.CHARACTER.SWITCH.CH_04,
             _ => throw new NotImplementedException($"[{Name}] only supports default lobby size. Unknown CharacterID {player.CharacterID}")
         });
-
         dialogue.SetSwitch(SWITCHES.INTENSITY_STATE.GROUP, fpd.IntensityState switch
         {
             IntensityState.Exploration => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_1_EXPLORATION,
@@ -53,24 +51,24 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
 
         if (!player.IsLocallyOwned) // idk if this does anything anymore
         {
-            dialogue.SetRTPCValue(GAME_PARAMETERS.FIRST_PERSON_MIX, 0.0f);
+            dialogue.SetRTPCValue(GAME_PARAMETERS.FIRST_PERSON_MIX, 0f);
             float magnitude = (LocalPlayer.Position - player.Position).magnitude;
             if (magnitude > player.PlayerData.radioEnabledDefaultDistance)
             {
-                float quality = 1.0f - (magnitude - player.PlayerData.radioEnabledDefaultDistance) / (player.PlayerData.radioQualityLowestAtDistance - player.PlayerData.radioEnabledDefaultDistance);
-                quality *= 100.0f;
+                float quality = 1f - (magnitude - player.PlayerData.radioEnabledDefaultDistance) / (player.PlayerData.radioQualityLowestAtDistance - player.PlayerData.radioEnabledDefaultDistance);
+                quality *= 100f;
                 dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_QUALITY_DISTANCE, quality);
-                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_DISTORTION_ON_OFF, 1.0f);
+                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_DISTORTION_ON_OFF, 1f);
             }
             else
             {
-                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_QUALITY_DISTANCE, 100.0f);
-                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_DISTORTION_ON_OFF, 0.0f);
+                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_QUALITY_DISTANCE, 100f);
+                dialogue.SetRTPCValue(GAME_PARAMETERS.RADIO_DISTORTION_ON_OFF, 0f);
             }
         }
         else
         {
-            dialogue.SetRTPCValue(GAME_PARAMETERS.FIRST_PERSON_MIX, 1.0f);
+            dialogue.SetRTPCValue(GAME_PARAMETERS.FIRST_PERSON_MIX, 1f);
         }
 
         DialogCharFilter playerCharFilter = player.PlayerCharacterFilter;
@@ -97,7 +95,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         {
             LogWarning("Skipping this event's SoundSubtitle since player dialogue is active");
         }
-        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(4.0f, e.Duration));
+        GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(4f, e.Duration));
     }
 
     private static bool TryGetPlayerCharacter(WEE_ForcePlayerDialogue dialog, Vector3 pos, [NotNullWhen(true)] out PlayerAgent? player, out List<DialogCharFilter> charFilterList)

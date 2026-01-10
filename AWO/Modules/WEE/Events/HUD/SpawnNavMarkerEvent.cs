@@ -10,7 +10,6 @@ internal class SpawnNavMarkerEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnNavMarker;
 
-
     public static readonly Dictionary<int, NavMarker> NavMarkers = new();
 
     protected override void OnSetup()
@@ -28,7 +27,6 @@ internal class SpawnNavMarkerEvent : BaseEvent
         foreach (var eNav in e.NavMarker.Values)
         {
             int index = ResolveFieldsFallback(eNav.Index, e.Count, false);
-
             if (!NavMarkers.TryGetValue(index, out var marker))
             {
                 var trackingObj = new GameObject($"AMAWO_{index}")
@@ -47,12 +45,11 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
                 NavMarkers.Add(index, marker);
 
-                if (e.Duration > 0.0f)
+                if (e.Duration > 0f)
                 {
                     CoroutineManager.StartCoroutine(DestroyAfterDelay(index, e.Duration).WrapToIl2Cpp());
                 }
             }
-
             marker.SetVisible(e.Enabled);
         }
     }

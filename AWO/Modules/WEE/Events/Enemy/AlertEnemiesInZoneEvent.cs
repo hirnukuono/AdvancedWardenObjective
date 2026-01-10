@@ -13,7 +13,8 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         if (e.SpecialNumber == -1)
         {
@@ -41,9 +42,9 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             noiseMaker = null,
             node = node,
             position = node.GetRandomPositionInside(),
-            radiusMin = 0.0f,
-            radiusMax = 64.0f,
-            yScale = 1.0f,
+            radiusMin = 0f,
+            radiusMax = 64f,
+            yScale = 1f,
             type = NM_NoiseType.InstaDetect,
             includeToNeightbourAreas = false, // 10cc typo literaly unplayable
             raycastFirstNode = false
@@ -80,9 +81,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
             var agent = PlayerManager.PlayerAgentsInLevel[i];
             var coverage = coverageDatas[i];
             if (agent == null || !agent.Alive || coverage == null || !coverage.IsValidNodeDistance)
-            {
-                continue;
-            }
+                continue;            
 
             int nodeDist = coverage.m_nodeDistance;
             if (agent.Owner.IsBot)

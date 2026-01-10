@@ -15,7 +15,8 @@ internal sealed class RevivePlayerEvent : BaseEvent
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
             bool overflow = i >= 4 && e.RevivePlayer.FullTeamOverflow && activeSlotIndices.Count == 4 && activeSlotIndices.Max() < 4;
-            PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
+            var player = PlayerManager.PlayerAgentsInLevel[i];
+
             if ((overflow || activeSlotIndices.Contains(i)) && !player.Alive)
             {
                 AgentReplicatedActions.PlayerReviveAction(player, player, player.Position);

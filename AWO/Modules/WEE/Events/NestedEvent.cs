@@ -86,7 +86,7 @@ internal sealed class NestedEvent : BaseEvent
     {
         float sum = wheel.Sum(part => part.Weight);
         float rand = EntryPoint.SessionRand.NextFloat() * sum;
-        float cumulative = 0.0f;
+        float cumulative = 0f;
         Logger.Verbose(LogLevel.Debug, $"Rolled {rand} / {sum}");
 
         for (int i = 0; i < wheel.Count; i++)

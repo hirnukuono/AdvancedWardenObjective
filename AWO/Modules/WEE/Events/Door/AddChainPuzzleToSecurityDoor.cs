@@ -12,9 +12,10 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
-        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle;
+        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle; // resolve terminal field fallback
         if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(chainPuzzle, out var block))
         {
             LogError($"Failed to find enabled ChainedPuzzleDataBlock {chainPuzzle}!");

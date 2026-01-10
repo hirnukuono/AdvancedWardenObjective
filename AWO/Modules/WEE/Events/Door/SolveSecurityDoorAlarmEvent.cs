@@ -10,7 +10,8 @@ internal class SolveSecurityDoorAlarmEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
         var doorState = door.m_sync.GetCurrentSyncState();
         if (doorState.status == eDoorStatus.Closed_LockedWithChainedPuzzle || doorState.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)

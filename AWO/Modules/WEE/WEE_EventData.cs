@@ -43,8 +43,8 @@ public sealed class WEE_EventData
     
     // General Fields
     public Vector3 Position { get; set; } = Vector3.zero;
-    public float Delay { get; set; } = 0.0f;
-    public float Duration { get; set; } = 0.0f;
+    public float Delay { get; set; } = 0f;
+    public float Duration { get; set; } = 0f;
     public LocaleText WardenIntel { get; set; } = LocaleText.Empty;
     public uint SoundID { get; set; } = 0u;
     public LocaleText SoundSubtitle { get; set; } = LocaleText.Empty;
@@ -133,14 +133,14 @@ public sealed class WEE_UpdateFogData
 {
     public bool DoUpdate { get; set; } = false;
     public uint FogSetting { get; set; } = 0u;
-    public float FogTransitionDuration { get; set; } = 0.0f;
+    public float FogTransitionDuration { get; set; } = 0f;
 }
 
 public sealed class WEE_ReactorEventData
 {
     public WaveState State { get; set; } = WaveState.Intro;
     public int Wave { get; set; } = 1;
-    public float Progress { get; set; } = 0.0f;
+    public float Progress { get; set; } = 0f;
 
     public enum WaveState
     {
@@ -153,7 +153,7 @@ public sealed class WEE_ReactorEventData
 
 public sealed class WEE_CountdownData
 {
-    public float Duration { get; set; } = 0.0f;
+    public float Duration { get; set; } = 0f;
     public bool CanShowHours { get; set; } = true;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public LocaleText TitleText { get => TimerText; set => TimerText = value; }
@@ -320,7 +320,7 @@ public sealed class WEE_NestedEvent
 public sealed class WEE_StartEventLoop
 {
     public int LoopIndex { get; set; } = 0;
-    public float LoopDelay { get; set; } = 1.0f;
+    public float LoopDelay { get; set; } = 1f;
     public int LoopCount { get; set; } = -1;
     public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
 }
@@ -388,9 +388,9 @@ public sealed class WEE_InfectPlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3};
     public bool FullTeamOverflow { get; set; } = true;
-    public float InfectionAmount { get; set; } = 0.0f;
+    public float InfectionAmount { get; set; } = 0f;
     public bool InfectOverTime { get; set; } = false;
-    public float Interval { get; set; } = 1.0f;
+    public float Interval { get; set; } = 1f;
     public bool UseZone { get; set; } = false;
 }
 
@@ -398,9 +398,9 @@ public sealed class WEE_DamagePlayer
 {
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
     public bool FullTeamOverflow { get; set; } = true;
-    public float DamageAmount { get; set; } = 0.0f;
+    public float DamageAmount { get; set; } = 0f;
     public bool DamageOverTime { get; set; } = false;
-    public float Interval { get; set; } = 1.0f;
+    public float Interval { get; set; } = 1f;
     public bool UseZone { get; set; } = false;
 }
 
@@ -412,8 +412,8 @@ public sealed class WEE_RevivePlayer
 
 public sealed class WEE_AdjustTimer
 {
-    public float Duration { get; set; } = 0.0f;
-    public float Speed { get; set; } = 0.0f;
+    public float Duration { get; set; } = 0f;
+    public float Speed { get; set; } = 0f;
     public bool UpdateTitleText { get; set; } = false;
     public LocaleText TitleText { get; set; } = LocaleText.Empty;
     public bool UpdateText { get; set; } = false;
@@ -426,9 +426,9 @@ public sealed class WEE_AdjustTimer
 
 public sealed class WEE_CountupData
 {
-    public float Duration { get; set; } = 0.0f;
-    public float StartValue { get; set; } = 0.0f;
-    public float Speed { get; set; } = 1.0f;
+    public float Duration { get; set; } = 0f;
+    public float StartValue { get; set; } = 0f;
+    public float Speed { get; set; } = 1f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public LocaleText TitleText { get => TimerText; set => TimerText = value; }
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
@@ -450,23 +450,23 @@ public sealed class WEE_NavMarkerData
     public int Index { get; set; } = 0;
     public NavMarkerOption Style { get; set; } = NavMarkerOption.Waypoint | NavMarkerOption.Distance;
     public LocaleText Title { get; set; } = LocaleText.Empty;
-    public Color Color { get; set; } = new(0.701f, 0.435f, 0.964f, 1.0f);
+    public Color Color { get; set; } = new(0.701f, 0.435f, 0.964f, 1f);
     public bool UsePin { get; set; } = true;
 }
 
 public sealed class WEE_ShakeScreen
 {
-    public float Radius { get; set; } = 0.0f;
-    public float Duration { get; set; } = 0.0f;
-    public float Amplitude { get; set; } = 0.0f;
-    public float Frequency { get; set; } = 0.0f;
+    public float Radius { get; set; } = 0f;
+    public float Duration { get; set; } = 0f;
+    public float Amplitude { get; set; } = 0f;
+    public float Frequency { get; set; } = 0f;
     public bool Directional { get; set; } = true;
 }
 
 public sealed class WEE_StartPortalMachine
 {
     public eDimensionIndex TargetDimension { get; set; } = eDimensionIndex.Dimension_1;
-    public float TeleportDelay { get; set; } = 5.0f;
+    public float TeleportDelay { get; set; } = 5f;
     public bool PreventPortalWarpTeamEvent { get; set; } = false;
 }
 
@@ -520,7 +520,7 @@ public sealed class WEE_CustomHudText
 
 public sealed class WEE_SpecialHudTimer
 {
-    public float Duration { get; set; } = 0.0f;
+    public float Duration { get; set; } = 0f;
     public SpecialHudType Type { get; set; } = SpecialHudType.StartTimer;
     public int Index { get; set; } = 0;
     public LocaleText Message { get; set; } = LocaleText.Empty;

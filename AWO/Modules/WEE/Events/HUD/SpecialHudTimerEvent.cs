@@ -36,7 +36,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         switch (specHud.Type)
         {
             case SpecialHudType.StartTimer: // start timed specialhud without an index
-                if (duration <= 0.0f)
+                if (duration <= 0f)
                 {
                     LogError("Duration must be greater than 0 seconds!");
                     return;
@@ -46,7 +46,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 break;
 
             case SpecialHudType.StartIndexTimer: // start timed specialhud with index
-                if (duration <= 0.0f)
+                if (duration <= 0f)
                 {
                     LogError("Duration must be greater than 0 seconds!");
                     return;
@@ -95,7 +95,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
     static IEnumerator DoSpecialHudTimed(WEE_SpecialHudTimer hud, float duration)
     {
         int reloadCount = CheckpointManager.CheckpointUsage;
-        float time = 0.0f;
+        float time = 0f;
         float percentage, invertPercent;
         string msg = SerialLookupManager.ParseTextFragments(hud.Message);
         bool hasTags = msg.Contains(Timer) || msg.Contains(Percent);
@@ -117,7 +117,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             }
 
             percentage = Mathf.Clamp01(time / duration);
-            invertPercent = 1.0f - percentage;
+            invertPercent = 1f - percentage;
             if (hud.ShowTimeInProgressBar)
             {
                 GuiManager.InteractionLayer.SetMessageTimer(!hud.InvertProgress ? percentage : invertPercent);

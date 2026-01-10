@@ -9,7 +9,8 @@ internal sealed class TriggerSecurityDoorAlarmEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
         var puzzleInstance = door.m_locks.ChainedPuzzleToSolve;
         if (puzzleInstance == null)

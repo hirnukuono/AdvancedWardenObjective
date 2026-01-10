@@ -1,4 +1,5 @@
-﻿using GameData;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using GameData;
 using HarmonyLib;
 using LevelGeneration;
 using System.Collections;
@@ -20,7 +21,7 @@ internal static class Patch_TermCmdInterpreter
         {
             if (LogEventQueue.TryGetValue((__instance.m_terminal.SyncID, param1.ToUpper()), out var eData))
             {
-                CoroutineManager.StartCoroutine(DoEvents(eData).WrapToIl2Cpp());
+                __instance.m_terminal.StartCoroutine(DoEvents(eData));
             }
         }
         else if ((int)cmd >= 50 && (int)cmd <= 255)
@@ -34,7 +35,7 @@ internal static class Patch_TermCmdInterpreter
 
     private static IEnumerator DoEvents(Queue<WardenObjectiveEventData> eData)
     {
-        yield return new WaitForSeconds(3.0f); // wait for line output done, i.e. log viewable
+        yield return new WaitForSeconds(3f); // wait for line output done, i.e. log viewable
         while (eData.Count > 0)
         {
             WOManager.CheckAndExecuteEventsOnTrigger(eData.Dequeue(), eWardenObjectiveEventTrigger.None, true);

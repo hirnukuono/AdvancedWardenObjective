@@ -10,7 +10,8 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) return;
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
         var waveData = e.ActiveEnemyWave ?? new();
         var state = door.m_sync.GetCurrentSyncState();

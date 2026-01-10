@@ -105,7 +105,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         
         for (int i = 0; i < LightsInZone.Length; i++)
         {
-            ApplyLightMod(block, isRecall ? 0.0f : state.duration, state.lightSeed, i); // set new light settings
+            ApplyLightMod(block, isRecall ? 0f : state.duration, state.lightSeed, i); // set new light settings
         }
         StartShareStatus(state.duration);
     }
@@ -142,7 +142,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
                     duration = duration,
                     origIntensity = worker.PrefabIntensity,
                     startIntensity = mod.Intensity,
-                    endIntensity = 0.0f,
+                    endIntensity = 0f,
                     startColor = mod.Color,
                     endColor = Color.black,
                     endMode = LightTransitionData.Mode.Disabled
@@ -155,7 +155,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
                     lightMod = mod,
                     duration = duration,
                     origIntensity = worker.PrefabIntensity,
-                    startIntensity = mod.Enabled ? mod.Intensity : 0.0f,
+                    startIntensity = mod.Enabled ? mod.Intensity : 0f,
                     endIntensity = worker.PrefabIntensity * setting.IntensityMul,
                     startColor = mod.Enabled ? mod.Color : Color.black,
                     endColor = setting.Color,
@@ -169,7 +169,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
     [HideFromIl2Cpp]
     private IEnumerator LightTransition(LightTransitionData data)
     {        
-        float time = 0.0f;
+        float time = 0f;
         float progress;
         bool flag = false;
         var mod = data.lightMod;
@@ -210,9 +210,9 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
 
         while (true)
         {
-            time = 0.0f;
+            time = 0f;
             duration = rand.NextRange(0.1f, 2.5f);
-            delay = rand.NextRange(0.2f, 1.0f);
+            delay = rand.NextRange(0.2f, 1f);
 
             while (time <= duration)
             {
@@ -222,7 +222,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
                 yield return null;
             }
 
-            mod.Intensity = 0.0f;
+            mod.Intensity = 0f;
             yield return new WaitForSeconds(delay);
         }
     }
@@ -260,7 +260,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
     [HideFromIl2Cpp]
     private IEnumerator DoShareStatus(float duration)
     {
-        float time = 0.0f;
+        float time = 0f;
         float interval = GetInvocationInterval(duration);
         float nextInvoke = interval;
         bool shouldSync = !float.IsNaN(interval);
@@ -281,13 +281,13 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
 
     private static float GetInvocationInterval(float time) // a very overcomplicated way to get faster zone light change sync intervals
     {
-        if (time < 2.0f)
+        if (time < 2f)
         {
             return float.NaN;
         }
-        else if (time < 10.0f)
+        else if (time < 10f)
         {
-            return time / 2.0f;
+            return time / 2f;
         }
 
         int timef = (int)Math.Floor(time);
@@ -334,6 +334,6 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
             });
         }
 
-        return Math.Min(interval, 30.0f);
+        return Math.Min(interval, 30f);
     }
 }

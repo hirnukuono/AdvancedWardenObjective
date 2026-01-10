@@ -27,9 +27,10 @@ internal sealed class SetTerminalLog : BaseEvent
     {
         foreach (var eLog in e.SetTerminalLog.Values)
         {
-            if (!TryGetTerminalFromZone(e, eLog.TerminalIndex, out var term)) continue;
-            var filename = eLog.FileName.ToUpper();
+            if (!TryGetTerminalFromZone(e, eLog.TerminalIndex, out var term)) 
+                continue;
 
+            var filename = eLog.FileName.ToUpper();
             switch (eLog.Type)
             {
                 case LogEventType.Add:

@@ -15,11 +15,12 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.SpawnHibernateInZone;
     public override bool AllowArrayableGlobalIndex => true;
 
-    private const float TimeToCompleteSpawn = 2.0f;
+    private const float TimeToCompleteSpawn = 2f;
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         foreach (var sh in e.SpawnHibernates.Values)
         { 
@@ -106,7 +107,6 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
             Quaternion rotation = Quaternion.Euler(0, MasterRand.NextRange(0, 360), 0);
             EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, spawnNode, AgentMode.Hibernate, pos, rotation);
-
             yield return spawnInterval;
         }
     }

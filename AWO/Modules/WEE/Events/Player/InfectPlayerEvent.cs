@@ -14,18 +14,20 @@ internal sealed class InfectPlayerEvent : BaseEvent
         e.InfectPlayer ??= new();
         var activeSlotIndices = new HashSet<int>(e.InfectPlayer.PlayerFilter.Select(filter => (int)filter));
 
-        if (!TryGetZone(e, out var zone)) return;
+        if (!TryGetZone(e, out var zone)) 
+            return;
 
         for (int i = 0; i < PlayerManager.PlayerAgentsInLevel.Count; i++)
         {
             bool overflow = i >= 4 && e.InfectPlayer.FullTeamOverflow && activeSlotIndices.Count == 4 && activeSlotIndices.Max() < 4;
-            PlayerAgent player = PlayerManager.PlayerAgentsInLevel[i];
+            var player = PlayerManager.PlayerAgentsInLevel[i];
+
             if ((!overflow && !activeSlotIndices.Contains(i)) || player.Owner.IsBot)
                 continue; // Player is neither in PlayerFilter nor is bot, continue
             if (player.CourseNode?.m_zone == null)
                 continue; // Node is null, continue
 
-            if (e.InfectPlayer.InfectOverTime && e.Duration > 0.0f)
+            if (e.InfectPlayer.InfectOverTime && e.Duration > 0f)
                 CoroutineManager.StartCoroutine(InfectOverTime(e, player, zone.ID).WrapToIl2Cpp());
             else
                 ApplyInfection(player, e.InfectPlayer.InfectionAmount, e.InfectPlayer.UseZone, zone.ID);
@@ -36,16 +38,16 @@ internal sealed class InfectPlayerEvent : BaseEvent
     {
         int reloadCount = CheckpointManager.CheckpointUsage;
         float infectionPerSecond = e.InfectPlayer!.InfectionAmount / e.Duration;
-        float elapsed = 0.0f;
+        float elapsed = 0f;
         WaitForSeconds delay = new(e.InfectPlayer.Interval);
 
         while (elapsed < e.Duration)
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
-                yield break; // checkpoint was used or not in level, exit
+                // checkpoint was used or not in level, exit
+                yield break; 
             }
-
             ApplyInfection(player, infectionPerSecond, e.InfectPlayer.UseZone, id);
             elapsed += Time.deltaTime;
             yield return delay;
@@ -56,7 +58,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
     {
         pInfection data = new()
         {
-            amount = infection / 100.0f,
+            amount = infection / 100f,
             mode = pInfectionMode.Add,
             effect = pInfectionEffect.None
         };

@@ -16,11 +16,9 @@ internal sealed class CountupEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        float duration = ResolveFieldsFallback(e.Duration, e.Countup?.Duration ?? 0.0f);
-        if (duration <= 0.0f)
-        {
-            LogWarning("Duration should generally be greater than 0 seconds");
-        }
+        float duration = ResolveFieldsFallback(e.Duration, e.Countup?.Duration ?? 0f);
+        if (duration <= 0f)
+            LogWarning("Duration should generally be more than 0 seconds");
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
         CoroutineManager.StartCoroutine(DoCountup(e.Countup ?? new(), duration).WrapToIl2Cpp());
@@ -38,7 +36,7 @@ internal sealed class CountupEvent : BaseEvent
         Color color = cu.TimerColor;
         string htmlColor = ColorUtility.ToHtmlStringRGB(color);
 
-        EntryPoint.TimerMods.TimeModifier = 0.0f;
+        EntryPoint.TimerMods.TimeModifier = 0f;
         EntryPoint.TimerMods.SpeedModifier = speed;
         EntryPoint.TimerMods.TimerTitleText = titleText;
         EntryPoint.TimerMods.TimerBodyText = customText;
@@ -56,7 +54,8 @@ internal sealed class CountupEvent : BaseEvent
         {
             if (startTime < EntryPoint.Coroutines.CountdownStarted)
             {
-                yield break; // someone has started a new countup while we were here, exit
+                // someone has started a new countup while we were here, exit
+                yield break; 
             }
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
@@ -81,10 +80,10 @@ internal sealed class CountupEvent : BaseEvent
             count += speed * Time.deltaTime;
 
             #region TIMER_MODS
-            if (EntryPoint.TimerMods.TimeModifier != 0.0f) // time mod
+            if (EntryPoint.TimerMods.TimeModifier != 0f) // time mod
             {
                 count += EntryPoint.TimerMods.TimeModifier;
-                EntryPoint.TimerMods.TimeModifier = 0.0f;
+                EntryPoint.TimerMods.TimeModifier = 0f;
             }
             if (EntryPoint.TimerMods.SpeedModifier != speed) // speed mod
             {
@@ -118,7 +117,8 @@ internal sealed class CountupEvent : BaseEvent
 
         if (GameStateManager.CurrentStateName != eGameStateName.InLevel || startTime < EntryPoint.Coroutines.CountdownStarted)
         {
-            yield break; // catch for if new timer started at the last moment
+            // catch for if new timer started at the last moment
+            yield break; 
         }
         ObjHudTimer.SetTimerActive(false, true);        
     }
@@ -136,7 +136,8 @@ internal sealed class CountupEvent : BaseEvent
 
     private static float NormalizedPercent(float current, float min, float max)
     {
-        if (min == max) return float.NaN;
+        if (min == max) 
+            return float.NaN;
 
         float clamp = Math.Clamp(current, min, max);
         return (clamp - min) / (max - min);

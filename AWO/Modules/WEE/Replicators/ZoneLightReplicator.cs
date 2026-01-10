@@ -3,6 +3,7 @@ using AmorLib.Networking.StateReplicators;
 using AmorLib.Utils;
 using BepInEx.Unity.IL2CPP.Utils;
 using GameData;
+using GTFO.API;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -54,10 +55,13 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         LightsInZone = LightAPI.GetLightWorkersInZone(zone).ToArray();
         Zone = zone;
 
-        if (OnLightsChanged != null)
+        LevelAPI.OnBuildDone += () =>
         {
-            OnSharedStatus = OnLightsChanged;
-        }
+            if (OnLightsChanged != null)
+            {
+                OnSharedStatus = OnLightsChanged;
+            }
+        };
     }
 
     public void OnDestroy()
@@ -224,10 +228,10 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
     }
 
     /* remove this stuff later */
+    /* remove this stuff later */
+    /* remove this stuff later */
     [HideFromIl2Cpp]
-    public event Action? OnSharedStatus;
-    [HideFromIl2Cpp]
-    public event Action? OnLightsChanged;
+    public event Action? OnSharedStatus, OnLightsChanged;
     public Coroutine? ShareStatusCoroutine;
 
     public void ShareStatus()

@@ -34,6 +34,9 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
 
     public void OnStateChange(BlackoutStatus oldState, BlackoutStatus state, bool isRecall)
     {
+        if (oldState.blackoutEnabled == state.blackoutEnabled)
+            return;
+
         var isNormal = !state.blackoutEnabled;
 
         foreach (var display in TrackedList<LG_LabDisplay>())

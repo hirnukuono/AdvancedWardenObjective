@@ -1,9 +1,7 @@
-﻿using AWO.CustomFields;
-using GameData;
+﻿using GameData;
 using Il2CppJsonNet.Linq;
-using InjectLib.FieldInjection;
-using InjectLib.JsonNETInjection.Supports;
 using InjectLib.JsonNETInjection.Handler;
+using InjectLib.JsonNETInjection.Supports;
 
 namespace AWO.Modules.WEE.JsonInjects;
 

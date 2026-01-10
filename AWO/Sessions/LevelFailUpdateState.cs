@@ -42,18 +42,12 @@ internal static class LevelFailUpdateState
 
     public static void SetFailAllowed(bool allowed)
     {
-        Replicator?.SetState(new()
-        {
-            mode = allowed ? LevelFailMode.Default : LevelFailMode.Never
-        });
+        Replicator?.SetState(new() { mode = allowed ? LevelFailMode.Default : LevelFailMode.Never });
     }
 
     public static void SetFailWhenAnyPlayerDown(bool enabled)
     {
-        Replicator?.SetState(new()
-        {
-            mode = enabled ? LevelFailMode.AnyPlayerDown : LevelFailMode.Default
-        });
+        Replicator?.SetState(new() { mode = enabled ? LevelFailMode.AnyPlayerDown : LevelFailMode.Default });
     }
 
     private static void OnStateChanged(LevelFailCheck _, LevelFailCheck state, bool __)

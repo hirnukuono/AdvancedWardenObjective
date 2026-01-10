@@ -9,6 +9,7 @@ internal static class Patch_LevelFailCheck
     [HarmonyPatch(typeof(WOManager), nameof(WOManager.CheckExpeditionFailed))]
     [HarmonyPostfix]
     [HarmonyPriority(Priority.Low)]
+    [HarmonyWrapSafe]
     private static void Post_CheckLevelFail(ref bool __result)
     {
         if (!LevelFailUpdateState.LevelFailAllowed)

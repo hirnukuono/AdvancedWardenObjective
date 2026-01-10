@@ -27,13 +27,21 @@ public sealed class WEE_EventData
     public uint ChainPuzzle { get; set; } = 0u;
     public bool UseStaticBioscanPoints { get; set; } = false;
 
+    // Global Index
+    [JsonPropertyName("DimensionIndex")] 
+    public Arrayable<eDimensionIndex> ArrayableDimension { get; set; } = eDimensionIndex.Reality;
+    [JsonIgnore]
+    public eDimensionIndex DimensionIndex { get; set; }
+    [JsonPropertyName("Layer")]
+    public Arrayable<LG_LayerType> ArrayableLayer { get; set; } = LG_LayerType.MainLayer;
+    [JsonIgnore]
+    public LG_LayerType Layer { get; set; }
+    [JsonPropertyName("LocalIndex")]
+    public Arrayable<eLocalZoneIndex> ArrayableZone { get; set; } = eLocalZoneIndex.Zone_0;
+    [JsonIgnore]
+    public eLocalZoneIndex LocalIndex { get; set; }
+    
     // General Fields
-    //public Arrayable<eDimensionIndex> DimensionIndex { get; set; } = eDimensionIndex.Reality;
-    //public Arrayable<LG_LayerType> Layer { get; set; } = LG_LayerType.MainLayer;
-    //public Arrayable<eLocalZoneIndex> LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
-    public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
-    public LG_LayerType Layer { get; set; } = LG_LayerType.MainLayer;
-    public eLocalZoneIndex LocalIndex { get; set; } = eLocalZoneIndex.Zone_0;
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0.0f;
     public float Duration { get; set; } = 0.0f;
@@ -58,15 +66,15 @@ public sealed class WEE_EventData
     public WEE_CountdownData? Countdown { get; set; } = null;
     public WEE_ZoneLightData? SetZoneLight { get; set; } = null;
     public Arrayable<WEE_CleanupEnemiesData> CleanupEnemies { get; set; } = new WEE_CleanupEnemiesData();
-    public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new WEE_SpawnHibernateData();
-    public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new WEE_SpawnScoutData();
+    public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new();
+    public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new();
 
     // Hirnu
-    public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new WEE_AddTerminalCommand();
+    public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new();
     public Arrayable<WEE_AddTerminalCommand> AddCommand { private get => AddTerminalCommand; set => AddTerminalCommand = value; }
-    public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new WEE_HideTerminalCommand();
+    public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new();
     public Arrayable<WEE_HideTerminalCommand> HideCommand { private get => HideTerminalCommand; set => HideTerminalCommand = value; }
-    public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new WEE_UnhideTerminalCommand();
+    public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new();
     public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { private get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
     // Amor
@@ -90,13 +98,22 @@ public sealed class WEE_EventData
     public WEE_SpecialHudTimer? SpecialHudTimer { get; set; } = new();
     public WEE_SpecialHudTimer? SpecialHud { private get => SpecialHudTimer; set => SpecialHudTimer = value; }
     public WEE_ForcePlayerDialogue? PlayerDialogue { get; set; } = null;
-    public Arrayable<WEE_SetTerminalLog> SetTerminalLog { get; set; } = new WEE_SetTerminalLog();
+    public Arrayable<WEE_SetTerminalLog> SetTerminalLog { get; set; } = new();
     public Arrayable<WEE_SetTerminalLog> TerminalLog { private get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
     public WEE_SetOutsideDimensionData? DimensionData { get; set; } = null;
 
     // Dinorush
     public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
+
+    public WEE_EventData Clone(eDimensionIndex dim, LG_LayerType layer, eLocalZoneIndex zone)
+    {
+        var clone = (WEE_EventData)MemberwiseClone();
+        clone.DimensionIndex = dim;
+        clone.Layer = layer;
+        clone.LocalIndex = zone;
+        return clone;
+    }
 }
 
 #region OG_EVENTS

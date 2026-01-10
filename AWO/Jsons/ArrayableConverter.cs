@@ -20,6 +20,19 @@ public class ArrayableConverter<T> : JsonConverter<Arrayable<T>>
     }
 
     public override void Write(Utf8JsonWriter writer, Arrayable<T> value, JsonSerializerOptions options)
-        => throw new NotSupportedException("Serialization not supported yet.");
+    {
+        if (value.Values == null)
+        {
+            writer.WriteNullValue();
+            return;
+        }
+
+        writer.WriteStartArray();
+        foreach (var item in value.Values)
+        {
+            JsonSerializer.Serialize(writer, item, options);
+        }
+        writer.WriteEndArray();
+    }
 }
 

@@ -48,6 +48,9 @@ internal static class WardenEventExt
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
 
         JsonInjector.SetConverter(new EventTypeConverter());
+        JsonInjector.SetConverter(new DimensionIndexConverter());
+        JsonInjector.SetConverter(new LayerTypeConverter());
+        JsonInjector.SetConverter(new LocalIndexConverter());
         JsonInjector.AddHandler(new EventDataHandler());
         JsonInjector.AddHandler(new TriggerDataHandler());
 
@@ -70,33 +73,28 @@ internal static class WardenEventExt
             return;
         }
 
-        CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
-        return;
-
-        //if (!eventInstance.AllowArrayableGlobalIndex 
-        //    || !weeData.ArrayableDimension.Values.Any() && !weeData.ArrayableLayer.Values.Any() && !weeData.ArrayableZone.Values.Any())
-        //{
-        //    CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
-        //    return;
-        //}
-
-        //foreach (var (dim, layer, zone) in Expand(weeData))
-        //{
-        //    var newData = e.GetWEEData();
-        //    newData.DimensionIndex = dim;
-        //    newData.Layer = layer;
-        //    newData.LocalIndex= zone;
-        //    CoroutineManager.StartCoroutine(Handle(eventInstance, newData, currentDuration).WrapToIl2Cpp());
-        //}
+        var globalIndices = Expand(weeData).ToList();
+        foreach (var (dim, layer, zone) in globalIndices)
+        {   
+            if (!eventInstance.AllowArrayableGlobalIndex || globalIndices.Count == 1)
+            {
+                weeData.DimensionIndex = dim;
+                weeData.Layer = layer;
+                weeData.LocalIndex = zone;
+                CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
+                return;
+            }            
+            CoroutineManager.StartCoroutine(Handle(eventInstance, weeData.Clone(dim, layer, zone), currentDuration).WrapToIl2Cpp());
+        }
     }
 
-    //private static IEnumerable<(eDimensionIndex, LG_LayerType, eLocalZoneIndex)> Expand(WEE_EventData e)
-    //{
-    //    foreach (var d in e.ArrayableDimension.Values)
-    //        foreach (var l in e.ArrayableLayer.Values)
-    //            foreach (var z in e.ArrayableZone.Values)
-    //                yield return (d, l, z);
-    //}
+    private static IEnumerable<(eDimensionIndex, LG_LayerType, eLocalZoneIndex)> Expand(WEE_EventData e)
+    {
+        foreach (var d in e.ArrayableDimension.Values)
+            foreach (var l in e.ArrayableLayer.Values)
+                foreach (var z in e.ArrayableZone.Values)
+                    yield return (d, l, z);
+    }
 
     private static IEnumerator Handle(BaseEvent eventInstance, WEE_EventData e, float currentDuration)
     {

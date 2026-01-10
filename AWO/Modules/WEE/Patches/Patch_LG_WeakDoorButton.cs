@@ -9,6 +9,7 @@ namespace AWO.Modules.WEE.Patches;
 internal static class Patch_LG_WeakDoorButton
 {
     [HarmonyPostfix]
+    [HarmonyWrapSafe]
     private static void Post_Setup(LG_WeakDoor __instance)
     {
         WeakDoors.GetOrAddNew(__instance.Gate.CoursePortal.m_nodeA.m_zone.ID).Add(__instance);

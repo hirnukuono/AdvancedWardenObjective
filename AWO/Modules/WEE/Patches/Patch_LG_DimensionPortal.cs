@@ -9,6 +9,7 @@ namespace AWO.Modules.WEE.Patches;
 internal static class Patch_LG_DimensionPortal
 {
     [HarmonyPostfix]
+    [HarmonyWrapSafe]
     private static void Post_Setup(LG_DimensionPortal __instance)
     {
         Portals.Add(__instance.SpawnNode.m_zone.ToStruct(), __instance);

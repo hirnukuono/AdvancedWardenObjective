@@ -6,8 +6,7 @@ namespace AWO.Modules.WEE.JsonInjects;
 
 internal class ArrayableFlatConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> where T : unmanaged, Enum
 {
-    private static readonly Type BaseType = Enum.GetUnderlyingType(typeof(T));
-    private static readonly bool IsByte = BaseType == typeof(byte);
+    private static readonly bool IsByte = Enum.GetUnderlyingType(typeof(T)) == typeof(byte);
 
     protected override T Read(JToken jToken, T existingValue, JsonSerializer serializer)
     {

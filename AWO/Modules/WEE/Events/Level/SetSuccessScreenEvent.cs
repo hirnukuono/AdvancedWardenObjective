@@ -11,7 +11,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.SetSuccessScreen;
 
     private static string s_storedSuccessText = string.Empty;
-    private static uint s_storedPreviousMusic = 0u;
+    private static bool s_shouldResetMusic = false;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -84,15 +84,12 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     private static void SetSuccessMusic(uint music)
     {
-        if (music == 0u)
-            return;
-
-        if (s_storedPreviousMusic == 0u)
+        if (!s_shouldResetMusic)
         {
-            s_storedPreviousMusic = MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic;
+            s_shouldResetMusic = true;
             LevelAPI.OnBuildStart += RestoreSuccessMusic; // Any event that fires after the player leaves the success screen
         }
-
+        
         MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = music;
         Logger.Verbose(LogLevel.Debug, $"Set success screen music to sound id {music}.");
     }
@@ -109,10 +106,10 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     
     private static void RestoreSuccessMusic()
     {
-        if (s_storedPreviousMusic != 0u)
+        if (s_shouldResetMusic)
         {
-            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = s_storedPreviousMusic;
-            s_storedPreviousMusic = 0u;
+            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = 0; // 0 indicates the default music should be played
+            s_shouldResetMusic = false;
             LevelAPI.OnBuildStart -= RestoreSuccessMusic;
         }
     }

@@ -86,6 +86,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     {
         if (!s_shouldResetMusic)
         {
+            s_shouldResetMusic = true;
             LevelAPI.OnBuildStart += RestoreSuccessMusic; // Any event that fires after the player leaves the success screen
         }
         

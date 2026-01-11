@@ -48,9 +48,9 @@ internal static class WardenEventExt
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
 
         JsonInjector.SetConverter(new EventTypeConverter());
-        JsonInjector.SetConverter(new DimensionIndexConverter());
-        JsonInjector.SetConverter(new LayerTypeConverter());
-        JsonInjector.SetConverter(new LocalIndexConverter());
+        JsonInjector.SetConverter(new ArrayableFlatConverter<eDimensionIndex>());
+        JsonInjector.SetConverter(new ArrayableFlatConverter<LG_LayerType>());
+        JsonInjector.SetConverter(new ArrayableFlatConverter<eLocalZoneIndex>());
         JsonInjector.AddHandler(new EventDataHandler());
         JsonInjector.AddHandler(new TriggerDataHandler());
 

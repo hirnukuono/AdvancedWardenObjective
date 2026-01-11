@@ -3,7 +3,6 @@ using AmorLib.Networking.StateReplicators;
 using AmorLib.Utils;
 using BepInEx.Unity.IL2CPP.Utils;
 using GameData;
-using GTFO.API;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -37,13 +36,14 @@ public struct LightTransitionData
     }
 }
 
-public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
+public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
 {
     [HideFromIl2Cpp]
     public StateReplicator<ZoneLightState>? Replicator { get; private set; }
     public LG_Zone Zone = null!;
     public LightWorker[] LightsInZone = Array.Empty<LightWorker>();
     private readonly Dictionary<ILightModifier, Coroutine?> _lightMods = new();
+    private readonly Dictionary<int, ILightModifier> _modMap = new();
 
     public void Setup(LG_Zone zone)
     {
@@ -54,14 +54,6 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
 
         LightsInZone = LightAPI.GetLightWorkersInZone(zone).ToArray();
         Zone = zone;
-
-        LevelAPI.OnBuildDone += () =>
-        {
-            if (OnLightsChanged != null)
-            {
-                OnSharedStatus = OnLightsChanged;
-            }
-        };
     }
 
     public void OnDestroy()
@@ -90,6 +82,7 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
                 kvp.Key.Remove();
             }
             _lightMods.Clear();
+            _modMap.Clear();
             LightsInZone.ForEachWorker(worker => worker.ToggleLightFlicker(true));
 
             StopShareStatus();
@@ -122,12 +115,14 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         var light = worker.Light;
         var mod = worker.AddModifier(light.m_color, light.m_intensity, light.enabled);
 
-        if (_lightMods.TryGetValue(mod, out var coroutine) && coroutine != null)
+        if (_modMap.TryGetValue(worker.InstanceID, out var oldMod) && _lightMods.TryGetValue(oldMod, out var coroutine) && coroutine != null)
         {
             Zone.StopCoroutine(coroutine);
+            oldMod.Remove();
         }
-        _lightMods[mod] = null;        
-        
+        _lightMods[mod] = null; 
+        _modMap[worker.InstanceID] = mod;
+
         var selector = new LightSettingSelector();
         selector.Setup(worker.Light.m_category, lightDB);
         if (selector.TryGetRandomSetting((uint)subseed, out var setting))
@@ -173,6 +168,12 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
         float progress;
         bool flag = false;
         var mod = data.lightMod;
+
+        if (!mod.Enabled && data.endMode != LightTransitionData.Mode.Disabled)
+        {
+            mod.Color = Color.black;
+            mod.Intensity = 0f;
+        }
 
         while (time <= data.duration)
         {
@@ -225,115 +226,5 @@ public sealed class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<
             mod.Intensity = 0f;
             yield return new WaitForSeconds(delay);
         }
-    }
-
-    /* remove this stuff later */
-    /* remove this stuff later */
-    /* remove this stuff later */
-    [HideFromIl2Cpp]
-    public event Action? OnSharedStatus, OnLightsChanged;
-    public Coroutine? ShareStatusCoroutine;
-
-    public void ShareStatus()
-    {
-        OnSharedStatus?.Invoke();
-    }
-
-    public void StartShareStatus(float duration)
-    {
-        if (OnSharedStatus != null)
-        {
-            StopShareStatus();
-            ShareStatusCoroutine = CoroutineManager.StartCoroutine(DoShareStatus(duration).WrapToIl2Cpp());
-        }
-    }
-
-    public void StopShareStatus()
-    {
-        if (ShareStatusCoroutine != null)
-        {
-            CoroutineManager.StopCoroutine(ShareStatusCoroutine);
-            ShareStatusCoroutine = null;
-        }
-    }
-
-    [HideFromIl2Cpp]
-    private IEnumerator DoShareStatus(float duration)
-    {
-        float time = 0f;
-        float interval = GetInvocationInterval(duration);
-        float nextInvoke = interval;
-        bool shouldSync = !float.IsNaN(interval);
-
-        while (time <= duration)
-        {
-            time += Time.fixedDeltaTime;
-            if (shouldSync && nextInvoke <= time && nextInvoke < duration)
-            {
-                ShareStatus();
-                nextInvoke += interval;
-            }
-            yield return null;
-        }
-
-        ShareStatus();
-    }
-
-    private static float GetInvocationInterval(float time) // a very overcomplicated way to get faster zone light change sync intervals
-    {
-        if (time < 2f)
-        {
-            return float.NaN;
-        }
-        else if (time < 10f)
-        {
-            return time / 2f;
-        }
-
-        int timef = (int)Math.Floor(time);
-        if (timef.IsPrime())
-        {
-            timef -= 1;
-        }
-
-        List<int> divisors = new();
-        int rad = (int)Math.Sqrt(timef);
-        for (int i = 1; i <= rad; i++)
-        {
-            if (timef % i == 0)
-            {
-                divisors.Add(i);
-                int pair = timef / i;
-                if (pair != i)
-                {
-                    divisors.Add(pair);
-                }
-            }
-        }
-        divisors.Sort();
-        var inner = divisors.Skip(1).Take(divisors.Count - 2).ToList();
-        if (inner.Count == 0)
-        {
-            return float.NaN;
-        }
-
-        int interval;
-        float mean = inner.Sum() / (float)inner.Count;
-        if (inner.Count % 2 == 1)
-        {
-            interval = (int)mean;
-        }
-        else
-        {
-            interval = inner.Aggregate((a, b) =>
-            {
-                float da = Math.Abs(a - mean);
-                float db = Math.Abs(b - mean);
-                if (da == db) return Math.Max(a, b);
-                return da < db ? a : b;
-            });
-        }
-
-        return Math.Min(interval, 30f);
     }
 }

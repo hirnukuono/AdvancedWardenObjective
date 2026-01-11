@@ -117,15 +117,14 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
         if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
         {
-            yield break; // checkpoint was used or not in level, exit
+            // checkpoint was used or not in level, exit
+            yield break; 
         }
 
         Logger.Verbose(LogLevel.Debug, $"Warping {tpData.PlayerIndex} back to {tpData.LastDimension}");
-
         tpData.Dimension = tpData.LastDimension;
         tpData.Position = tpData.LastPosition;
         tpData.LookDirV3 = tpData.LookDir != 4 ? tpData.LastLookDirV3 : CamDirIfNotBot(tpData.Player);
-
         DoTeleport(tpData);
     }
 
@@ -153,9 +152,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if ((bigPickup?.GetSyncComponent().GetCurrentState().status) != ePickupItemStatus.PickedUp)
+            if (bigPickup != null && bigPickup.GetSyncComponent().GetCurrentState().status != ePickupItemStatus.PickedUp)
             {
-                bigPickup?.GetSyncComponent().AttemptPickupInteraction
+                bigPickup.GetSyncComponent().AttemptPickupInteraction
                 (
                     ePickupItemInteractionType.Place,
                     null,

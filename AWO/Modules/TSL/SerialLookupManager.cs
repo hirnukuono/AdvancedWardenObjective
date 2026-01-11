@@ -116,6 +116,7 @@ public static class SerialLookupManager
             var locks = LocksQueue.Dequeue();
             locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
             locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
+            locks.m_intUseKeyItem.m_msgNeedItemHeader = ParseTextFragments(locks.m_intUseKeyItem.m_msgNeedItemHeader);
         }
     }
 

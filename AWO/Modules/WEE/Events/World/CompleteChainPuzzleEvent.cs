@@ -13,7 +13,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle;
+        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle; // resolve terminal field fallback
         if (!TryGetCPInstance(chainPuzzle, out var puzzleInstance) || !puzzleInstance.IsActive || puzzleInstance.IsSolved)
         {
             LogError($"An active chained puzzle with index {chainPuzzle} was not found!");

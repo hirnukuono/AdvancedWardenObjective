@@ -49,7 +49,7 @@ internal sealed class EntryPoint : BasePlugin
         LevelAPI.OnLevelCleanup += OnLevelCleanup;
 
         WOEventDataFields.Init();
-        //WODataBlockFields.Init();
+        // WODataBlockFields.Init();
         SerialLookupManager.Init();
 
         Logger.Info("AWO is done loading!");

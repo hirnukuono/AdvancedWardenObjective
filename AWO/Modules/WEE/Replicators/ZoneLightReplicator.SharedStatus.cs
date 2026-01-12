@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE.Replicators;
 
-public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState>
+public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicatorHolder<ZoneLightState> // for compatibility with og eos emp
 {
     [HideFromIl2Cpp]
     public event Action? OnLightsChanged;

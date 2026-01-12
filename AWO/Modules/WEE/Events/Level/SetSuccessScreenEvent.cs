@@ -108,7 +108,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
     {
         if (s_shouldResetMusic)
         {
-            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = 0; // 0 indicates the default music should be played
+            MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = 0u; // 0 indicates the default music should be played
             s_shouldResetMusic = false;
             LevelAPI.OnBuildStart -= RestoreSuccessMusic;
         }

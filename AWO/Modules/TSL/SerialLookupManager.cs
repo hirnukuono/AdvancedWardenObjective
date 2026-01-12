@@ -26,7 +26,7 @@ public static class SerialLookupManager
         LevelAPI.OnEnterLevel += OnEnterLevel;
         LevelAPI.OnLevelCleanup += Cleanup;
 
-        InteropAPI.RegisterCall("TSL-ParseTextFragments", args =>
+        InteropAPI.RegisterCall("TSL.ParseTextFragments", args =>
         {
             if (args?.Length > 0 && args[0] is string input)
             {

@@ -120,7 +120,7 @@ internal static class VanillaEventOvr
         Vector3 pos = WorldEventUtils.TryGetRandomWorldEventObjectFromFilter(e.WorldEventObjectFilter, (uint)Builder.SessionSeedRandom.Seed, out var weObject)
             ? weObject.transform.position
             : e.Position;
-        var courseNode = weObject?.ParentArea?.m_courseNode ?? CourseNodeUtil.GetCourseNode(pos, pos.GetDimension().DimensionIndex);
+        var courseNode = weObject?.ParentArea?.m_courseNode ?? CourseNodeUtil.GetCourseNode(pos);
         if (courseNode == null)
         {
             Logger.Error("SpawnEnemyOnPoint", "Failed to find valid CourseNode from Position!");

@@ -42,7 +42,7 @@ public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHold
 
     public void TryUpdatePosition(Vector3 position)
     {
-        var node = CourseNodeUtil.GetCourseNode(position, position.GetDimension().DimensionIndex);
+        var node = CourseNodeUtil.GetCourseNode(position);
         if (node != null)
         {
             Replicator?.SetState(new()

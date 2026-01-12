@@ -36,7 +36,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
                 marker = GuiManager.NavMarkerLayer.PlaceCustomMarker(eNav.Style, trackingObj, eNav.Title, e.Duration);
                 marker.SetColor(eNav.Color);
                 marker.SetPinEnabled(eNav.UsePin);
-                var courseNode = CourseNodeUtil.GetCourseNode(e.Position, e.Position.GetDimension().DimensionIndex);
+                var courseNode = CourseNodeUtil.GetCourseNode(e.Position);
                 if (courseNode != null)
                 {
                     string str = "Z" + courseNode.m_area.m_navInfo.GetFormattedText(LG_NavInfoFormat.NumberOnly);

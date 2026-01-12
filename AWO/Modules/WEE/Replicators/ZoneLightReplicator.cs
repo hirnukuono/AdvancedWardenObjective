@@ -112,12 +112,12 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         }
 
         var worker = LightsInZone[subseed];
-        var light = worker.Light;
-        var mod = worker.AddModifier(light.m_color, light.m_intensity, light.enabled);
+        var mod = worker.AddModifier(worker.CurrentColor, worker.CurrentIntensity, worker.CurrentEnabled);
 
         if (_modMap.TryGetValue(worker.InstanceID, out var oldMod) && _lightMods.TryGetValue(oldMod, out var coroutine) && coroutine != null)
         {
             Zone.StopCoroutine(coroutine);
+            _lightMods.Remove(oldMod);
             oldMod.Remove();
         }
         _lightMods[mod] = null; 
@@ -150,9 +150,9 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
                     lightMod = mod,
                     duration = duration,
                     origIntensity = worker.PrefabIntensity,
-                    startIntensity = mod.Enabled ? mod.Intensity : 0f,
+                    startIntensity = mod.Intensity,
                     endIntensity = worker.PrefabIntensity * setting.IntensityMul,
-                    startColor = mod.Enabled ? mod.Color : Color.black,
+                    startColor = mod.Color,
                     endColor = setting.Color,
                     endMode = rand.MeetProbability(setting.ChanceBroken) ? LightTransitionData.Mode.Flickering : LightTransitionData.Mode.Enabled,
                     endModeSeed = rand.Next()
@@ -169,10 +169,15 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         bool flag = false;
         var mod = data.lightMod;
 
-        if (!mod.Enabled && data.endMode != LightTransitionData.Mode.Disabled)
+        if (!mod.Enabled)
         {
-            mod.Color = Color.black;
-            mod.Intensity = 0f;
+            if (data.endMode == LightTransitionData.Mode.Disabled)
+            {
+                // no need to transition
+                yield break;
+            }
+            data.startColor = Color.black;
+            data.startIntensity = 0f;
         }
 
         while (time <= data.duration)
@@ -185,6 +190,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
 
             if (!flag && data.endMode != LightTransitionData.Mode.Disabled)
             {
+                // starts disabled but ends not disabled
                 flag = true;
                 mod.Enabled = true;
             }

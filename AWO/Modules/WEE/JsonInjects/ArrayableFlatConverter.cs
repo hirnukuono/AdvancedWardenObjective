@@ -16,6 +16,7 @@ internal class ArrayableFlatConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> w
                 if (jToken is JArray arr && arr?.Count > 0)
                     return ParseEnum(arr[0]);
                 return default;
+
             case JTokenType.Integer:
             case JTokenType.String:
                 return ParseEnum(jToken);
@@ -34,6 +35,7 @@ internal class ArrayableFlatConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> w
     {
         if (IsByte)
             return new Il2CppSystem.Byte() { m_value = Convert.ToByte(value) }.BoxIl2CppObject();
+
         return new Il2CppSystem.Int32() { m_value = Convert.ToInt32(value) }.BoxIl2CppObject();
     }
 

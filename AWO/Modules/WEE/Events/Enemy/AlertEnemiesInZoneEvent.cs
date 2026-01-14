@@ -11,7 +11,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.AlertEnemiesInZone;
     public override bool AllowArrayableGlobalIndex => true;
 
-    protected override void TriggerCommon(WEE_EventData e)
+    protected override void TriggerMaster(WEE_EventData e)
     {
         if (!TryGetZone(e, out var zone)) 
             return;

@@ -23,7 +23,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
 
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
-            zone.gameObject.AddComponent<ZoneLightReplicator>().Setup(zone);
+            zone.gameObject.AddComponent<ZoneLightReplicator>().Setup();
         }
     }
 
@@ -48,11 +48,22 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
             case ModifierType.SetZoneLightData:
                 replicator.SetLightSetting(new ZoneLightState()
                 {
+                    transitionToOriginal = false,
                     lightData = setting.LightDataID,
                     lightSeed = setting.UseRandomSeed ? MasterRand.Next(int.MinValue, int.MaxValue) : setting.Seed,
                     duration = setting.TransitionDuration
                 });
-                break; 
+                break;
+
+            case ModifierType.TransitionToOriginal:
+                replicator.SetLightSetting(new ZoneLightState()
+                {
+                    transitionToOriginal = true,
+                    lightData = replicator.OrigLightData,
+                    lightSeed = zone.ID + 1,
+                    duration = setting.TransitionDuration
+                });
+                break;
         }
     }
 }

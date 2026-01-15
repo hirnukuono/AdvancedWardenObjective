@@ -1,11 +1,12 @@
 ﻿using AmorLib.Networking.StateReplicators;
+using BepInEx.Unity.IL2CPP.Utils;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Replicators;
 
-public struct OutsideDataState
+public unsafe struct OutsideDataState
 {
     public float duration;
     public bool revertToOriginal;
@@ -13,7 +14,7 @@ public struct OutsideDataState
     public uint atmosphereData;
     public uint cloudsData;
     public bool sandstorm;
-    public float[] fieldData;
+    public fixed float fieldData[23];
 }
 
 public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolder<OutsideDataState>
@@ -23,9 +24,10 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
     public LG_Dimension Dimension = null!;
     public DimensionData OutsideData = null!;
     private OutsideDataState _origData;
+    private float[] _origFields = new float[FieldMap.Length];
     private Coroutine? _transitionCoroutine;
 
-    private static readonly (Func<DimensionData, float> Get, Action<DimensionData, float> Set)[] _fieldMap =
+    internal static readonly (Func<DimensionData, float> Get, Action<DimensionData, float> Set)[] FieldMap =
     {
         (d => d.LightAzimuth,        (d,v) => d.LightAzimuth = v),
         (d => d.LightElevation,      (d,v) => d.LightElevation = v),
@@ -54,9 +56,9 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
 
     private static float[] GetFieldArray(DimensionData dimData)
     {
-        float[] fields = new float[_fieldMap.Length];
+        float[] fields = new float[FieldMap.Length];
         int i = 0;
-        foreach (var (Get, Set) in _fieldMap)
+        foreach (var (Get, _) in FieldMap)
         {
             fields[i++] = Get(dimData);
         }
@@ -66,13 +68,13 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
     public void Setup(Dimension dim)
     {
         Dimension = GetComponent<LG_Dimension>();
-        
+
         if (dim.DimensionData == null)
         {
             enabled = false;
             return;
         }
-        
+
         OutsideData = dim.DimensionData;
         _origData = new()
         {
@@ -81,8 +83,9 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
             atmosphereData = OutsideData.AtmosphereData,
             cloudsData = OutsideData.CloudsData,
             sandstorm = OutsideData.Sandstorm,
-            fieldData = GetFieldArray(OutsideData)
         };
+        _origFields = GetFieldArray(OutsideData);
+        
         Replicator = StateReplicator<OutsideDataState>.Create((uint)dim.DimensionIndex + 1, _origData, LifeTimeType.Session, this);
     }
 
@@ -99,22 +102,35 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
     public void OnStateChange(OutsideDataState oldState, OutsideDataState state, bool isRecall)
     {
         if (_transitionCoroutine != null)
+        {
             Dimension.StopCoroutine(_transitionCoroutine);
+        }
 
-        _transitionCoroutine = Dimension.StartCoroutine(OutsideTransition(state, isRecall).WrapToIl2Cpp());
+        float duration = isRecall ? 0f : state.duration;
+        float[] fieldArr = new float[FieldMap.Length];
+        if (state.revertToOriginal)
+        {
+            state = _origData;
+            fieldArr = _origFields;
+        }
+        else
+        {
+            unsafe
+            {
+                float* src = state.fieldData;
+                for (int i = 0; i < FieldMap.Length; i++)
+                { 
+                    fieldArr[i] = src[i]; 
+                }
+            }
+        }
+
+        _transitionCoroutine = Dimension.StartCoroutine(OutsideTransition(state with { duration = duration }, fieldArr));
     }
 
     [HideFromIl2Cpp]
-    private IEnumerator OutsideTransition(OutsideDataState data, bool isRecall)
+    private IEnumerator OutsideTransition(OutsideDataState data, float[] fieldArr)
     {
-        if (data.fieldData?.Length != _fieldMap.Length)
-        {
-            Logger.Error("OutsideDataReplicator", "Received fieldData does not match, aborting!");
-            yield break;
-        }
-
-        float duration = isRecall ? 0f : data.duration;
-        data = data.revertToOriginal ? _origData : data;
         OutsideData.IsOutside = data.isOutside;
         OutsideData.AtmosphereData = data.atmosphereData != 0 ? data.atmosphereData : OutsideData.AtmosphereData;
         OutsideData.CloudsData = data.cloudsData != 0 ? data.cloudsData : OutsideData.CloudsData;
@@ -123,8 +139,8 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
         float[] startValues = GetFieldArray(OutsideData);
         float startAzimuth = startValues[0];
         float startElevation = startValues[1];
-        float endAzimuth = data.fieldData[0];
-        float endElevation = data.fieldData[1];
+        float endAzimuth = fieldArr[0];
+        float endElevation = fieldArr[1];
         bool azimuthOnly = !float.IsNaN(endAzimuth);
         bool elevationOnly = !float.IsNaN(endElevation);
 
@@ -138,42 +154,42 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
         }
 
         float time = 0f;
-        while (time <= duration)
+        while (time <= data.duration)
         {
             time += Time.deltaTime;
-            float progress = Mathf.Clamp01(time / duration);
+            float progress = Mathf.Clamp01(time / data.duration);
 
             if (slerpFlag)
             {
                 Vector3 dir = Vector3.Slerp(startDir, endDir, progress).normalized;
                 float elDeg = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
                 float azDeg = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg; // 0 = +Z, positive toward +X
-                _fieldMap[0].Set(OutsideData, azDeg);
-                _fieldMap[1].Set(OutsideData, elDeg);
+                FieldMap[0].Set(OutsideData, azDeg);
+                FieldMap[1].Set(OutsideData, elDeg);
             }
             else if (azimuthOnly)
             {
                 float azimuth = Mathf.LerpAngle(startAzimuth, endAzimuth, progress);
-                _fieldMap[0].Set(OutsideData, azimuth);
+                FieldMap[0].Set(OutsideData, azimuth);
             }
             else if (elevationOnly)
             {
                 float elevation = Mathf.Lerp(startElevation, endElevation, progress);
-                _fieldMap[1].Set(OutsideData, elevation);
+                FieldMap[1].Set(OutsideData, elevation);
             }
 
-            for (int i = 2; i < _fieldMap.Length; i++)
+            for (int i = 2; i < FieldMap.Length; i++)
             {
-                float endValue = data.fieldData[i];
+                float endValue = fieldArr[i];
                 if (float.IsNaN(endValue)) continue;
                 float value = Mathf.Lerp(startValues[i], endValue, progress);
-                _fieldMap[i].Set(OutsideData, value);
+                FieldMap[i].Set(OutsideData, value);
             }
 
             yield return null;
         }
 
-        static Vector3 DirFromDeg(float azDeg, float elDeg)
+        Vector3 DirFromDeg(float azDeg, float elDeg)
         {
             float az = azDeg * Mathf.Deg2Rad;
             float el = elDeg * Mathf.Deg2Rad;

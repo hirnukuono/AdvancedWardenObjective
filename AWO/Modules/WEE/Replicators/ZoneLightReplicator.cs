@@ -11,6 +11,7 @@ namespace AWO.Modules.WEE.Replicators;
 
 public struct ZoneLightState
 {
+    public bool transitionToOriginal;
     public uint lightData;
     public int lightSeed;
     public float duration;
@@ -27,12 +28,14 @@ public struct LightTransitionData
     public Color endColor;
     public Mode endMode;
     public int endModeSeed;
+    public bool origEnabled;
 
     public enum Mode
     {
         Enabled,
         Disabled,
-        Flickering
+        Flickering,
+        Original
     }
 }
 
@@ -42,18 +45,18 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
     public StateReplicator<ZoneLightState>? Replicator { get; private set; }
     public LG_Zone Zone = null!;
     public LightWorker[] LightsInZone = Array.Empty<LightWorker>();
+    internal uint OrigLightData;
     private readonly Dictionary<ILightModifier, Coroutine?> _lightMods = new();
     private readonly Dictionary<int, ILightModifier> _modMap = new();
 
-    public void Setup(LG_Zone zone)
+    public void Setup()
     {
-        Replicator = StateReplicator<ZoneLightState>.Create((uint)zone.ID + 1, new()
-        {
-            lightData = 0u
-        }, LifeTimeType.Session, this);
+        Zone = GetComponent<LG_Zone>();
 
-        LightsInZone = LightAPI.GetLightWorkersInZone(zone).ToArray();
-        Zone = zone;
+        Replicator = StateReplicator<ZoneLightState>.Create((uint)Zone.ID + 1, new(), LifeTimeType.Session, this);
+
+        LightsInZone = LightAPI.GetLightWorkersInZone(Zone).ToArray();
+        OrigLightData = Zone.m_lightSettings?.persistentID ?? 0u;
     }
 
     public void OnDestroy()
@@ -75,18 +78,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
     {
         if (state.lightData == 0u) // revert light settings
         {
-            foreach(var kvp in _lightMods)
-            {
-                if (kvp.Value != null) 
-                    Zone.StopCoroutine(kvp.Value);
-                kvp.Key.Remove();
-            }
-            _lightMods.Clear();
-            _modMap.Clear();
-            LightsInZone.ForEachWorker(worker => worker.ToggleLightFlicker(true));
-
-            StopShareStatus();
-            ShareStatus();
+            ClearLightMods();
             return;
         }
 
@@ -98,12 +90,28 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         
         for (int i = 0; i < LightsInZone.Length; i++)
         {
-            ApplyLightMod(block, isRecall ? 0f : state.duration, state.lightSeed, i); // set new light settings
+            ApplyLightMod(block, state.transitionToOriginal, isRecall ? 0f : state.duration, state.lightSeed, i); // set new light settings
         }
         StartShareStatus(state.duration);
     }
 
-    private void ApplyLightMod(LightSettingsDataBlock lightDB, float duration, int seed, int subseed)
+    private void ClearLightMods()
+    {
+        foreach (var kvp in _lightMods)
+        {
+            if (kvp.Value != null)
+                Zone.StopCoroutine(kvp.Value);
+            kvp.Key.Remove();
+        }
+        _lightMods.Clear();
+        _modMap.Clear();
+        LightsInZone.ForEachWorker(worker => worker.ToggleLightFlicker(true));
+
+        StopShareStatus();
+        ShareStatus();
+    }
+
+    private void ApplyLightMod(LightSettingsDataBlock lightDB, bool transitionToOrignal, float duration, int seed, int subseed)
     {
         System.Random rand = new(seed);
         for (int i = 0; i < Mathf.Abs(subseed); i++)
@@ -129,13 +137,26 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         {
             worker.ToggleLightFlicker(false);
 
-            if (!rand.MeetProbability(setting.Chance)) // light ends disabled
+            if (transitionToOrignal) // light end as original
             {
                 _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
                 {
                     lightMod = mod,
                     duration = duration,
-                    origIntensity = worker.PrefabIntensity,
+                    startIntensity = mod.Intensity,
+                    endIntensity = worker.OrigIntensity,
+                    startColor = mod.Color,
+                    endColor = worker.OrigColor,
+                    endMode = LightTransitionData.Mode.Original,
+                    origEnabled = worker.OrigEnabled
+                }));
+            }
+            else if (!rand.MeetProbability(setting.Chance)) // light ends disabled
+            {
+                _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
+                {
+                    lightMod = mod,
+                    duration = duration,
                     startIntensity = mod.Intensity,
                     endIntensity = 0f,
                     startColor = mod.Color,
@@ -171,13 +192,18 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
 
         if (!mod.Enabled)
         {
-            if (data.endMode == LightTransitionData.Mode.Disabled)
+            if (data.endMode == LightTransitionData.Mode.Disabled || (data.endMode == LightTransitionData.Mode.Original && !data.origEnabled))
             {
                 // no need to transition
                 yield break;
             }
             data.startColor = Color.black;
             data.startIntensity = 0f;
+        }
+        else if (data.endMode == LightTransitionData.Mode.Original && !data.origEnabled)
+        { 
+            data.endColor = Color.black;
+            data.endIntensity = 0f;
         }
 
         while (time <= data.duration)
@@ -204,6 +230,10 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
 
             case LightTransitionData.Mode.Flickering:
                 _lightMods[data.lightMod] = Zone.StartCoroutine(LightAnimation(data));
+                break;
+
+            case LightTransitionData.Mode.Original:
+                ClearLightMods();
                 break;
         }
     }

@@ -222,7 +222,8 @@ public sealed class WEE_ZoneLightData
     public enum ModifierType : byte
     {
         RevertToOriginal,
-        SetZoneLightData
+        SetZoneLightData,
+        TransitionToOriginal
     }
 }
 

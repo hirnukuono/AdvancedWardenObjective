@@ -18,11 +18,11 @@ public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHold
 {
     [HideFromIl2Cpp]
     public StateReplicator<ScanPositionState>? Replicator { get; private set; }
-    public CP_Bioscan_Core? TrackingScan;
+    public CP_Bioscan_Core TrackingScan = null!;
     public NavMarker? Marker;
     public bool IsExitScan;
 
-    public void Setup(uint id, CP_Bioscan_Core scan, NavMarker marker, bool isExit) // reserved ids: 10u, 20u
+    public void Setup(uint id, CP_Bioscan_Core scan, NavMarker? marker, bool isExit) // reserved ids: 10u, 20u
     {
         Replicator = StateReplicator<ScanPositionState>.Create(id, new() 
         {
@@ -55,11 +55,8 @@ public sealed class ScanPositionReplicator : MonoBehaviour, IStateReplicatorHold
 
     public void OnStateChange(ScanPositionState oldState, ScanPositionState state, bool isRecall)
     {
-        if (TrackingScan == null)
-        {
-            Logger.Error("ScanPositionReplicator", "TrackingScan is null!");
+        if (oldState.position == state.position)
             return;
-        }
 
         TrackingScan.transform.position = state.position;
         if (TrackingScan.State.status != eBioscanStatus.Disabled) // Refresh Scanner HUD Position

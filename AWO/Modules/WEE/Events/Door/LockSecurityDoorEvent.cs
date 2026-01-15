@@ -8,9 +8,9 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.LockSecurityDoor;
     public override bool AllowArrayableGlobalIndex => true;
 
-    protected override void TriggerCommon(WEE_EventData e)
+    protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
             return;
 
         var state = door.m_sync.GetCurrentSyncState();
@@ -25,11 +25,17 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
         }
 
         var sync = door.m_sync.TryCast<LG_Door_Sync>();
-        if (sync == null) 
+        if (sync == null)
             return;
-        
+
         state.status = eDoorStatus.Closed_LockedWithNoKey;
         sync.m_stateReplicator.State = state;
+    }
+
+    protected override void TriggerCommon(WEE_EventData e)
+    {
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+            return;
 
         var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
         if (intMessage != null)

@@ -304,6 +304,7 @@ public sealed class WEE_GiveResource
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
     public bool FullTeamOverflow { get; set; } = true;
     public bool UseLocation { get; set; } = false;
+    public bool IncludeSupplyEfficiency { get; set; } = false;
     public bool HasAnyAmmoGain => MainAmmo != 0f || SpecialAmmo != 0f || ToolAmmo != 0f;
     public bool HasAnyGain => Health != 0f && HasAnyAmmoGain;
 }

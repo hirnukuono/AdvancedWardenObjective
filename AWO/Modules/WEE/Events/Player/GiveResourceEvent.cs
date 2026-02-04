@@ -33,8 +33,15 @@ internal sealed class GiveResourceEvent : BaseEvent
     private static void GiveResource(PlayerAgent player, WEE_GiveResource data)
     {
         if (data.HasAnyAmmoGain)
-            PlayerBackpackManager.GiveAmmoToPlayer(player.Owner, data.MainAmmo, data.SpecialAmmo, data.ToolAmmo);
+        {
+            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.GetModifierValue(player, AgentModifier.AmmoSupport) : 1f;
+            PlayerBackpackManager.GiveAmmoToPlayer(player.Owner, data.MainAmmo * mod, data.SpecialAmmo * mod, data.ToolAmmo * mod);
+        }
+
         if (data.Health != 0f)
-            player.GiveHealth(player, data.Health);
+        {
+            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.GetModifierValue(player, AgentModifier.HealSupport) : 1f;
+            player.GiveHealth(player, data.Health * mod);
+        }
     }
 }

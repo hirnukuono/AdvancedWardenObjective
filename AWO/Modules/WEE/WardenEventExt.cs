@@ -48,9 +48,10 @@ internal static class WardenEventExt
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
 
         JsonInjector.SetConverter(new EventTypeConverter());
-        JsonInjector.SetConverter(new ArrayableFlatConverter<eDimensionIndex>());
-        JsonInjector.SetConverter(new ArrayableFlatConverter<LG_LayerType>());
-        JsonInjector.SetConverter(new ArrayableFlatConverter<eLocalZoneIndex>());
+        JsonInjector.SetConverter(new ArrayableFlatConditionConverter());
+        JsonInjector.SetConverter(new ArrayableFlatEnumConverter<eDimensionIndex>());
+        JsonInjector.SetConverter(new ArrayableFlatEnumConverter<LG_LayerType>());
+        JsonInjector.SetConverter(new ArrayableFlatEnumConverter<eLocalZoneIndex>());
         JsonInjector.AddHandler(new EventDataHandler());
         JsonInjector.AddHandler(new TriggerDataHandler());
 
@@ -110,10 +111,13 @@ internal static class WardenEventExt
             }
         }
 
-        if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
+        foreach (var condition in e.Condition)
         {
-            Logger.Verbose(LogLevel.Debug, $"Condition {e.Condition.ConditionIndex} is not met");
-            yield break;
+            if (WorldEventManager.GetCondition(condition.ConditionIndex) != condition.IsTrue)
+            {
+                Logger.Verbose(LogLevel.Debug, $"Condition {condition.ConditionIndex} is not met");
+                yield break;
+            }
         }
 
         WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel);

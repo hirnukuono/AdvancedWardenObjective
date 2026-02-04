@@ -17,12 +17,9 @@ namespace AWO.Modules.WEE;
 public sealed class WEE_EventData
 {
     // Vanilla Fields for Serialization
-    public WEE_Type Type { get; set; }    
-    public WorldEventConditionPair Condition { get; set; } = new()
-    {
-        ConditionIndex = -1,
-        IsTrue = false
-    };
+    public WEE_Type Type { get; set; }
+
+    public Arrayable<WorldEventConditionPair> Condition { get; set; } = new WorldEventConditionPair();
     public eWardenObjectiveEventTrigger Trigger { get; set; } = eWardenObjectiveEventTrigger.None;
     public uint ChainPuzzle { get; set; } = 0u;
     public bool UseStaticBioscanPoints { get; set; } = false;
@@ -76,6 +73,9 @@ public sealed class WEE_EventData
     public Arrayable<WEE_HideTerminalCommand> HideCommand { private get => HideTerminalCommand; set => HideTerminalCommand = value; }
     public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new();
     public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { private get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
+
+    // Dino
+    public WEE_GiveResource GiveResource { get; set; } = new();
 
     // Amor
     public WEE_NestedEvent? NestedEvent { get; set; } = null;
@@ -291,6 +291,21 @@ public sealed class WEE_UnhideTerminalCommand
     public int TerminalIndex { get; set; } = 0; 
     public TERM_Command CommandEnum { get; set; } = TERM_Command.None;
     public int CommandNumber { get; set; } = 0;
+}
+#endregion
+
+#region DINO_EVENTS
+public sealed class WEE_GiveResource
+{
+    public float Health { get; set; } = 0f;
+    public float MainAmmo { get; set; } = 0f;
+    public float SpecialAmmo { get; set; } = 0f;
+    public float ToolAmmo { get; set; } = 0f;
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
+    public bool FullTeamOverflow { get; set; } = true;
+    public bool UseLocation { get; set; } = false;
+    public bool HasAnyAmmoGain => MainAmmo != 0f || SpecialAmmo != 0f || ToolAmmo != 0f;
+    public bool HasAnyGain => Health != 0f && HasAnyAmmoGain;
 }
 #endregion
 

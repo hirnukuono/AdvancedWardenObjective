@@ -34,13 +34,13 @@ internal sealed class GiveResourceEvent : BaseEvent
     {
         if (data.HasAnyAmmoGain)
         {
-            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.GetModifierValue(player, AgentModifier.AmmoSupport) : 1f;
+            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.ApplyModifier(player, AgentModifier.AmmoSupport, 1f) : 1f;
             PlayerBackpackManager.GiveAmmoToPlayer(player.Owner, data.MainAmmo * mod, data.SpecialAmmo * mod, data.ToolAmmo * mod);
         }
 
         if (data.Health != 0f)
         {
-            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.GetModifierValue(player, AgentModifier.HealSupport) : 1f;
+            float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.ApplyModifier(player, AgentModifier.HealSupport, 1f) : 1f;
             player.GiveHealth(player, data.Health * mod);
         }
     }

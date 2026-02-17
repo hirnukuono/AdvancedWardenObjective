@@ -4,6 +4,7 @@ using AmorLib.Utils.JsonElementConverters;
 using BepInEx;
 using BepInEx.Logging;
 using GTFO.API;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,7 +14,7 @@ namespace AWO.Modules.TSL;
 public static class SerialLookupManager
 {
     public static readonly Dictionary<string, Dictionary<(int, int, int), List<string>>> SerialMap = new();
-    private static readonly Queue<LG_SecurityDoor_Locks> LocksQueue = new();
+    public static event Action? OnEnterParseText;
 
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
     private const string Terminal = "TERMINAL";
@@ -32,7 +33,6 @@ public static class SerialLookupManager
             {
                 return ParseTextFragments(input);
             }
-
             return null;
         });
     }
@@ -92,15 +92,40 @@ public static class SerialLookupManager
 
                     SerialMap.GetOrAddNew(Terminal).GetOrAddNew(globalIndex).Add(serialNumber);
                     count++;
-                } 
 
-                var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
-                if (locks == null) continue;
-                LocksQueue.Enqueue(locks);
+                    var cmdInterpreter = term.m_command;                    
+                    foreach (var key in cmdInterpreter.m_commandHelpStrings.Keys)
+                    {
+                        if (key >= TERM_Command.UniqueCommand1 && key <= TERM_Command.UniqueCommand5)
+                        {
+                            OnEnterParseText += () => cmdInterpreter.m_commandHelpStrings[key] = ParseLocaleText(new(cmdInterpreter.m_commandHelpStrings[key]));
+                        }
+                    }
+
+                    foreach (var key2 in cmdInterpreter.m_commandPostOutputMap.Keys) 
+                    {
+                        if (key2 < TERM_Command.UniqueCommand1 || key2 > TERM_Command.UniqueCommand5) 
+                            continue;
+
+                        foreach (var postCmd in cmdInterpreter.m_commandPostOutputMap[key2])
+                        {
+                            OnEnterParseText += () => postCmd.Output = ParseLocaleText(new(postCmd.Output));
+                        }
+                    }
+
+                    var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
+                    if (locks == null) continue;
+                    OnEnterParseText += () =>
+                    {
+                        locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
+                        locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
+                        locks.m_intUseKeyItem.m_msgNeedItemHeader = ParseTextFragments(locks.m_intUseKeyItem.m_msgNeedItemHeader);
+                    };
+                }
             }
             catch (Exception ex)
             {
-                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through ({zone.DimensionIndex}, {zone.Layer.m_type}, {zone.LocalIndex})'s TerminalsSpawnedInZone and LG_SecurityDoor_Locks:\n{ex}");
+                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through ({zone.DimensionIndex}, {zone.Layer.m_type}, {zone.LocalIndex})'s TerminalsSpawnedInZone:\n{ex}");
                 continue;
             }
         }
@@ -111,25 +136,27 @@ public static class SerialLookupManager
 
     private static void OnEnterLevel()
     {
-        while (LocksQueue.Count > 0)
-        {
-            var locks = LocksQueue.Dequeue();
-            locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
-            locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
-            locks.m_intUseKeyItem.m_msgNeedItemHeader = ParseTextFragments(locks.m_intUseKeyItem.m_msgNeedItemHeader);
-        }
+        SafeInvoke.Invoke(OnEnterParseText);
     }
 
     private static void Cleanup()
     {
-        LocksQueue.Clear();
-        SerialMap.Clear();        
+        SerialMap.Clear();
+        OnEnterParseText = null;
     }
 
     public static LocaleText ParseLocaleText(LocaleText input)
     {
-        if (input == LocaleText.Empty) return input;
-        return new(ParseTextFragments(input));
+        if (input == LocaleText.Empty) 
+            return input;
+        
+        string result = ParseTextFragments(input);
+        if (result == input)
+            return input;
+
+        input.ID = 0u;
+        input.RawText = result;        
+        return input;
     }
 
     public static string ParseTextFragments(string input)

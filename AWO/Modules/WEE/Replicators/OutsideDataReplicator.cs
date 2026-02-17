@@ -86,7 +86,7 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
         };
         _origFields = GetFieldArray(OutsideData);
         
-        Replicator = StateReplicator<OutsideDataState>.Create((uint)dim.DimensionIndex + 1, _origData, LifeTimeType.Session, this);
+        Replicator = StateReplicator<OutsideDataState>.Create((uint)dim.DimensionIndex + 1, new(), LifeTimeType.Session, this);
     }
 
     public void OnDestroy()
@@ -124,6 +124,9 @@ public sealed class OutsideDataReplicator : MonoBehaviour, IStateReplicatorHolde
                 }
             }
         }
+
+        if (fieldArr.All(f => f == 0f))
+            return;
 
         _transitionCoroutine = Dimension.StartCoroutine(OutsideTransition(state with { duration = duration }, fieldArr));
     }

@@ -400,6 +400,7 @@ public sealed class WEE_DamagePlayer
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
     public bool FullTeamOverflow { get; set; } = true;
     public float DamageAmount { get; set; } = 0f;
+    public bool DealPercentageDamage { get; set; } = false;
     public bool DamageOverTime { get; set; } = false;
     public float Interval { get; set; } = 1f;
     public bool UseZone { get; set; } = false;

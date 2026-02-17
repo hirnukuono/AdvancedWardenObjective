@@ -1,10 +1,10 @@
 ﻿using AmorLib.Utils;
-using AmorLib.Utils.Extensions;
+using AWO.Modules.TSL;
 using ChainedPuzzles;
 using GameData;
-using GTFO.API;
 using GTFO.API.Extensions;
 using LevelGeneration;
+using Localization;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -12,18 +12,6 @@ internal sealed class AddTerminalCommand : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.AddTerminalCommand;
     public override bool AllowArrayableGlobalIndex => true;
-
-    public static readonly Dictionary<uint, List<TERM_Command>> ProgressWaitCommandMap = new();
-
-    protected override void OnSetup()
-    {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        ProgressWaitCommandMap.Clear();
-    }
 
     protected override void TriggerCommon(WEE_EventData e)
     {
@@ -39,15 +27,16 @@ internal sealed class AddTerminalCommand : BaseEvent
                 return;
             }
 
-            if (addcmd.ProgressWaitBeforeEvents)
+            string helpString = SerialLookupManager.ParseTextFragments(addcmd.CommandDesc);
+            if (addcmd.AutoIndentCommandDesc)
             {
-                ProgressWaitCommandMap.GetOrAddNew(term.SyncID).Add(c_num);
+                helpString = "<indent=20%>" + helpString + "</indent>";
             }
             var eventList = addcmd.CommandEvents.ToIl2Cpp();
 
             term.m_command.m_commandsPerEnum.Add(c_num, addcmd.Command.ToLower());
             term.m_command.m_commandsPerString.Add(addcmd.Command.ToLower(), c_num);
-            term.m_command.m_commandHelpStrings.Add(c_num, new() { UntranslatedText = addcmd.AutoIndentCommandDesc ? $"<indent=20%>{addcmd.CommandDesc}</indent>" : addcmd.CommandDesc });
+            term.m_command.m_commandHelpStrings.Add(c_num, new() { UntranslatedText = helpString, Id = 0u });
             term.m_command.m_commandEventMap.Add(c_num, eventList);
 
             ChainedPuzzleInstance? cmdChainPuzzle = null;
@@ -71,7 +60,17 @@ internal sealed class AddTerminalCommand : BaseEvent
                 }
             }
 
-            var postCmdOutputs = addcmd.PostCommandOutputs.Select(locale => locale.ToTerminalOutput()).ToList();
+            var postCmdOutputs = addcmd.PostCommandOutputs.ConvertAll(locale => locale.ToTerminalOutput());
+            if (addcmd.ProgressWaitBeforeEvents)
+            {
+                var progressWait = new TerminalOutput()
+                {
+                    LineType = TerminalLineType.ProgressWait,
+                    Output = new() { UntranslatedText = Text.Get(401434557), Id = 0u},
+                    Time = 3f
+                };
+                postCmdOutputs.Insert(0, progressWait);
+            }
             term.m_command.m_commandPostOutputMap.Add(c_num, postCmdOutputs.ToIl2Cpp());
             term.TrySyncSetCommandRule(c_num, addcmd.SpecialCommandRule);
         }

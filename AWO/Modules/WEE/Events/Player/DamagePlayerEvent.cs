@@ -30,7 +30,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
             if (e.DamagePlayer.DamageOverTime && e.Duration > 0f)
                 CoroutineManager.StartCoroutine(DamageOverTime(e, player, zone.ID).WrapToIl2Cpp());
             else
-                ApplyDamage(player, e.DamagePlayer.DamageAmount, e.DamagePlayer.UseZone, zone.ID);
+                ApplyDamage(player, e.DamagePlayer.DamageAmount, e.DamagePlayer.DealPercentageDamage, e.DamagePlayer.UseZone, zone.ID);
         }
     }
 
@@ -48,15 +48,18 @@ internal sealed class DamagePlayerEvent : BaseEvent
                 // checkpoint was used or not in level, exit
                 yield break; 
             }
-            ApplyDamage(player, damagePerSecond, e.DamagePlayer.UseZone, id);
+            ApplyDamage(player, damagePerSecond, e.DamagePlayer.DealPercentageDamage, e.DamagePlayer.UseZone, id);
             elapsed += Time.deltaTime;
             yield return delay;
         }
     }
 
-    private static void ApplyDamage(PlayerAgent player, float damage, bool useZone, int id)
+    private static void ApplyDamage(PlayerAgent player, float damage, bool dealPercentDmg, bool useZone, int id)
     {
         if (!useZone || player.CourseNode.m_zone.ID == id)
-            player.Damage.OnIncomingDamage((damage / 4f), default);
+        {
+            float calcDmg = damage / 100f * (dealPercentDmg ? player.Damage.HealthMax : player.PlayerData.health);
+            player.Damage.OnIncomingDamage(calcDmg, default);
+        }
     }
 }

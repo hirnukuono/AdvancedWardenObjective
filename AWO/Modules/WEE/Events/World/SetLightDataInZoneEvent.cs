@@ -59,7 +59,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
                 replicator.SetLightSetting(new ZoneLightState()
                 {
                     transitionToOriginal = true,
-                    lightData = replicator.OrigLightData,
+                    lightData = zone.m_lightSettings?.persistentID ?? 0u,
                     lightSeed = zone.ID + 1,
                     duration = setting.TransitionDuration
                 });

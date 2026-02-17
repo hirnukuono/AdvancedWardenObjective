@@ -45,18 +45,14 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
     public StateReplicator<ZoneLightState>? Replicator { get; private set; }
     public LG_Zone Zone = null!;
     public LightWorker[] LightsInZone = Array.Empty<LightWorker>();
-    internal uint OrigLightData;
     private readonly Dictionary<ILightModifier, Coroutine?> _lightMods = new();
     private readonly Dictionary<int, ILightModifier> _modMap = new();
 
     public void Setup()
     {
         Zone = GetComponent<LG_Zone>();
-
         Replicator = StateReplicator<ZoneLightState>.Create((uint)Zone.ID + 1, new(), LifeTimeType.Session, this);
-
         LightsInZone = LightAPI.GetLightWorkersInZone(Zone).ToArray();
-        OrigLightData = Zone.m_lightSettings?.persistentID ?? 0u;
     }
 
     public void OnDestroy()

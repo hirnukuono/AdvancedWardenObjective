@@ -1,5 +1,6 @@
 ﻿using Agents;
 using AIGraph;
+using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using Enemies;
@@ -31,7 +32,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
                 if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
                 {
-                    EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, zone.m_areas[sh.AreaIndex].m_courseNode, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));
+                    var node = sh.AreaIndex == -1 ? CourseNodeUtil.GetCourseNode(pos) : zone.m_areas[sh.AreaIndex].m_courseNode;
+                    EnemyAllocator.Current.SpawnEnemy(sh.EnemyID, node, AgentMode.Hibernate, pos, Quaternion.Euler(sh.Rotation));
                 }
                 else
                 {
@@ -46,6 +48,13 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         float interval = Math.Min(0.25f, TimeToCompleteSpawn / count); // max 4 enemies per second
         WaitForSeconds spawnInterval = new(interval);
         var areas = zone.m_areas;
+        var validAreas = Enumerable.Range(0, areas.Count).Except(sh.AreaBlacklist).ToList();
+
+        if (validAreas.Count == 0)
+        {
+            Logger.Error("SpawnHibernateInZoneEvent", $"No valid areas to spawn hibernate! Area count: {areas.Count}, Blacklist: [{string.Join(", ", sh.AreaBlacklist)}]");
+            yield break;
+        }
 
         for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
@@ -59,13 +68,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 spawnNode = areas[sh.AreaIndex].m_courseNode;
             }
             else
-            {
-                var validAreas = Enumerable.Range(0, areas.Count).Except(sh.AreaBlacklist).ToList();
-                if (validAreas.Count == 0)
-                {
-                    Logger.Error("SpawnHibernateInZoneEvent", $"No valid areas to spawn hibernate! Area count: {areas.Count}, Blacklist: [{string.Join(", ", sh.AreaBlacklist)}]");
-                    yield break;
-                }
+            {              
                 int randArea = validAreas[MasterRand.Next(validAreas.Count)];
                 spawnNode = areas[randArea].m_courseNode;
             }

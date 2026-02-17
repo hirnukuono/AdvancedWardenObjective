@@ -35,6 +35,13 @@ internal class SpawnScoutInZoneEvent : BaseEvent
         float interval = Math.Min(0.25f, TimeToCompleteSpawn / count); // max 4 enemies per second
         WaitForSeconds spawnInterval = new(interval);
         var areas = zone.m_areas;
+        var validAreas = Enumerable.Range(0, areas.Count).Except(ss.AreaBlacklist).ToList();
+        
+        if (validAreas.Count == 0)
+        {
+            Logger.Error("SpawnScoutInZoneEvent", $"No valid areas to spawn scout! Area count: {areas.Count}, Blacklist: [{string.Join(", ", ss.AreaBlacklist)}]");
+            yield break;
+        }
 
         for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
@@ -53,13 +60,7 @@ internal class SpawnScoutInZoneEvent : BaseEvent
                 spawnNode = areas[ss.AreaIndex].m_courseNode;
             }
             else
-            {
-                var validAreas = Enumerable.Range(0, areas.Count).Except(ss.AreaBlacklist).ToList();
-                if (validAreas.Count == 0)
-                {
-                    Logger.Error("SpawnScoutInZoneEvent", $"No valid areas to spawn scout! Area count: {areas.Count}, Blacklist: [{string.Join(", ", ss.AreaBlacklist)}]");
-                    yield break;
-                }
+            {                
                 int randArea = validAreas[MasterRand.Next(validAreas.Count)];
                 spawnNode = areas[randArea].m_courseNode;
             }

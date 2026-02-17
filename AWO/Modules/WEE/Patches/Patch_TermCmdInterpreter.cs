@@ -4,7 +4,6 @@ using HarmonyLib;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
-using static AWO.Modules.WEE.Events.AddTerminalCommand;
 using static AWO.Modules.WEE.Events.SetTerminalLog;
 
 namespace AWO.Modules.WEE.Patches;
@@ -22,13 +21,6 @@ internal static class Patch_TermCmdInterpreter
             if (LogEventQueue.TryGetValue((__instance.m_terminal.SyncID, param1.ToUpper()), out var eData))
             {
                 __instance.m_terminal.StartCoroutine(DoEvents(eData));
-            }
-        }
-        else if ((int)cmd >= 50 && (int)cmd <= 255)
-        {
-            if (ProgressWaitCommandMap.TryGetValue(__instance.m_terminal.SyncID, out var c_nums) && c_nums.Contains(cmd))
-            {
-                __instance.AddOutput(TerminalLineType.ProgressWait, "Executing command", 3.0f);
             }
         }
     }

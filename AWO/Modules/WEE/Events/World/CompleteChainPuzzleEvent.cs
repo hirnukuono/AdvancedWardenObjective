@@ -39,52 +39,60 @@ internal class CompleteChainPuzzleEvent : BaseEvent
 
     static IEnumerator SolvePuzzleCores(ChainedPuzzleInstance puzzleInstance, int count)
     {
-        for (int i = 0; i < puzzleInstance.NRofPuzzles(); i++)
+        var cores = puzzleInstance.m_chainedPuzzleCores;
+        for (int i = 0; i < cores.Length; i++)
         {
             if (i == count && count > 0) yield break;
 
-            puzzleInstance.OnPuzzleDone(i);
-
-            var clusterCore = puzzleInstance.m_chainedPuzzleCores[i].TryCast<CP_Cluster_Core>();
-            if (clusterCore != null)
-            {
-                clusterCore.m_sync.SetStateData(eClusterStatus.Finished, 1f);
-                continue;
-            }
-
-            var basicCore = puzzleInstance.m_chainedPuzzleCores[i].TryCast<CP_Bioscan_Core>();
-            if (basicCore != null)
-            {
-                CoroutineManager.StartCoroutine(SolveBasicCore(basicCore).WrapToIl2Cpp());
-            }
-
-            yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);
+            SolveCore(cores[i], i == cores.Length - 1);
         }
     }
 
-    static IEnumerator SolveBasicCore(CP_Bioscan_Core basicCore)
+    static void SolveCore(iChainedPuzzleCore core, bool finished = false)
     {
-        basicCore.m_playerScanner.TryCast<MonoBehaviour>()?.gameObject.SetActive(true);
-        basicCore.m_spline.SetVisible(false);
-
-        basicCore.m_playerScanner.ResetScanProgression(1f);
-        basicCore.m_sync.SetStateData(eBioscanStatus.Finished, 1f);
-
-        yield return null;
-
-        basicCore.m_sound.Post(EVENTS.BIOSCAN_PROGRESS_COUNTER_STOP);
-
-        try
+        var clusterCore = core.TryCast<CP_Cluster_Core>();
+        if (clusterCore != null)
         {
-            basicCore.m_spline.TryCast<CP_Holopath_Spline>()?.m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
+            switch (clusterCore.m_sync.GetCurrentState().status)
+            {
+                case eClusterStatus.Finished:
+                    return;
+                case eClusterStatus.Disabled:
+                    if (finished)
+                        break;
+                    else
+                        return;
+                case eClusterStatus.SplineReveal:
+                    clusterCore.m_spline?.Cast<CP_Holopath_Spline>().m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
+                    break;
+                case eClusterStatus.ClusterActive:
+                    foreach (var child in clusterCore.m_childCores)
+                        SolveCore(child);
+                    break;
+            }
+            clusterCore.m_sync.SetStateData(finished ? eClusterStatus.Finished : eClusterStatus.Disabled, 1f);
         }
-        catch
+        else
         {
-            Logger.Verbose(LogLevel.Warning, "[ForceCompleteChainPuzzleEvent] A CP_Bioscan_Core has no spline, skipping killing sound");
+            var bioCore = core.Cast<CP_Bioscan_Core>();
+            switch (bioCore.m_sync.GetCurrentState().status)
+            {
+                case eBioscanStatus.Finished:
+                    return;
+                case eBioscanStatus.SplineReveal:
+                    bioCore.m_spline?.Cast<CP_Holopath_Spline>().m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
+                    break;
+                case eBioscanStatus.Disabled:
+                    if (finished)
+                        break;
+                    else
+                        return;
+                default:
+                    break;
+            }
+            if (bioCore.IsMovable && !bioCore.m_movingComp.OnlyMoveWhenScannig)
+                bioCore.m_movingComp.StopMoving();
+            bioCore.m_sync.SetStateData(finished ? eBioscanStatus.Finished : eBioscanStatus.Disabled, 1f);
         }
-
-        yield return new WaitForSeconds(MasterRand.NextFloat() * 0.35f);
-
-        CoroutineManager.BlinkOut(basicCore.gameObject);
     }
 }

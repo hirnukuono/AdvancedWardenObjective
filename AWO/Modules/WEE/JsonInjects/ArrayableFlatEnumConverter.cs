@@ -4,7 +4,7 @@ using InjectLib.JsonNETInjection.Converter;
 
 namespace AWO.Modules.WEE.JsonInjects;
 
-internal class ArrayableFlatConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> where T : unmanaged, Enum
+internal class ArrayableFlatEnumConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> where T : unmanaged, Enum
 {
     private static readonly bool IsByte = Enum.GetUnderlyingType(typeof(T)) == typeof(byte);
 
@@ -13,7 +13,8 @@ internal class ArrayableFlatConverter<T> : Il2CppJsonUnmanagedTypeConverter<T> w
         switch (jToken.Type)
         {
             case JTokenType.Array:
-                if (jToken is JArray arr && arr?.Count > 0)
+                var arr = jToken.Cast<JArray>();
+                if (arr.Count > 0)
                     return ParseEnum(arr[0]);
                 return default;
 

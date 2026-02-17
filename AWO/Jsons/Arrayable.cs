@@ -26,6 +26,9 @@ public struct Arrayable<T>
         Values = new List<T>(values);
     }
 
+    public readonly T this[int index] => Values[index];
+    public readonly IEnumerator<T> GetEnumerator() => Values.GetEnumerator();
+
     public static implicit operator Arrayable<T>(T value) => new(value);
     public static implicit operator Arrayable<T>(T[] values) => new(values);
     public static implicit operator Arrayable<T>(List<T> values) => new(values);

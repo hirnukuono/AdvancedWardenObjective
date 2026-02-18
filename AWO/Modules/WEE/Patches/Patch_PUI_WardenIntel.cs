@@ -8,13 +8,8 @@ internal static class Patch_PUI_WardenIntel
 {
     [HarmonyPrefix]
     [HarmonyWrapSafe]
-    private static bool Pre_ShowSubObjectiveMessage(ref string lastSubObj)
+    private static bool Pre_ShowSubObjectiveMessage()
     {
-        if (lastSubObj == "[GTFO.AWO]")
-        {
-            lastSubObj = string.Empty;
-            return true;
-        }
         return ClearWardenIntelQueueEvent.AllowWardenIntel;
     }
 }

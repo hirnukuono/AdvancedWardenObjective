@@ -83,10 +83,17 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
             Logger.Error($"Failed to find enabled LightSettingsDataBlock {state.lightData}!");
             return;
         }
-        
+
+        var selectors = Enum.GetValues<LG_Light.LightCategory>().Select(category =>
+        {
+            var selector = new LightSettingSelector();
+            selector.Setup(category, block);
+            return selector;
+        }).ToArray();
+
         for (int i = 0; i < LightsInZone.Length; i++)
         {
-            ApplyLightMod(block, state.transitionToOriginal, isRecall ? 0f : state.duration, state.lightSeed, i); // set new light settings
+            ApplyLightMod(selectors, state.transitionToOriginal, isRecall ? 0f : state.duration, state.lightSeed, i); // set new light settings
         }
         StartShareStatus(state.duration);
     }
@@ -107,7 +114,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         ShareStatus();
     }
 
-    private void ApplyLightMod(LightSettingsDataBlock lightDB, bool transitionToOrignal, float duration, int seed, int subseed)
+    private void ApplyLightMod(LightSettingSelector[] selectors, bool transitionToOrignal, float duration, int seed, int subseed)
     {
         System.Random rand = new(seed);
         for (int i = 0; i < Mathf.Abs(subseed); i++)
@@ -126,55 +133,49 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         }
         _lightMods[mod] = null; 
         _modMap[worker.InstanceID] = mod;
+        worker.ToggleLightFlicker(false);
 
-        var selector = new LightSettingSelector();
-        selector.Setup(worker.Light.m_category, lightDB);
-        if (selector.TryGetRandomSetting((uint)subseed, out var setting))
+        if (transitionToOrignal) // light ends as original
         {
-            worker.ToggleLightFlicker(false);
-
-            if (transitionToOrignal) // light end as original
+            _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
             {
-                _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
-                {
-                    lightMod = mod,
-                    duration = duration,
-                    startIntensity = mod.Intensity,
-                    endIntensity = worker.OrigIntensity,
-                    startColor = mod.Color,
-                    endColor = worker.OrigColor,
-                    endMode = LightTransitionData.Mode.Original,
-                    origEnabled = worker.OrigEnabled
-                }));
-            }
-            else if (!rand.MeetProbability(setting.Chance)) // light ends disabled
+                lightMod = mod,
+                duration = duration,
+                startIntensity = mod.Intensity,
+                endIntensity = worker.OrigIntensity,
+                startColor = mod.Color,
+                endColor = worker.OrigColor,
+                endMode = LightTransitionData.Mode.Original,
+                origEnabled = worker.OrigEnabled
+            }));
+        }        
+        else if (selectors[(int)worker.Light.m_category].TryGetRandomSetting((uint)subseed, out var setting) && rand.MeetProbability(setting.Chance)) // light ends enabled/flickering
+        {
+            _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
             {
-                _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
-                {
-                    lightMod = mod,
-                    duration = duration,
-                    startIntensity = mod.Intensity,
-                    endIntensity = 0f,
-                    startColor = mod.Color,
-                    endColor = Color.black,
-                    endMode = LightTransitionData.Mode.Disabled
-                }));
-            }
-            else // light ends enabled or flickering
+                lightMod = mod,
+                duration = duration,
+                origIntensity = worker.PrefabIntensity,
+                startIntensity = mod.Intensity,
+                endIntensity = worker.PrefabIntensity * setting.IntensityMul,
+                startColor = mod.Color,
+                endColor = setting.Color,
+                endMode = rand.MeetProbability(setting.ChanceBroken) ? LightTransitionData.Mode.Flickering : LightTransitionData.Mode.Enabled,
+                endModeSeed = rand.Next()
+            }));
+        }
+        else // light ends disabled
+        {
+            _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
             {
-                _lightMods[mod] = Zone.StartCoroutine(LightTransition(new()
-                {
-                    lightMod = mod,
-                    duration = duration,
-                    origIntensity = worker.PrefabIntensity,
-                    startIntensity = mod.Intensity,
-                    endIntensity = worker.PrefabIntensity * setting.IntensityMul,
-                    startColor = mod.Color,
-                    endColor = setting.Color,
-                    endMode = rand.MeetProbability(setting.ChanceBroken) ? LightTransitionData.Mode.Flickering : LightTransitionData.Mode.Enabled,
-                    endModeSeed = rand.Next()
-                }));
-            }
+                lightMod = mod,
+                duration = duration,
+                startIntensity = mod.Intensity,
+                endIntensity = 0f,
+                startColor = mod.Color,
+                endColor = Color.black,
+                endMode = LightTransitionData.Mode.Disabled
+            }));
         }
     }
 

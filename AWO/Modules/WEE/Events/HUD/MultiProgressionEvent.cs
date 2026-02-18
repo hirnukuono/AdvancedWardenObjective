@@ -28,13 +28,13 @@ internal sealed class MultiProgressionEvent : BaseEvent
         public string Header => ProgObj.m_header.text;
         public string Body => ProgObj.m_text.text;
         public int Priority { get; private set; }
-        public bool IsHidden { get; set; } = false;
+        public bool IsHidden { get; set; }
 
-        public LocalMPData(PUI_ProgressionObjective a, int b, int c)
+        public LocalMPData(PUI_ProgressionObjective progObj, int index, int priority)
         {
-            ProgObj = a;
-            Index = b;
-            Priority = c;
+            ProgObj = progObj;
+            Index = index;
+            Priority = priority;
         }
     }
 

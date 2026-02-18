@@ -75,7 +75,8 @@ public sealed class WEE_EventData
     public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { private get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
     // Dino
-    public WEE_GiveResource GiveResource { get; set; } = new();
+    public WEE_GiveResource? GiveResource { get; set; } = null;
+    public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
 
     // Amor
     public WEE_NestedEvent? NestedEvent { get; set; } = null;
@@ -102,9 +103,7 @@ public sealed class WEE_EventData
     public Arrayable<WEE_SetTerminalLog> TerminalLog { private get => SetTerminalLog; set => SetTerminalLog = value; }
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
     public WEE_SetOutsideDimensionData? DimensionData { get; set; } = null;
-
-    // Dinorush
-    public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
+    public WEE_SetExpeditionEnvironment? EnvironmentData { get; set; } = null;
 
     public WEE_EventData Clone(eDimensionIndex dim, LG_LayerType layer, eLocalZoneIndex zone)
     {
@@ -370,7 +369,7 @@ public sealed partial class WEE_TeleportPlayer // new
     public bool FlashTeleport { get; set; } = false;
     public bool WarpSentries { get; set; } = true;
     public bool WarpBigPickups { get; set; } = true;
-    public bool SendBigPickupsToHost { get => SendBPUsToHost; set => SendBPUsToHost = value; }
+    public bool SendBigPickupsToHost { private get => SendBPUsToHost; set => SendBPUsToHost = value; }
     public bool FullTeamOverflow { get; set; } = false;
     public List<TeleportData> TPData { get; set; } = new();
     public struct TeleportData
@@ -435,11 +434,14 @@ public sealed class WEE_AdjustTimer
     public bool UpdateTitleText { get; set; } = false;
     public LocaleText TitleText { get; set; } = LocaleText.Empty;
     public bool UpdateText { get; set; } = false;
-    public bool UpdateBodyText { get => UpdateText; set => UpdateText = value; }
+    public bool UpdateBodyText { private get => UpdateText; set => UpdateText = value; }
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
-    public LocaleText BodyText { get => CustomText; set => CustomText = value; }
+    public LocaleText BodyText { private get => CustomText; set => CustomText = value; }
     public bool UpdateColor { get; set; } = false; 
     public Color TimerColor { get; set; } = Color.red;
+    public bool UpdateSpecialHud { get; set; } = false;
+    public int SpecialHudIndex { get; set; } = 0;
+    public float SpecialHudTimeModifier { get; set; } = 0f;
 }
 
 public sealed class WEE_CountupData
@@ -448,9 +450,9 @@ public sealed class WEE_CountupData
     public float StartValue { get; set; } = 0f;
     public float Speed { get; set; } = 1f;
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
-    public LocaleText TitleText { get => TimerText; set => TimerText = value; }
+    public LocaleText TitleText { private get => TimerText; set => TimerText = value; }
     public LocaleText CustomText { get; set; } = LocaleText.Empty;
-    public LocaleText BodyText { get => CustomText; set => CustomText = value; }
+    public LocaleText BodyText { private get => CustomText; set => CustomText = value; }
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
@@ -531,9 +533,9 @@ public sealed class WEE_PlayWaveDistantRoar
 public sealed class WEE_CustomHudText
 {
     public LocaleText Title { get; set; } = LocaleText.Empty;
-    public LocaleText TitleText { get => Title; set => Title = value; } 
+    public LocaleText TitleText { private get => Title; set => Title = value; } 
     public LocaleText Body { get; set; } = LocaleText.Empty;
-    public LocaleText BodyText { get => Body; set => Body = value; }
+    public LocaleText BodyText { private get => Body; set => Body = value; }
 }
 
 public sealed class WEE_SpecialHudTimer
@@ -548,6 +550,7 @@ public sealed class WEE_SpecialHudTimer
     public bool InvertProgress { get; set; } = false;
     public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
     public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+    public bool HasIndex => Type is SpecialHudType.StartIndexTimer or SpecialHudType.StartPersistent;
     public enum SpecialHudType : byte
     {
         StartTimer,
@@ -671,5 +674,14 @@ public sealed class WEE_SetOutsideDimensionData
     public ValueBase SandstormEdgeA { get; set; } = ValueBase.Unchanged;
     public ValueBase SandstormEdgeB { get; set; } = ValueBase.Unchanged;
     public ValueBase SandstormMinFog { get; set; } = ValueBase.Unchanged;
+}
+
+public sealed class WEE_SetExpeditionEnvironment
+{
+    public ValueBase EnvironmentWetness { get; set; } = ValueBase.Unchanged;
+    public bool UpdateColor { get; set; } = false;
+    public Color DustColor { get; set; } = Color.white;
+    public ValueBase DustAlphaBoost { get; set; } = ValueBase.Unchanged;
+    public ValueBase DustTurbulence { get; set; } = ValueBase.Unchanged;
 }
 #endregion

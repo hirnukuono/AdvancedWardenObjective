@@ -21,6 +21,9 @@ internal sealed class AdjustAWOTimerEvent : BaseEvent
             EntryPoint.TimerMods.TimerBodyText = ParseLocaleText(e.AdjustTimer.CustomText);        
 
         if ((e.AdjustTimer.UpdateText && e.AdjustTimer.CustomText != LocaleText.Empty) || e.AdjustTimer.UpdateColor)
-            EntryPoint.TimerMods.TimerColor = e.AdjustTimer.TimerColor;        
+            EntryPoint.TimerMods.TimerColor = e.AdjustTimer.TimerColor;       
+        
+        if (e.AdjustTimer.UpdateSpecialHud && SpecialHudTimerEvent.SpecialHuds.TryGetValue(e.AdjustTimer.SpecialHudIndex, out var specHud))
+            specHud.TimeModifier = e.AdjustTimer.SpecialHudTimeModifier;
     }
 }

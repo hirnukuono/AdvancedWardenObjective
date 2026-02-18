@@ -52,7 +52,6 @@ internal sealed class CountdownEvent : BaseEvent
             {
                 // checkpoint has been used
                 ObjHudTimer.SetTimerActive(false, false);
-                ObjHudTimer.SetTimerTextEnabled(false);
                 yield break;
             }
 

@@ -48,6 +48,7 @@ internal sealed class CountupEvent : BaseEvent
 
         ObjHudTimer.SetTimerActive(true, true);
         ObjHudTimer.UpdateTimerTitle(titleText);
+        ObjHudTimer.m_timerText.text = $"<color=#{htmlColor}>{body[0]}{count.ToString($"F{cu.DecimalPoints}")}{body[1]}</color>";
         yield return new WaitForSeconds(0.25f);
 
         while (count <= duration)
@@ -60,7 +61,6 @@ internal sealed class CountupEvent : BaseEvent
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 ObjHudTimer.SetTimerActive(false, false);
-                ObjHudTimer.SetTimerTextEnabled(false);
                 yield break; // checkpoint has been used
             }
 

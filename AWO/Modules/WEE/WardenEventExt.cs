@@ -120,7 +120,15 @@ internal static class WardenEventExt
             }
         }
 
-        WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel);
+        if (ClearWardenIntelQueueEvent.AllowWardenIntel)
+        {
+            WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel);
+        }
+        else if (e.SpecialBool)
+        {
+            string wardenIntel = WOManager.ReplaceFragmentsInString(e.Layer, WOManager.GetCurrentChainIndex(e.Layer), e.WardenIntel);
+            GuiManager.PlayerLayer.m_wardenIntel.ShowSubObjectiveMessage("[GTFO.AWO]", wardenIntel);
+        }
 
         if (e.Type != WEE_Type.ForcePlayPlayerDialogue)
         {

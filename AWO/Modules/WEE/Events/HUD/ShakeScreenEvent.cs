@@ -10,8 +10,15 @@ internal sealed class ShakeScreenEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         var effect = new GameObject().AddComponent<CameraShakeEffect>();
-        effect.transform.parent = PlayerManager.GetLocalPlayerAgent().transform;
-        effect.transform.localPosition = Vector3.zero;
+        var pos = GetPositionFallback(e.Position, e.SpecialText);
+        if (pos != Vector3.zero)
+        {
+            effect.transform.position = pos;
+        }
+        else
+        {
+            effect.transform.SetParent(PlayerManager.GetLocalPlayerAgent().transform);
+        }
 
         e.CameraShake ??= new();
         effect.Radius = e.CameraShake.Radius;

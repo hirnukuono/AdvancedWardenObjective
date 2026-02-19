@@ -53,46 +53,66 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         var clusterCore = core.TryCast<CP_Cluster_Core>();
         if (clusterCore != null)
         {
-            switch (clusterCore.m_sync.GetCurrentState().status)
+            var clusterSync = clusterCore.m_sync.Cast<CP_Cluster_Sync>();
+            switch (clusterSync.GetCurrentState().status)
             {
                 case eClusterStatus.Finished:
                     return;
-                case eClusterStatus.Disabled:
-                    if (finished)
-                        break;
-                    else
-                        return;
                 case eClusterStatus.SplineReveal:
                     clusterCore.m_spline?.Cast<CP_Holopath_Spline>().m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
                     break;
-                case eClusterStatus.ClusterActive:
-                    foreach (var child in clusterCore.m_childCores)
-                        SolveCore(child);
+                default:
                     break;
             }
-            clusterCore.m_sync.SetStateData(finished ? eClusterStatus.Finished : eClusterStatus.Disabled, 1f);
+
+            foreach (var child in clusterCore.m_childCores)
+                SolveCore(child);
+
+            // Finished by last child; may have active coroutine
+            if (clusterSync.m_syncRoutine != null)
+            {
+                clusterSync.StopCoroutine(clusterSync.m_syncRoutine);
+                clusterSync.m_syncRoutine = null;
+            }
+            else if (clusterSync.GetCurrentState().status == eClusterStatus.Finished)
+                return;
+
+            var state = clusterSync.m_latestState;
+            state.status = eClusterStatus.Finished;
+            state.progress = 1f;
+            clusterSync.m_latestState = state;
+            clusterSync.m_stateReplicator.State = state;
         }
         else
         {
             var bioCore = core.Cast<CP_Bioscan_Core>();
-            switch (bioCore.m_sync.GetCurrentState().status)
+            var bioSync = bioCore.m_sync.Cast<CP_Bioscan_Sync>();
+            switch (bioSync.GetCurrentState().status)
             {
                 case eBioscanStatus.Finished:
                     return;
                 case eBioscanStatus.SplineReveal:
                     bioCore.m_spline?.Cast<CP_Holopath_Spline>().m_sound.Post(EVENTS.BIOSCAN_TUBE_EMITTER_STOP);
                     break;
-                case eBioscanStatus.Disabled:
-                    if (finished)
-                        break;
-                    else
-                        return;
                 default:
                     break;
             }
+
             if (bioCore.IsMovable && !bioCore.m_movingComp.OnlyMoveWhenScannig)
                 bioCore.m_movingComp.StopMoving();
-            bioCore.m_sync.SetStateData(finished ? eBioscanStatus.Finished : eBioscanStatus.Disabled, 1f);
+
+            // May have active coroutine if forcibly finished right after normal finish
+            if (bioSync.m_syncRoutine != null)
+            {
+                bioSync.StopCoroutine(bioSync.m_syncRoutine);
+                bioSync.m_syncRoutine = null;
+            }
+
+            var state = bioSync.m_latestState;
+            state.status = eBioscanStatus.Finished;
+            state.progress = 1f;
+            bioSync.m_latestState = state;
+            bioSync.m_stateReplicator.State = state;
         }
     }
 }

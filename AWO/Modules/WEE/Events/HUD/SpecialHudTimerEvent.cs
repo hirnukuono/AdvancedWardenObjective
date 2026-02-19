@@ -22,9 +22,9 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         public Coroutine? Coroutine { get; set; }
         public float TimeModifier { get; set; }
 
-        public void StartCoroutine(WEE_SpecialHudTimer hud)
+        public void StartCoroutine(WEE_SpecialHudTimer hud, float duration)
         {
-            var hudCoroutine = hud.Type == SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, hud.Duration) : DoSpecialHudPersistent(hud);
+            var hudCoroutine = hud.Type == SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, duration) : DoSpecialHudPersistent(hud);
             Coroutine = CoroutineManager.StartCoroutine(hudCoroutine.WrapToIl2Cpp());
         }
 
@@ -78,7 +78,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug($"Starting Timed SpecialHud with index: {specHud.Index}");
-                SpecialHuds[specHud.Index].StartCoroutine(specHud);
+                SpecialHuds[specHud.Index].StartCoroutine(specHud, duration);
                 break;
 
             case SpecialHudType.StartPersistent: // start persistent specialhud
@@ -88,7 +88,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug($"Starting Persistent SpecialHud with index: {specHud.Index}");
-                SpecialHuds[specHud.Index].StartCoroutine(specHud);
+                SpecialHuds[specHud.Index].StartCoroutine(specHud, duration);
                 break;
 
             case SpecialHudType.StopIndex: // stop specialhud with index

@@ -124,10 +124,9 @@ internal static class WardenEventExt
         {
             WOManager.DisplayWardenIntel(e.Layer, e.WardenIntel);
         }
-        else if (e.SpecialBool)
+        else if (e.Type != WEE_Type.ClearWardenIntelQueue && e.SpecialBool)
         {
-            string wardenIntel = WOManager.ReplaceFragmentsInString(e.Layer, WOManager.GetCurrentChainIndex(e.Layer), e.WardenIntel);
-            GuiManager.PlayerLayer.m_wardenIntel.ShowPrioritySubObjectiveMessage("", wardenIntel);
+            ClearWardenIntelQueueEvent.ShowSubObjectiveMessage(e.Layer, e.WardenIntel);
         }
 
         if (e.Type != WEE_Type.ForcePlayPlayerDialogue)

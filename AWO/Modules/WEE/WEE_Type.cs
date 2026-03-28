@@ -4,27 +4,27 @@ public enum WEE_Type
 {
     CloseSecurityDoor = WEE_EnumInjector.ExtendedIndex + 0,
     LockSecurityDoor,
-    SetDoorInteraction, 
-    TriggerSecurityDoorAlarm, 
+    SetDoorInteraction,
+    TriggerSecurityDoorAlarm,
     SolveSecurityDoorAlarm,
-    StartReactor, 
-    ModifyReactorWaveState, 
-    ForceCompleteReactor, 
-    ForceCompleteLevel, 
-    ForceFailLevel, 
-    Countdown, 
-    SetLevelFailCheckEnabled, 
-    SetLevelFailWhenAnyPlayerDowned, 
-    KillAllPlayers, 
-    KillPlayersInZone, 
+    StartReactor,
+    ModifyReactorWaveState,
+    ForceCompleteReactor,
+    ForceCompleteLevel,
+    ForceFailLevel,
+    Countdown,
+    SetLevelFailCheckEnabled,
+    SetLevelFailWhenAnyPlayerDowned,
+    KillAllPlayers,
+    KillPlayersInZone,
     SolveSingleObjectiveItem, // Obsolete
     SetLightDataInZone,
-    AlertEnemiesInZone, 
+    AlertEnemiesInZone,
     CleanupEnemiesInZone, // Kill, Despawn has merged with this
     SpawnHibernateInZone, // Added by Inas
     SpawnScoutInZone, // Added by Inas
     SaveCheckpoint,
-    MoveExtractionWorldPosition, 
+    MoveExtractionWorldPosition,
     SetBlackoutEnabled,
 
     // Hirnu AWO Events:
@@ -65,5 +65,6 @@ public enum WEE_Type
     PickupSentries,
     SetOutsideDimensionData,
     SetExpeditionEnvironment,
-    ClearWardenIntelQueue
+    ClearWardenIntelQueue,
+    ResetOnApproachDoor
 }

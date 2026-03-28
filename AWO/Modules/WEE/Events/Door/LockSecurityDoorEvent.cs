@@ -8,12 +8,25 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.LockSecurityDoor;
     public override bool AllowArrayableGlobalIndex => true;
 
-    protected override void TriggerMaster(WEE_EventData e)
+    protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door))
+        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
             return;
 
         var state = door.m_sync.GetCurrentSyncState();
+
+        if (IsMaster)
+            LockSecDoor(door, state);
+
+        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
+        if (locks == null)
+            return;
+
+        locks.m_intCustomMessage.m_message = SerialLookupManager.ParseTextFragments(e.SpecialText);
+    }
+
+    private void LockSecDoor(LG_SecurityDoor door, pDoorState state)
+    {
         if (state.status == eDoorStatus.Open || state.status == eDoorStatus.Opening)
         {
             LogError("Door is open!");
@@ -30,17 +43,5 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
 
         state.status = eDoorStatus.Closed_LockedWithNoKey;
         sync.m_stateReplicator.State = state;
-    }
-
-    protected override void TriggerCommon(WEE_EventData e)
-    {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
-            return;
-
-        var intMessage = door.gameObject.GetComponentInChildren<Interact_MessageOnScreen>();
-        if (intMessage != null)
-        {
-            intMessage.m_message = SerialLookupManager.ParseTextFragments(e.SpecialText);
-        }
     }
 }

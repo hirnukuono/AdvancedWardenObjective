@@ -20,7 +20,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
             return;
         }
         
-        CoroutineManager.StartCoroutine(SolvePuzzleCores(puzzleInstance, e.Count).WrapToIl2Cpp());
+        SolvePuzzleCores(puzzleInstance, e.Count);
     }
 
     private static bool TryGetCPInstance(uint ID, [NotNullWhen(true)] out ChainedPuzzleInstance? puzzleInstance)
@@ -37,18 +37,18 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         return false;
     }
 
-    static IEnumerator SolvePuzzleCores(ChainedPuzzleInstance puzzleInstance, int count)
+    static void SolvePuzzleCores(ChainedPuzzleInstance puzzleInstance, int count)
     {
         var cores = puzzleInstance.m_chainedPuzzleCores;
         for (int i = 0; i < cores.Length; i++)
         {
-            if (i == count && count > 0) yield break;
+            if (i == count && count > 0) return;
 
-            SolveCore(cores[i], i == cores.Length - 1);
+            SolveCore(cores[i]);
         }
     }
 
-    static void SolveCore(iChainedPuzzleCore core, bool finished = false)
+    static void SolveCore(iChainedPuzzleCore core)
     {
         var clusterCore = core.TryCast<CP_Cluster_Core>();
         if (clusterCore != null)

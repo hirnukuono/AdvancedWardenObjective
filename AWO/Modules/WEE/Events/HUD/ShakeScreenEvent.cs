@@ -11,7 +11,7 @@ internal sealed class ShakeScreenEvent : BaseEvent
     protected override void TriggerCommon(WEE_EventData e)
     {
         CameraShakeEffect effect;
-        var pos = GetPositionFallback(e.Position, e.SpecialText);
+        var pos = GetPositionFallback(e.Position, e.SpecialText, false);
         if (pos != Vector3.zero)
         {
             var node = CourseNodeUtil.GetCourseNode(pos);

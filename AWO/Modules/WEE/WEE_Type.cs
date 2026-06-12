@@ -66,5 +66,6 @@ public enum WEE_Type
     SetOutsideDimensionData,
     SetExpeditionEnvironment,
     ClearWardenIntelQueue,
-    ResetOnApproachDoor
+    ResetOnApproachDoor,
+    FadeScreenInOut
 }

@@ -104,6 +104,7 @@ public sealed class WEE_EventData
     public List<WEE_SetPocketItem> ObjectiveItems { get; set; } = new();
     public WEE_SetOutsideDimensionData? DimensionData { get; set; } = null;
     public WEE_SetExpeditionEnvironment? EnvironmentData { get; set; } = null;
+    public WEE_FadeScreenInOut? FadeScreen { get; set; } = null;
 
     public WEE_EventData Clone(eDimensionIndex dim, LG_LayerType layer, eLocalZoneIndex zone)
     {
@@ -683,5 +684,15 @@ public sealed class WEE_SetExpeditionEnvironment
     public Color DustColor { get; set; } = Color.white;
     public ValueBase DustAlphaBoost { get; set; } = ValueBase.Unchanged;
     public ValueBase DustTurbulence { get; set; } = ValueBase.Unchanged;
+}
+
+public sealed class WEE_FadeScreenInOut
+{
+    public Color FadeColor { get; set; } = Color.black;
+    public float CurveTimeStart { get; set; } = 0f;
+    public float CurveValueStart { get; set; } = 0f;
+    public float CurveTimeEnd{ get; set; } = 1f;
+    public float CurveValueEnd { get; set; } = 1f;
+    public float FadeSpeed { get; set; } = 1f;
 }
 #endregion

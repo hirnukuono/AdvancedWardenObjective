@@ -1,4 +1,5 @@
-﻿using Player;
+﻿using AmorLib.Utils;
+using FluffyUnderware.DevTools.Extensions;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -9,25 +10,26 @@ internal sealed class ShakeScreenEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        var effect = new GameObject().AddComponent<CameraShakeEffect>();
+        CameraShakeEffect effect;
         var pos = GetPositionFallback(e.Position, e.SpecialText);
         if (pos != Vector3.zero)
         {
+            var node = CourseNodeUtil.GetCourseNode(pos);
+            effect = node?.m_area.AddChildGameObject<CameraShakeEffect>("AWO_ShakeScreenEvent") ?? new();
             effect.transform.position = pos;
         }
         else
         {
-            effect.transform.SetParent(PlayerManager.GetLocalPlayerAgent().transform);
+            effect = LocalPlayer.AddChildGameObject<CameraShakeEffect>("AWO_ShakeScreenEvent");
         }
 
-        e.CameraShake ??= new();
-        effect.Radius = e.CameraShake.Radius;
-        effect.Duration = ResolveFieldsFallback(e.Duration, e.CameraShake.Duration);
-        effect.Amplitude = e.CameraShake.Amplitude;
-        effect.Frequency = e.CameraShake.Frequency;
-        effect.directional = e.CameraShake.Directional;
+        var camData = e.CameraShake ??= new();
+        effect.Radius = camData.Radius;
+        effect.Duration = ResolveFieldsFallback(e.Duration, camData.Duration);
+        effect.Amplitude = camData.Amplitude;
+        effect.Frequency = camData.Frequency;
+        effect.directional = camData.Directional;
         effect.PlayOnEnable = true;
-
         effect.Play();
     }
 }

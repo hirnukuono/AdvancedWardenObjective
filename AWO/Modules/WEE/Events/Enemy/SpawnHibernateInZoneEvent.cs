@@ -114,8 +114,6 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        base.OnSetup();
-
         LevelAPI.OnAfterBuildBatch += HandlePlacementBatches;
         LevelAPI.OnLevelCleanup += CleanupSpawnUpdate;
         SNetEvents.OnCheckpointReload += CleanupSpawnUpdate;

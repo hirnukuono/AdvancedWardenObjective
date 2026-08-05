@@ -71,7 +71,7 @@ public static class SerialLookupManager
             }
         }
 
-        // collect all terminals and zone alias numbers
+        // collect all zone alias numbers and terminals, subscribe terminal and door text to be parsed on level enter
         foreach (var zone in Builder.CurrentFloor.allZones)
         {
             try
@@ -81,47 +81,48 @@ public static class SerialLookupManager
                 SerialMap.GetOrAddNew(Zone).GetOrAddNew(globalIndex).Add(zone.Alias.ToString());
                 count++;
 
-                if (zone.TerminalsSpawnedInZone == null) continue;
-
-                foreach (var term in zone.TerminalsSpawnedInZone)
+                if (zone.TerminalsSpawnedInZone != null)
                 {
-                    if (term == null) continue;
-                    int split = term.m_terminalItem.TerminalItemKey.LastIndexOf('_');
-                    if (split == -1) continue;
-                    string serialNumber = term.m_terminalItem.TerminalItemKey.Substring(split + 1);
-
-                    SerialMap.GetOrAddNew(Terminal).GetOrAddNew(globalIndex).Add(serialNumber);
-                    count++;
-
-                    var cmdInterpreter = term.m_command;                    
-                    foreach (var key in cmdInterpreter.m_commandHelpStrings.Keys)
+                    foreach (var term in zone.TerminalsSpawnedInZone)
                     {
-                        if (key >= TERM_Command.UniqueCommand1 && key <= TERM_Command.UniqueCommand5)
+                        if (term == null) continue;
+                        int split = term.m_terminalItem.TerminalItemKey.LastIndexOf('_');
+                        if (split == -1) continue;
+                        string serialNumber = term.m_terminalItem.TerminalItemKey.Substring(split + 1);
+
+                        SerialMap.GetOrAddNew(Terminal).GetOrAddNew(globalIndex).Add(serialNumber);
+                        count++;
+
+                        var cmdInterpreter = term.m_command;
+                        foreach (var key in cmdInterpreter.m_commandHelpStrings.Keys)
                         {
-                            OnEnterParseText += () => cmdInterpreter.m_commandHelpStrings[key] = ParseLocaleText(new(cmdInterpreter.m_commandHelpStrings[key]));
+                            if (key >= TERM_Command.UniqueCommand1 && key <= TERM_Command.UniqueCommand5)
+                            {
+                                OnEnterParseText += () => cmdInterpreter.m_commandHelpStrings[key] = ParseLocaleText(new(cmdInterpreter.m_commandHelpStrings[key]));
+                            }
+                        }
+
+                        foreach (var key2 in cmdInterpreter.m_commandPostOutputMap.Keys)
+                        {
+                            if (key2 < TERM_Command.UniqueCommand1 || key2 > TERM_Command.UniqueCommand5)
+                                continue;
+
+                            foreach (var postCmd in cmdInterpreter.m_commandPostOutputMap[key2])
+                            {
+                                OnEnterParseText += () => postCmd.Output = ParseLocaleText(new(postCmd.Output));
+                            }
                         }
                     }
-
-                    foreach (var key2 in cmdInterpreter.m_commandPostOutputMap.Keys) 
-                    {
-                        if (key2 < TERM_Command.UniqueCommand1 || key2 > TERM_Command.UniqueCommand5) 
-                            continue;
-
-                        foreach (var postCmd in cmdInterpreter.m_commandPostOutputMap[key2])
-                        {
-                            OnEnterParseText += () => postCmd.Output = ParseLocaleText(new(postCmd.Output));
-                        }
-                    }
-
-                    var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
-                    if (locks == null) continue;
-                    OnEnterParseText += () =>
-                    {
-                        locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
-                        locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
-                        locks.m_intUseKeyItem.m_msgNeedItemHeader = ParseTextFragments(locks.m_intUseKeyItem.m_msgNeedItemHeader);
-                    };
                 }
+
+                var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
+                if (locks == null) continue;
+                OnEnterParseText += () =>
+                {
+                    locks.m_intCustomMessage.m_message = ParseTextFragments(locks.m_intCustomMessage.m_message);
+                    locks.m_intOpenDoor.InteractionMessage = ParseTextFragments(locks.m_intOpenDoor.InteractionMessage);
+                    locks.m_intUseKeyItem.m_msgNeedItemHeader = ParseTextFragments(locks.m_intUseKeyItem.m_msgNeedItemHeader);
+                };
             }
             catch (Exception ex)
             {

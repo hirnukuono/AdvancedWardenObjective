@@ -46,13 +46,12 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
                 display.m_Text.enabled = isNormal;
             }
         }
-        
+
         foreach (var terminal in TrackedList<LG_ComputerTerminal>())
         {
             if (terminal == null) continue;
 
             terminal.OnProximityExit();
-
             var interact = terminal.GetComponentInChildren<Interact_ComputerTerminal>(true);
             if (interact != null)
             {
@@ -60,10 +59,8 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
                 interact.SetActive(isNormal);
             }
 
-            if (terminal.gameObject.TryAndGetComponent(out GUIX_VirtualSceneLink guixSceneLink) && guixSceneLink.m_virtualScene != null)
-            {
-                guixSceneLink.m_virtualScene.gameObject.SetActive(isNormal);
-            }
+            terminal.m_interfaceScreen.SetActive(isNormal);
+            terminal.m_loginScreen.SetActive(isNormal);
 
             if (terminal.m_text != null)
             {
@@ -73,7 +70,7 @@ internal sealed class BlackoutState : IStateReplicatorHolder<BlackoutStatus>
             if (!isNormal)
             {
                 var interactionSource = terminal.m_localInteractionSource;
-                if (interactionSource != null && interactionSource.FPItemHolder.InTerminalTrigger)
+                if (interactionSource?.FPItemHolder?.InTerminalTrigger == true)
                 {
                     terminal.ExitFPSView();
                 }

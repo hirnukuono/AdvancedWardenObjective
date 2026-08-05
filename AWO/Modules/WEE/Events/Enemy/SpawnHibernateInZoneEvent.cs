@@ -139,6 +139,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 if (count == 1 && pos != Vector3.zero) // spawn 1 enemy at a specific position
                 {
                     var node = sh.AreaIndex == -1 ? CourseNodeUtil.GetCourseNode(pos) : zone.m_areas[sh.AreaIndex].m_courseNode;
+                    node.m_area.PlacedPopScore += sh.PlacementScore;
                     QueueSpawn(sh.EnemyID, node, pos, Quaternion.Euler(sh.Rotation));
                 }
                 else
@@ -164,7 +165,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         AIG_CourseNode spawnNode;
         if (useRandomArea)
         {
-            s_currentRandomWeight = sh.PlacementScoreRandomWeight;
+            s_currentRandomWeight = sh.PlacementRandomWeight;
             Il2Collection.List<LG_Area> il2Areas = new(validAreas.Count);
             foreach (var index in validAreas)
                 il2Areas.Add(areas[index]);
@@ -346,7 +347,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
     private static AIG_CourseNode GetRandomSpawnNode(WEE_SpawnHibernateData sh)
     {
         LG_Area best = LG_Scoring.GetHighestScored(LG_Scoring.ScoreSort(LG_Scoring.ScoreItems(s_currentScoredAreas, (Func<LG_Area, float>)Scorer_CoverageToPopulation, float.MinValue)));
-        best.PlacedPopScore += sh.RandomPlacementScore;
+        best.PlacedPopScore += sh.PlacementScore;
         return best.m_courseNode;
     }
 

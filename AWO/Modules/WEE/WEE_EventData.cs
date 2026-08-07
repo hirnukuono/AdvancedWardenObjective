@@ -234,7 +234,7 @@ public sealed class WEE_SpawnHibernateData
     public uint EnemyID { get; set; } = 0u;
     public int Count { get; set; } = 0;
     public float PlacementRandomWeight { get; set; } = 0.25f;
-    public float PlacementScore { get; set; } = 1f;
+    public float PlacementScore { get; set; } = 3f;
     public bool ResetPlacementInfo { get; set; } = false;
     public Vector3 Position { get; set; } = Vector3.zero;
     public Vector3 Rotation { get; set; } = Vector3.zero;

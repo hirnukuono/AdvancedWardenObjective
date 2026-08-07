@@ -10,7 +10,6 @@ using LevelGeneration;
 using Player;
 using System.Collections;
 using UnityEngine;
-using Il2Collection = Il2CppSystem.Collections.Generic;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -70,10 +69,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     private const int MaxPlacementNodes = 100;
     private static PlacementHolder[] s_placementHolders = null!;
-
-    private static float s_currentRandomWeight;
+    private static readonly List<LG_Area> s_areasToFixCoverage = new();
     private static readonly Queue<AIG_INode> s_nodesToSpreadFrom = new();
-    private static Il2Collection.List<LG_Scoring.Score<LG_Area>> s_currentScoredAreas = null!;
     #endregion
 
     #region SPAWN_QUEUE
@@ -114,6 +111,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     protected override void OnSetup()
     {
+        LevelAPI.OnBeforeBuildBatch += PrepareVoxelCoverageFix;
+        LevelAPI.OnAfterBuildBatch += ApplyVoxelCoverageFix;
         LevelAPI.OnAfterBuildBatch += HandlePlacementBatches;
         LevelAPI.OnLevelCleanup += CleanupSpawnUpdate;
         SNetEvents.OnCheckpointReload += CleanupSpawnUpdate;
@@ -161,24 +160,26 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
         bool useRandomArea = sh.AreaIndex == -1;
         AIG_CourseNode spawnNode;
+        List<LG_Area> allowedAreas = null!;
         if (useRandomArea)
         {
-            s_currentRandomWeight = sh.PlacementRandomWeight;
-            Il2Collection.List<LG_Area> il2Areas = new(validAreas.Count);
+            allowedAreas = new(validAreas.Count);
             foreach (var index in validAreas)
-                il2Areas.Add(areas[index]);
-            s_currentScoredAreas = LG_Scoring.CreateScores(il2Areas, 0f);
+                allowedAreas.Add(areas[index]);
             spawnNode = null!;
         }
         else
         {
             spawnNode = areas[sh.AreaIndex].m_courseNode;
         }
-
+        
         for (int spawnCount = 0; spawnCount < count; spawnCount++)
         {
             if (useRandomArea)
-                spawnNode = GetRandomSpawnNode(sh);
+            {
+                spawnNode = GetRandomSpawnNode(sh, allowedAreas);
+                spawnNode.m_area.PlacedPopScore += sh.PlacementScore;
+            }
 
             QueueSpawn(sh.EnemyID, spawnNode, enabled);
         }
@@ -274,14 +275,10 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 foreach (var data in s_placementHolders)
                     data.SortNodes();
                 return;
-            case LG_Factory.BatchName.EnemiesPlacement_Scoring:
-                AIG_CourseNode.s_allNodes[0].m_area.VoxelCoverage *= RundownManager.ActiveExpeditionBalanceData.VoxelCoverageAreaMultiplier;
-                return;
             default:
                 return;
         }
 
-        s_currentScoredAreas = null!;
         s_placementHolders = new PlacementHolder[AIG_CourseNode.s_allNodes.Count];
         foreach (var node in AIG_CourseNode.s_allNodes)
         {
@@ -342,15 +339,75 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         }
     }
 
-    private static AIG_CourseNode GetRandomSpawnNode(WEE_SpawnHibernateData sh)
+    private static AIG_CourseNode GetRandomSpawnNode(WEE_SpawnHibernateData sh, List<LG_Area> areas)
     {
-        LG_Area best = LG_Scoring.GetHighestScored(LG_Scoring.ScoreSort(LG_Scoring.ScoreItems(s_currentScoredAreas, (Func<LG_Area, float>)Scorer_CoverageToPopulation, float.MinValue)));
-        best.PlacedPopScore += sh.PlacementScore;
-        return best.m_courseNode;
+        // Use VoxelCoverage - PlacedPopScore as weights to compute a weighted random area.
+        // Since these weights can be negative, values are shifted by the smallest negative if one exists.
+        // PlacementRandomWeight shifts the weights toward a uniform distribution.
+        var scores = areas.ConvertAll(area => area.VoxelCoverage - area.PlacedPopScore);
+        float minScore = 0;
+        float maxScore = 0;
+        foreach (var score in scores)
+        {
+            if (score < minScore)
+                minScore = score;
+            else if (score > maxScore)
+                maxScore = score;
+        }
+
+        if (minScore < 0)
+        {
+            maxScore -= minScore;
+            for (int i = 0; i < scores.Count; i++)
+                scores[i] -= minScore;
+        }
+
+        if (maxScore == 0)
+            return areas[MasterRand.Next(areas.Count)].m_courseNode;
+
+        for (int i = 0; i < scores.Count; i++)
+            scores[i] += (maxScore - scores[i]) * sh.PlacementRandomWeight;
+
+        float totalWeight = scores.Sum();
+        float rand = MasterRand.NextSingle() * totalWeight;
+        float cumulative = 0;
+        for (int i = 0; i < scores.Count; i++)
+        {
+            cumulative += scores[i];
+            if (rand < cumulative)
+                return areas[i].m_courseNode;
+        }
+
+        return areas[^1].m_courseNode;
     }
 
-    private static float Scorer_CoverageToPopulation(LG_Area area)
+    private static void PrepareVoxelCoverageFix(LG_Factory.BatchName batchName)
     {
-        return Mathf.Lerp(area.VoxelCoverage - area.PlacedPopScore, MasterRand.NextSingle(), s_currentRandomWeight);
+        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) return;
+
+        s_areasToFixCoverage.Add(AIG_CourseNode.s_allNodes[0].m_area);
+        bool hasEnemyPop = RundownManager.ActiveExpedition.Expedition.EnemyPopulation != 0;
+        foreach (var zone in Builder.CurrentFloor.allZones)
+        {
+            if (hasEnemyPop)
+            {
+                var spawning = zone.m_settings.m_zoneData.EnemySpawningInZone;
+                if (spawning != null && spawning.Count >= 1)
+                    continue;
+            }
+
+            foreach (var area in zone.m_areas)
+                s_areasToFixCoverage.Add(area);
+        }
+    }
+
+    private static void ApplyVoxelCoverageFix(LG_Factory.BatchName batchName)
+    {
+        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) return;
+
+        float mult = RundownManager.ActiveExpeditionBalanceData.VoxelCoverageAreaMultiplier;
+        foreach (var area in s_areasToFixCoverage)
+            area.VoxelCoverage *= mult;
+        s_areasToFixCoverage.Clear();
     }
 }

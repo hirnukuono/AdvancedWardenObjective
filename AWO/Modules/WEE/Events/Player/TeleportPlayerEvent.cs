@@ -53,14 +53,19 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
         }
 
-        var itemAssignment = AssignWarpables(tp, playersInLevel);
+        bool overflow = tp.FullTeamOverflow && tp.TPData.Count == 4 && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
+        var itemAssignment = AssignWarpables(tp, overflow, playersInLevel);
         int usedCount = 0;
         for (int j = 0; j < playersInLevel.Count; j++)
         {
             PlayerAgent player = playersInLevel[j];
-            if (!PlayerIsInLocation(player, tp.FromLocation)) continue;
+            if (!PlayerIsInLocation(player, tp.FromLocation))
+            {
+                if (itemAssignment.TryGetValue(j, out var items))
+                    WarpItemsTo(player, items);
+                continue;
+            }
 
-            bool overflow = usedCount >= 4 && tp.FullTeamOverflow && tp.TPData.Count == 4 && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
             int p = overflow ? (usedCount % 4) : usedCount;
             usedCount++;
             int idx = tp.TPData.FindIndex(tpd => (int)tpd.PlayerIndex == p);
@@ -89,7 +94,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
     }
 
-    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
+    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, bool overflow, Il2CppPlayerList lobby)
     {
         var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
 
@@ -103,7 +108,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if (!tp.FlashTeleport && tp.WarpBigPickups && lobby.Count == tp.TPData.Count
+            if (!tp.FlashTeleport && tp.WarpBigPickups && (overflow || lobby.Count == tp.TPData.Count || tp.FromLocation.Enabled)
                 && bigPickup != null && bigPickup.CanWarp && NodeIsInLocation(bigPickup.CourseNode, tp.FromLocation) && bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
             {
                 itemAssignment.GetOrAddNew(tp.SendBPUsToHost ? PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex : MasterRand.Next(lobby.Count)).Add(item);
@@ -144,14 +149,20 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             tpData.Player.Sync.SendSyncWarp(tpData.Dimension, tpData.Position, tpData.LookDirV3, tpData.PlayWarpAnimation ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
         }
 
-        foreach (var item in tpData.ItemsToWarp)
+        WarpItemsTo(tpData.Player, tpData.Position, tpData.Dimension, tpData.ItemsToWarp);
+    }
+
+    private static void WarpItemsTo(PlayerAgent player, List<IWarpableObject> items) => WarpItemsTo(player, player.Position, player.DimensionIndex, items);
+    private static void WarpItemsTo(PlayerAgent player, Vector3 position, eDimensionIndex dimension, List<IWarpableObject> items)
+    {
+        foreach (var item in items)
         {
             var sentry = item.TryCast<SentryGunInstance>();
             if (sentry != null)
             {
                 if (sentry.LocallyPlaced)
                 {
-                    sentry.m_sync.WantItemAction(tpData.Player, SyncedItemAction_New.PickUp);
+                    sentry.m_sync.WantItemAction(player, SyncedItemAction_New.PickUp);
                     continue;
                 }
             }
@@ -164,9 +175,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                     ePickupItemInteractionType.Place,
                     null,
                     bigPickup.pItemData.custom,
-                    tpData.Position,
+                    position,
                     Quaternion.identity,
-                    CourseNodeUtil.GetCourseNode(tpData.Position, tpData.Dimension),
+                    CourseNodeUtil.GetCourseNode(position, dimension),
                     true,
                     true
                 );

@@ -375,6 +375,7 @@ public sealed partial class WEE_TeleportPlayer // new
     public bool WarpBigPickups { get; set; } = true;
     public bool SendBigPickupsToHost { private get => SendBPUsToHost; set => SendBPUsToHost = value; }
     public bool FullTeamOverflow { get; set; } = false;
+    public FromLocationData FromLocation { get; set; } = new();
     public List<TeleportData> TPData { get; set; } = new();
     public struct TeleportData
     { 
@@ -401,6 +402,16 @@ public sealed partial class WEE_TeleportPlayer // new
         public Vector3 LastLookDirV3 { get; set; }
         [JsonIgnore]
         public List<IWarpableObject> ItemsToWarp { get; set; }
+    }
+
+    public struct FromLocationData
+    {
+        public bool Enabled { get; set; } = false;
+        public Arrayable<eDimensionIndex> DimensionIndex { get; set; } = new(eDimensionIndex.Reality);
+        public Arrayable<LG_LayerType> Layer { get; set; } = new(LG_LayerType.MainLayer);
+        public Arrayable<eLocalZoneIndex> LocalIndex { get; set; } = new(eLocalZoneIndex.Zone_0);
+
+        public FromLocationData() { }
     }
 }
 

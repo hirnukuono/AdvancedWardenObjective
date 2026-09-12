@@ -1,6 +1,8 @@
-﻿using AmorLib.Utils;
+﻿using AIGraph;
+using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
+using GameData;
 using LevelGeneration;
 using Player;
 using System.Collections;
@@ -51,17 +53,25 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             }
         }
 
-        var itemAssignment = AssignWarpables(tp, playersInLevel);
-
+        bool overflow = tp.FullTeamOverflow && tp.TPData.Count == 4 && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
+        var itemAssignment = AssignWarpables(tp, overflow, playersInLevel);
+        int usedCount = 0;
         for (int j = 0; j < playersInLevel.Count; j++)
         {
-            bool overflow = j >= 4 && tp.FullTeamOverflow && tp.TPData.Count == 4 && tp.TPData.Max(tpd => (int)tpd.PlayerIndex) < 4;
-            int p = overflow ? (j % 4) : j;
+            PlayerAgent player = playersInLevel[j];
+            if (!PlayerIsInLocation(player, tp.FromLocation))
+            {
+                if (itemAssignment.TryGetValue(j, out var items))
+                    WarpItemsTo(player, items);
+                continue;
+            }
+
+            int p = overflow ? (usedCount % 4) : usedCount;
+            usedCount++;
             int idx = tp.TPData.FindIndex(tpd => (int)tpd.PlayerIndex == p);
             if (idx == -1) continue;
             var playerData = tp.TPData[idx];
 
-            PlayerAgent player = playersInLevel[j];
             var tpData = new TeleportData()
             {
                 Player = player,
@@ -84,22 +94,22 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         }
     }
 
-    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, Il2CppPlayerList lobby)
+    private static Dictionary<int, List<IWarpableObject>> AssignWarpables(WEE_TeleportPlayer tp, bool overflow, Il2CppPlayerList lobby)
     {
         var itemAssignment = new Dictionary<int, List<IWarpableObject>>();
 
         foreach (var item in Dimension.WarpableObjects)
         {
             var sentry = item.TryCast<SentryGunInstance>();
-            if (sentry != null && tp.WarpSentries)
+            if (sentry != null && tp.WarpSentries && NodeIsInLocation(sentry.CourseNode, tp.FromLocation))
             {
                 itemAssignment.GetOrAddNew(lobby.IndexOf(sentry.Owner)).Add(item);
                 continue;
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
-            if (!tp.FlashTeleport && tp.WarpBigPickups && lobby.Count == tp.TPData.Count
-                && bigPickup != null && bigPickup.CanWarp && bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
+            if (!tp.FlashTeleport && tp.WarpBigPickups && (overflow || lobby.Count == tp.TPData.Count || tp.FromLocation.Enabled)
+                && bigPickup != null && bigPickup.CanWarp && NodeIsInLocation(bigPickup.CourseNode, tp.FromLocation) && bigPickup.internalSync.GetCurrentState().placement.droppedOnFloor)
             {
                 itemAssignment.GetOrAddNew(tp.SendBPUsToHost ? PlayerManager.GetLocalPlayerAgent().PlayerSlotIndex : MasterRand.Next(lobby.Count)).Add(item);
             }
@@ -139,14 +149,20 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             tpData.Player.Sync.SendSyncWarp(tpData.Dimension, tpData.Position, tpData.LookDirV3, tpData.PlayWarpAnimation ? PlayerAgent.WarpOptions.All : PlayerAgent.WarpOptions.PlaySounds);
         }
 
-        foreach (var item in tpData.ItemsToWarp)
+        WarpItemsTo(tpData.Player, tpData.Position, tpData.Dimension, tpData.ItemsToWarp);
+    }
+
+    private static void WarpItemsTo(PlayerAgent player, List<IWarpableObject> items) => WarpItemsTo(player, player.Position, player.DimensionIndex, items);
+    private static void WarpItemsTo(PlayerAgent player, Vector3 position, eDimensionIndex dimension, List<IWarpableObject> items)
+    {
+        foreach (var item in items)
         {
             var sentry = item.TryCast<SentryGunInstance>();
             if (sentry != null)
             {
                 if (sentry.LocallyPlaced)
                 {
-                    sentry.m_sync.WantItemAction(tpData.Player, SyncedItemAction_New.PickUp);
+                    sentry.m_sync.WantItemAction(player, SyncedItemAction_New.PickUp);
                     continue;
                 }
             }
@@ -159,9 +175,9 @@ internal sealed class TeleportPlayerEvent : BaseEvent
                     ePickupItemInteractionType.Place,
                     null,
                     bigPickup.pItemData.custom,
-                    tpData.Position,
+                    position,
                     Quaternion.identity,
-                    CourseNodeUtil.GetCourseNode(tpData.Position, tpData.Dimension),
+                    CourseNodeUtil.GetCourseNode(position, dimension),
                     true,
                     true
                 );
@@ -191,5 +207,40 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             return player.FPSCamera.CameraRayDir.normalized;
 
         return player.Sync.m_locomotionData.LookDir.Value;
+    }
+
+    private static bool PlayerIsInLocation(PlayerAgent player, WEE_TeleportPlayer.FromLocationData data)
+    {
+        if (!data.Enabled) return true;
+
+        var node = player.CourseNode;
+        if (node == null)
+        {
+            Logger.Verbose(LogLevel.Warning, $"Player {player.Owner.NickName} has no CourseNode, can't check FromLocation filter!");
+            return false;
+        }
+
+        return NodeIsInLocation(node, data);
+    }
+
+    private static bool NodeIsInLocation(AIG_CourseNode node, WEE_TeleportPlayer.FromLocationData data)
+    {
+        if (!data.Enabled) return true;
+
+        if (node == null) return false;
+
+        (var nodeDim, var nodeLayer, var nodeZone) = (node.m_dimension.DimensionIndex, node.LayerType, node.m_zone?.LocalIndex ?? eLocalZoneIndex.Zone_0);
+        foreach (var d in data.DimensionIndex.Values)
+        {
+            foreach (var l in data.Layer.Values)
+            {
+                foreach (var z in data.LocalIndex.Values)
+                {
+                    if (nodeDim == d && nodeLayer == l && nodeZone == z)
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 }

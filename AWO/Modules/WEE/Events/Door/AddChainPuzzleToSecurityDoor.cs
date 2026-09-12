@@ -1,7 +1,10 @@
 ﻿using AmorLib.Utils;
+using BepInEx.Logging;
 using ChainedPuzzles;
 using GameData;
 using LevelGeneration;
+using System.Collections;
+using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -44,9 +47,11 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                 case eDoorStatus.Closed_LockedWithPowerGenerator:
                 case eDoorStatus.Closed_LockedWithNoKey:
                 case eDoorStatus.Unlocked:
-                    if (door.m_locks.ChainedPuzzleToSolve != null && !door.m_locks.ChainedPuzzleToSolve.IsSolved)
+                    if (door.m_locks.ChainedPuzzleToSolve != null)
                     {
-                        LogWarning($"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
+                        if (!door.m_locks.ChainedPuzzleToSolve.IsSolved)
+                            Logger.Verbose(LogLevel.Debug, $"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
+                        CoroutineManager.StartCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve).WrapToIl2Cpp());
                     }
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
                     state.status = door.m_locks.SetupForChainedPuzzle(puzzleInstance);
@@ -70,8 +75,8 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                         eSecurityDoorType.Apex => "ApexDoorClosed_Idle",
                         eSecurityDoorType.Bulkhead => "ClosedIdle",
                         _ => string.Empty
-                    });                    
-                    LogDebug($"Door has recieved new chained puzzle {chainPuzzle}");
+                    });
+                    Logger.Verbose(LogLevel.Debug, $"Door has recieved new chained puzzle {chainPuzzle}");
                     break;
 
                 default:
@@ -79,5 +84,14 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     break;
             }
         }        
+    }
+
+    private static IEnumerator DestroyScanDelayed(ChainedPuzzleInstance scan)
+    {
+        yield return new WaitForSeconds(1f);
+        foreach (var puzzle in scan.m_chainedPuzzleCores)
+            if (puzzle != null)
+                GameObject.Destroy(puzzle.Cast<MonoBehaviour>().gameObject);
+        GameObject.Destroy(scan.gameObject);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using GameData;
+using Player;
 using NestedType = AWO.Modules.WEE.WEE_NestedEvent.NestedMode;
 
 namespace AWO.Modules.WEE.Events;
@@ -13,42 +14,53 @@ internal sealed class NestedEvent : BaseEvent
     {
         var nested = e.NestedEvent ?? new();
 
+        int playerCount = PlayerManager.PlayerAgentsInLevel.Count;
+        var playerFilter = nested.PlayerFilter;
+        if (!playerFilter.IsEmpty)
+        {
+            if (playerCount < playerFilter[0])
+                return;
+            if (!playerFilter.IsSingle && playerCount > playerFilter[1])
+                return;
+        }
+
+        var events = ResolveFieldsFallback(e.Events, nested.EventsToActivate);
         List<WardenObjectiveEventData> eventList = nested.Type switch
         {
-            NestedType.RandomAny => SelectRandomUniform(nested),
-            NestedType.RandomWeighted => SelectRandomWeighted(nested),
-            _ => nested.EventsToActivate
+            NestedType.RandomAny => SelectRandomUniform(nested, events),
+            NestedType.RandomWeighted => SelectRandomWeighted(nested, events),
+            _ => events
         };
         
         ExecuteWardenEvents(eventList);
     }
 
-    private static List<WardenObjectiveEventData> SelectRandomUniform(WEE_NestedEvent nested)
+    private static List<WardenObjectiveEventData> SelectRandomUniform(WEE_NestedEvent nested, List<WardenObjectiveEventData> events)
     {
         List<WardenObjectiveEventData> eventList = new();
 
-        int maxRolls = Math.Min(nested.MaxRandomEvents, nested.EventsToActivate.Count);
+        int maxRolls = Math.Min(nested.MaxRandomEvents, events.Count);
         for (int i = 0; i < maxRolls; i++)
         {
             int randIndex;
             do
             {
-                randIndex = EntryPoint.SessionRand.NextInt(nested.EventsToActivate.Count);
+                randIndex = EntryPoint.SessionRand.NextInt(events.Count);
             }
-            while (!nested.AllowRepeatsInRandom && eventList.Contains(nested.EventsToActivate[randIndex]));
+            while (!nested.AllowRepeatsInRandom && eventList.Contains(events[randIndex]));
 
-            eventList.Add(nested.EventsToActivate[randIndex]);
+            eventList.Add(events[randIndex]);
         }
 
         return eventList;
     }
 
-    private static List<WardenObjectiveEventData> SelectRandomWeighted(WEE_NestedEvent nested)
+    private static List<WardenObjectiveEventData> SelectRandomWeighted(WEE_NestedEvent nested, List<WardenObjectiveEventData> events)
     {
         int count = 0;
         int maxSpins = nested.MaxRandomEvents;
-        List<WardenObjectiveEventData> eventList = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.None || e.Trigger == eWardenObjectiveEventTrigger.OnStart).ToList();
-        List<WardenObjectiveEventData> eventsOnMid = nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnMid).ToList();
+        List<WardenObjectiveEventData> eventList = events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.None || e.Trigger == eWardenObjectiveEventTrigger.OnStart).ToList();
+        List<WardenObjectiveEventData> eventsOnMid = events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnMid).ToList();
         List<WEE_NestedEvent.EventsOnRandomWeight> wheel = new(nested.WheelOfEvents);
 
         if (wheel.Count > 0)
@@ -78,7 +90,7 @@ internal sealed class NestedEvent : BaseEvent
             Logger.Verbose(LogLevel.Debug, "WheelofEvents is now done");
         }
 
-        eventList.AddRange(nested.EventsToActivate.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnEnd));
+        eventList.AddRange(events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnEnd));
         return eventList;
     }
 

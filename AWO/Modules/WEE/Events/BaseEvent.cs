@@ -173,6 +173,24 @@ internal abstract class BaseEvent
         return string.Empty;
     }
 
+    public List<WardenObjectiveEventData> ResolveFieldsFallback(List<WardenObjectiveEventData> value, List<WardenObjectiveEventData> nested, bool debug = true)
+    {
+        if (nested?.Count > 0)
+        {
+            return nested;
+        }
+        else if (value?.Count > 0)
+        {
+            return value;
+        }
+
+        if (debug)
+        {
+            LogWarning($"Both legacy-nested and field {nameof(value)} lists have no events");
+        }
+        return EmptyList<WardenObjectiveEventData>.Instance;
+    }
+
     public Vector3 GetPositionFallback(Vector3 position, string weObjectFilter, bool debug = true)
     {
         if (position != Vector3.zero)

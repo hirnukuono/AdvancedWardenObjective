@@ -1,4 +1,7 @@
-﻿using LevelGeneration;
+﻿using ChainedPuzzles;
+using LevelGeneration;
+using System.Collections;
+using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -37,8 +40,17 @@ internal sealed class HideTerminalCommand : BaseEvent
                 term.m_command.m_commandsPerEnum.Remove(command);
                 term.m_command.m_commandsPerString.Remove(cmdStr);
                 term.m_command.m_commandHelpStrings.Remove(command);
+                var events = term.m_command.m_commandEventMap[command];
                 term.m_command.m_commandEventMap.Remove(command);
                 term.m_command.m_commandPostOutputMap.Remove(command);
+                for (int i = 0; i < events.Count; i++)
+                {
+                    if (!term.TryGetChainPuzzleForCommand(command, i, out var puzzle) || puzzle == null) continue;
+                    // If a puzzle is in use, command is not done; just let it leak, too much effort to clean up later
+                    if (puzzle.IsActive)
+                        break;
+                    CoroutineManager.StartCoroutine(DestroyScanDelayed(puzzle).WrapToIl2Cpp());
+                }
             }
             else if (IsMaster)
             {
@@ -47,5 +59,14 @@ internal sealed class HideTerminalCommand : BaseEvent
                 term.m_stateReplicator.State = state;
             }
         }
+    }
+
+    private static IEnumerator DestroyScanDelayed(ChainedPuzzleInstance scan)
+    {
+        yield return new WaitForSeconds(1f);
+        foreach (var puzzle in scan.m_chainedPuzzleCores)
+            if (puzzle != null)
+                GameObject.Destroy(puzzle.Cast<MonoBehaviour>().gameObject);
+        GameObject.Destroy(scan.gameObject);
     }
 }

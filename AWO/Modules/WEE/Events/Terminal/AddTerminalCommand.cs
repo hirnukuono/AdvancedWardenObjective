@@ -32,7 +32,7 @@ internal sealed class AddTerminalCommand : BaseEvent
             {
                 helpString = "<indent=20%>" + helpString + "</indent>";
             }
-            var eventList = addcmd.CommandEvents.ToIl2Cpp();
+            var eventList = ResolveFieldsFallback(e.Events, addcmd.CommandEvents).ToIl2Cpp();
 
             term.m_command.m_commandsPerEnum.Add(c_num, addcmd.Command.ToLower());
             term.m_command.m_commandsPerString.Add(addcmd.Command.ToLower(), c_num);

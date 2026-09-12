@@ -42,6 +42,7 @@ internal sealed class StartEventLoop : BaseEvent
         }
 
         LogDebug($"Starting EventLoop Index: {sel.LoopIndex}");
+        sel.EventsToActivate = ResolveFieldsFallback(e.Events, sel.EventsToActivate);
         ActiveEventLoops[sel.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(sel).WrapToIl2Cpp());
     }
 

@@ -30,6 +30,7 @@ internal sealed class SetTerminalLog : BaseEvent
             if (!TryGetTerminalFromZone(e, eLog.TerminalIndex, out var term)) 
                 continue;
 
+            var events = ResolveFieldsFallback(e.Events, eLog.EventsOnFileRead);
             var filename = eLog.FileName.ToUpper();
             switch (eLog.Type)
             {
@@ -53,9 +54,9 @@ internal sealed class SetTerminalLog : BaseEvent
                         AttachedAudioByteSize = eLog.AttachedAudioByteSize,
                         PlayerDialogToTriggerAfterAudio = eLog.PlayerDialogToTriggerAfterAudio
                     });
-                    if (eLog.EventsOnFileRead.Any())
+                    if (events.Any())
                     {
-                        LogEventQueue[(term.SyncID, filename)] = new(eLog.EventsOnFileRead);
+                        LogEventQueue[(term.SyncID, filename)] = new(events);
                     }
                     break;
 

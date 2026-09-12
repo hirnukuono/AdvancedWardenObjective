@@ -21,7 +21,9 @@ internal sealed class CountupEvent : BaseEvent
             LogWarning("Duration should generally be more than 0 seconds");
 
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
-        CoroutineManager.StartCoroutine(DoCountup(e.Countup ?? new(), duration).WrapToIl2Cpp());
+        var countup = e.Countup ?? new();
+        countup.EventsOnDone = ResolveFieldsFallback(e.Events, countup.EventsOnDone);
+        CoroutineManager.StartCoroutine(DoCountup(countup, duration).WrapToIl2Cpp());
     }
 
     static IEnumerator DoCountup(WEE_CountupData cu, float duration)

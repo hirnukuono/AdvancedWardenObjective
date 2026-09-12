@@ -51,7 +51,8 @@ public sealed class WEE_EventData
     public bool SpecialBool { get; set; } = false;
     public int SpecialNumber { get; set; } = -1;
     public LocaleText SpecialText { get; set; } = LocaleText.Empty;
-    public string WorldEventObjectFilter { private get => SpecialText; set => SpecialText = new(value); } 
+    public string WorldEventObjectFilter { private get => SpecialText; set => SpecialText = new(value); }
+    public List<WardenObjectiveEventData> Events { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 
     // Common Updater
     public WEE_SubObjectiveData SubObjective { get; set; } = new();
@@ -158,8 +159,8 @@ public sealed class WEE_CountdownData
     public LocaleText TimerText { get; set; } = LocaleText.Empty;
     public LocaleText TitleText { get => TimerText; set => TimerText = value; }
     public Color TimerColor { get; set; } = Color.red;
-    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = EmptyList<EventsOnTimerProgress>.Instance;
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 }
 
 public sealed class WEE_CleanupEnemiesData
@@ -258,8 +259,8 @@ public sealed class WEE_AddTerminalCommand
     public string Command { get; set; } = string.Empty;
     public LocaleText CommandDesc { get; set; } = LocaleText.Empty;
     public bool AutoIndentCommandDesc { get; set; } = false;
-    public List<LocaleTerminalOutput> PostCommandOutputs { get; set; } = new();
-    public List<WardenObjectiveEventData> CommandEvents { get; set; } = new();
+    public List<LocaleTerminalOutput> PostCommandOutputs { get; set; } = EmptyList<LocaleTerminalOutput>.Instance;
+    public List<WardenObjectiveEventData> CommandEvents { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
     public bool ProgressWaitBeforeEvents { get; set; } = false;
     public TERM_CommandRule SpecialCommandRule { get; set; } = TERM_CommandRule.Normal;
 
@@ -319,8 +320,9 @@ public sealed class WEE_NestedEvent
     public NestedMode Type { get; set; } = NestedMode.ActivateAll;
     public int MaxRandomEvents { get; set; } = -1;
     public bool AllowRepeatsInRandom { get; set; } = false;
-    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
-    public List<EventsOnRandomWeight> WheelOfEvents { get; set; } = new();
+    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
+    public List<EventsOnRandomWeight> WheelOfEvents { get; set; } = EmptyList<EventsOnRandomWeight>.Instance;
+    public Arrayable<int> PlayerFilter { get; set; } = new(0);
     public enum NestedMode : byte
     {
         ActivateAll,
@@ -342,7 +344,7 @@ public sealed class WEE_StartEventLoop
     public int LoopIndex { get; set; } = 0;
     public float LoopDelay { get; set; } = 1f;
     public int LoopCount { get; set; } = -1;
-    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = new();
+    public List<WardenObjectiveEventData> EventsToActivate { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 }
 
 public enum PlayerIndex : byte
@@ -470,8 +472,8 @@ public sealed class WEE_CountupData
     public LocaleText BodyText { private get => CustomText; set => CustomText = value; }
     public Color TimerColor { get; set; } = Color.red;
     public int DecimalPoints { get; set; } = 0;
-    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = EmptyList<EventsOnTimerProgress>.Instance;
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 }
 
 public struct EventsOnTimerProgress
@@ -563,8 +565,8 @@ public sealed class WEE_SpecialHudTimer
     public int Priority { get; set; } = -2;
     public bool ShowTimeInProgressBar { get; set; } = true; 
     public bool InvertProgress { get; set; } = false;
-    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = new();
-    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = new();
+    public List<EventsOnTimerProgress> EventsOnProgress { get; set; } = EmptyList<EventsOnTimerProgress>.Instance;
+    public List<WardenObjectiveEventData> EventsOnDone { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
     public bool HasIndex => Type is SpecialHudType.StartIndexTimer or SpecialHudType.StartPersistent;
     public enum SpecialHudType : byte
     {
@@ -610,7 +612,7 @@ public sealed class WEE_SetTerminalLog
     public uint AttachedAudioFile { get; set; } = 0u;
     public int AttachedAudioByteSize { get; set; } = 0;
     public uint PlayerDialogToTriggerAfterAudio { get; set; } = 0u;
-    public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = new();
+    public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 
     public bool TryGetTargetTerminal(out LG_ComputerTerminal targetTerm)
     {

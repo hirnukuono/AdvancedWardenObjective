@@ -53,6 +53,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
     {
         var specHud = e.SpecialHudTimer ?? new();
         float duration = ResolveFieldsFallback(e.Duration, specHud.Duration);
+        specHud.EventsOnDone = ResolveFieldsFallback(e.Events, specHud.EventsOnDone);
 
         switch (specHud.Type)
         {

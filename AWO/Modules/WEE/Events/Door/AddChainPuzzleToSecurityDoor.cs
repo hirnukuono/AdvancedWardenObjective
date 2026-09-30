@@ -56,18 +56,17 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
                     state.status = door.m_locks.SetupForChainedPuzzle(puzzleInstance);
                     door.m_sync.SetStateUnsynced(state);
-                    if (state.status == eDoorStatus.Closed || state.status == eDoorStatus.Unlocked)
+
+                    if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
                     {
-                        if (block.TriggerAlarmOnActivate)
-                        {
-                            door.m_graphics.OnDoorState(new pDoorState { status = eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm }, false);
-                            door.m_mapLookatRevealer.SetLocalGUIObjStatus(eCM_GuiObjectStatus.DoorSecureApex);
-                        }
-                        else
-                        {
-                            door.m_graphics.OnDoorState(new pDoorState { status = eDoorStatus.Closed_LockedWithChainedPuzzle }, false);
-                        }
+                        door.m_graphics.OnDoorState(state, false);
+                        door.m_mapLookatRevealer.SetLocalGUIObjStatus(eCM_GuiObjectStatus.DoorSecureApex);
                     }
+                    else if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle)
+                    {
+                        door.m_graphics.OnDoorState(state, false);
+                    }
+
                     var anim = door.m_anim.TryCast<LG_SecurityDoor_Anim>();
                     anim?.m_animator.Play(door.m_securityDoorType switch
                     {

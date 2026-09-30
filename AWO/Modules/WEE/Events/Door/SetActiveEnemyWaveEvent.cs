@@ -31,6 +31,11 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
                 case eDoorStatus.Open:
                 case eDoorStatus.Opening:
                     break;
+                case eDoorStatus.Closed:
+                    if (door.m_anim.InAnimation)
+                        break;
+                    door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
+                    break;
                 default:
                     door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
                     break;

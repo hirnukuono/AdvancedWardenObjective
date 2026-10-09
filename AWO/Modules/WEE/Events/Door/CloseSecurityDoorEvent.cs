@@ -25,6 +25,10 @@ internal sealed class CloseSecurityDoorEvent : BaseEvent
             return;
 
         LogDebug("Door closing...");
+        // Clear red alarm coloring
+        state.status = eDoorStatus.Unlocked;
+        door.m_graphics.OnDoorState(state, false);
+
         state.status = eDoorStatus.Closed;
         state.hasBeenOpenedDuringGame = false;
         sync.m_stateReplicator.State = state;        

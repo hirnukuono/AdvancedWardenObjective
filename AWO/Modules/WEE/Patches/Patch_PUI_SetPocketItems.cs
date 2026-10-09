@@ -1,5 +1,5 @@
-﻿using HarmonyLib;
-using static AWO.Modules.WEE.Events.SetPocketItemEvent;
+﻿using AWO.Modules.WEE.Events;
+using HarmonyLib;
 
 namespace AWO.Modules.WEE.Patches;
 
@@ -10,8 +10,9 @@ internal static class Patch_PUI_SetPocketItems
     [HarmonyWrapSafe]
     private static void Pre_SetItems(ref string txt)
     {
-        if (HasEmptyPockets) return;
+        if (SetPocketItemEvent.HasEmptyPockets) 
+            return;
 
-        txt = string.Join("\n", new[] { TopItems, txt, BottomItems }.Where(section => !string.IsNullOrWhiteSpace(section)));
+        txt = string.Join("\n", new[] { SetPocketItemEvent.TopItems, txt, SetPocketItemEvent.BottomItems }.Where(section => !string.IsNullOrWhiteSpace(section)));
     }
 }

@@ -14,12 +14,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        NavMarkers.Clear();
+        LevelAPI.OnLevelCleanup += NavMarkers.Clear;
     }
 
     protected override void TriggerCommon(WEE_EventData e)

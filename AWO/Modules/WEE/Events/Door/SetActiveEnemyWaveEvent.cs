@@ -10,7 +10,7 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
             return;
 
         var waveData = e.ActiveEnemyWave ?? new();
@@ -19,7 +19,7 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
         if (door.ActiveEnemyWaveData?.HasActiveEnemyWave == true)
             door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_STOP);
 
-        var hasWave = waveData.HasActiveEnemyWave;
+        bool hasWave = waveData.HasActiveEnemyWave;
         door.ActiveEnemyWaveData = waveData;
         door.m_graphics.SetActiveEnemyWaveEnabled(hasWave);
         door.m_locks.SetActiveEnemyWaveEnabled(hasWave);
@@ -31,11 +31,13 @@ internal sealed class SetActiveEnemyWaveEvent : BaseEvent
                 case eDoorStatus.Open:
                 case eDoorStatus.Opening:
                     break;
+
                 case eDoorStatus.Closed:
                     if (door.m_anim.InAnimation)
                         break;
                     door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
                     break;
+
                 default:
                     door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
                     break;

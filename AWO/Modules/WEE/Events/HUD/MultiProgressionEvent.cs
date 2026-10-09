@@ -10,7 +10,6 @@ namespace AWO.Modules.WEE.Events;
 internal sealed class MultiProgressionEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.MultiProgression;
-
     
     public static ImmutableDictionary<LG_LayerType, List<LocalMPData>> TrackedMPs = ImmutableDictionary.CreateRange(new KeyValuePair<LG_LayerType, List<LocalMPData>>[]
     {
@@ -21,6 +20,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
     
     private static PUI_GameObjectives ObjHud => GuiManager.PlayerLayer.WardenObjectives;
 
+    #region LOCAL_PROG
     public class LocalMPData
     {
         public PUI_ProgressionObjective ProgObj { get; private set; }
@@ -37,6 +37,7 @@ internal sealed class MultiProgressionEvent : BaseEvent
             Priority = priority;
         }
     }
+    #endregion
 
     protected override void OnSetup()
     {

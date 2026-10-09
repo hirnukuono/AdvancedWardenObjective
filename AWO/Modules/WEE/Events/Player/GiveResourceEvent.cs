@@ -1,4 +1,5 @@
-﻿using Player;
+﻿using LevelGeneration;
+using Player;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -12,7 +13,7 @@ internal sealed class GiveResourceEvent : BaseEvent
         var data = e.GiveResource ?? new();
         var activeSlotIndices = new HashSet<int>(data.PlayerFilter.Select(filter => (int)filter));
 
-        LevelGeneration.LG_Zone? zone = null;
+        LG_Zone? zone = null;
         if (data.UseLocation && !TryGetZone(e, out zone)) 
             return;
 
@@ -37,7 +38,6 @@ internal sealed class GiveResourceEvent : BaseEvent
             float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.ApplyModifier(player, AgentModifier.AmmoSupport, 1f) : 1f;
             PlayerBackpackManager.GiveAmmoToPlayer(player.Owner, data.MainAmmo * mod, data.SpecialAmmo * mod, data.ToolAmmo * mod);
         }
-
         if (data.Health != 0f)
         {
             float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.ApplyModifier(player, AgentModifier.HealSupport, 1f) : 1f;

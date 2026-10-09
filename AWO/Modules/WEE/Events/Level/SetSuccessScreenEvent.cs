@@ -4,7 +4,6 @@ using GTFO.API;
 using Localization;
 using System.Collections;
 using UnityEngine;
-using ScreenType = AWO.Modules.WEE.WEE_SetSuccessScreen.ScreenType;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -22,11 +21,11 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         e.SuccessScreen ??= new();
         switch (e.SuccessScreen.Type)
         {
-            case ScreenType.SetSuccessScreen:
+            case WEE_SetSuccessScreen.ScreenType.SetSuccessScreen:
                 SetScreen(e);
                 break;
 
-            case ScreenType.FlashFakeScreen:
+            case WEE_SetSuccessScreen.ScreenType.FlashFakeScreen:
                 CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
                 break;
         }

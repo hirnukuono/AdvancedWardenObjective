@@ -1,5 +1,4 @@
 ﻿using LevelGeneration;
-using static AWO.Modules.WEE.Events.DoInteractWeakDoorsEvent;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -10,7 +9,7 @@ internal sealed class ToggleInteractWeakDoorsEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (TryGetZone(e, out var zone) && WeakDoors.TryGetValue(zone.ID, out var weakDoors))
+        if (TryGetZone(e, out var zone) && DoInteractWeakDoorsEvent.WeakDoors.TryGetValue(zone.ID, out var weakDoors))
         {
             foreach (var weakDoor in weakDoors)
             {

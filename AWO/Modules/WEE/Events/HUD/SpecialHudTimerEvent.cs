@@ -4,7 +4,6 @@ using GTFO.API;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
-using SpecialHudType = AWO.Modules.WEE.WEE_SpecialHudTimer.SpecialHudType;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -17,6 +16,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
     private const string Timer = "[TIMER]";
     private const string Percent = "[PERCENT]";
 
+    #region HUD_ITEM
     public class SpecialHudItem
     {
         public Coroutine? Coroutine { get; set; }
@@ -24,7 +24,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         public void StartCoroutine(WEE_SpecialHudTimer hud, float duration)
         {
-            var hudCoroutine = hud.Type == SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, duration) : DoSpecialHudPersistent(hud);
+            var hudCoroutine = hud.Type == WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, duration) : DoSpecialHudPersistent(hud);
             Coroutine = CoroutineManager.StartCoroutine(hudCoroutine.WrapToIl2Cpp());
         }
 
@@ -37,6 +37,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             }
         }
     }
+    #endregion
 
     protected override void OnSetup()
     {
@@ -57,7 +58,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
         switch (specHud.Type)
         {
-            case SpecialHudType.StartTimer: // start timed specialhud without an index
+            case WEE_SpecialHudTimer.SpecialHudType.StartTimer: // start timed specialhud without an index
                 if (duration <= 0f)
                 {
                     LogError("Duration must be greater than 0 seconds!");
@@ -67,7 +68,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 CoroutineManager.StartCoroutine(DoSpecialHudTimed(specHud, duration).WrapToIl2Cpp());
                 break;
 
-            case SpecialHudType.StartIndexTimer: // start timed specialhud with index
+            case WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer: // start timed specialhud with index
                 if (duration <= 0f)
                 {
                     LogError("Duration must be greater than 0 seconds!");
@@ -82,7 +83,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 SpecialHuds[specHud.Index].StartCoroutine(specHud, duration);
                 break;
 
-            case SpecialHudType.StartPersistent: // start persistent specialhud
+            case WEE_SpecialHudTimer.SpecialHudType.StartPersistent: // start persistent specialhud
                 if (!SpecialHuds.TryAdd(specHud.Index, new()))
                 {
                     LogError($"SpecialHud {specHud.Index} is already active...");
@@ -92,7 +93,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 SpecialHuds[specHud.Index].StartCoroutine(specHud, duration);
                 break;
 
-            case SpecialHudType.StopIndex: // stop specialhud with index
+            case WEE_SpecialHudTimer.SpecialHudType.StopIndex: // stop specialhud with index
                 if (!SpecialHuds.TryRemove(specHud.Index, out var hud))
                 {
                     LogError($"No active SpecialHud with index {specHud.Index} was found!");
@@ -104,7 +105,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
                 break;
 
-            case SpecialHudType.StopAll: // stop all specialhuds with index
+            case WEE_SpecialHudTimer.SpecialHudType.StopAll: // stop all specialhuds with index
                 SpecialHuds.ForEachValue(hud => CoroutineManager.StopCoroutine(hud.Coroutine));
                 SpecialHuds.Clear();
                 LogDebug("Stopping all indexed SpecialHuds");
@@ -200,7 +201,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         }
     }
 
-    public static float NormalizedPercent(float current, float min, float max)
+    private static float NormalizedPercent(float current, float min, float max)
     {
         if (min == max)
             return float.NaN;

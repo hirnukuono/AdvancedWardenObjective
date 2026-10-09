@@ -59,7 +59,7 @@ internal sealed class CountdownEvent : BaseEvent
 
             if (hasProgressEvents)
             {
-                if (nextProgress <= NormalizedPercent(time, 0f, duration))
+                if (nextProgress <= NormalizedPercent(time, duration))
                 {
                     ExecuteWardenEvents(cachedProgressEvents.Dequeue().Events);
                     if ((hasProgressEvents = cachedProgressEvents.Count > 0) == true)
@@ -106,7 +106,7 @@ internal sealed class CountdownEvent : BaseEvent
         ObjHudTimer.SetTimerActive(false, true);        
     }
 
-    public static void UpdateTimerText(float time, float duration, Color color, bool showHours)
+    private static void UpdateTimerText(float time, float duration, Color color, bool showHours)
     {
         ObjHudTimer.SetTimerTextEnabled(true);
         float remainder = Math.Max(duration - time, 0f);
@@ -116,8 +116,9 @@ internal sealed class CountdownEvent : BaseEvent
         ObjHudTimer.m_timerText.text = showHours && timeSpan.TotalSeconds >= 3600f ? $"{(int)timeSpan.TotalHours:D1}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}" : $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
     }
 
-    public static float NormalizedPercent(float current, float min, float max)
+    private static float NormalizedPercent(float current, float max)
     {
+        float min = 0;
         if (min == max) 
             return float.NaN;
 

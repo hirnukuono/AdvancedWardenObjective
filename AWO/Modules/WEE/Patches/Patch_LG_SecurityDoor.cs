@@ -8,6 +8,7 @@ namespace AWO.Modules.WEE.Patches;
 internal static class Patch_LG_SecurityDoor
 {
     private static bool s_inRecall = false;
+
     [HarmonyPatch(typeof(LG_SecurityDoor_Anim), nameof(LG_SecurityDoor_Anim.OnDoorState))]
     [HarmonyPrefix]
     private static void PreStateChange(bool isRecall)
@@ -26,7 +27,8 @@ internal static class Patch_LG_SecurityDoor
     [HarmonyPostfix]
     private static void OnClosed(LG_SecurityDoor_Anim __instance)
     {
-        if (s_inRecall) return;
+        if (s_inRecall)
+            return;
 
         // Restore blood door sound, but only on non-recall (SetAsClosed is called on recall, but vanilla already starts the audio)
         var door = __instance.m_gate.SpawnedDoor.Cast<LG_SecurityDoor>();

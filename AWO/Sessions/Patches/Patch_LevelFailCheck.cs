@@ -31,7 +31,6 @@ internal static class Patch_LevelFailCheck
                 return true;
             }
         }
-
         return false;
     }
 }

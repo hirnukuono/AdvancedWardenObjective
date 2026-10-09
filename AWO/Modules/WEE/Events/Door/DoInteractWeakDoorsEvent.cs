@@ -12,12 +12,7 @@ internal sealed class DoInteractWeakDoorsEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        WeakDoors.Clear();
+        LevelAPI.OnLevelCleanup += WeakDoors.Clear;
     }
 
     protected override void TriggerMaster(WEE_EventData e)

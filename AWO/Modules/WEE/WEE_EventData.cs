@@ -16,7 +16,7 @@ namespace AWO.Modules.WEE;
 
 public sealed class WEE_EventData
 {
-    // Vanilla Fields for Serialization
+    /* --- Vanilla Fields for Serialization --- */
     public WEE_Type Type { get; set; }
 
     public Arrayable<WorldEventConditionPair> Condition { get; set; } = new WorldEventConditionPair();
@@ -24,7 +24,7 @@ public sealed class WEE_EventData
     public uint ChainPuzzle { get; set; } = 0u;
     public bool UseStaticBioscanPoints { get; set; } = false;
 
-    // Global Index
+    /* --- Global Index --- */
     [JsonPropertyName("DimensionIndex")] 
     public Arrayable<eDimensionIndex> ArrayableDimension { get; set; } = eDimensionIndex.Reality;
     [JsonIgnore]
@@ -38,7 +38,7 @@ public sealed class WEE_EventData
     [JsonIgnore]
     public eLocalZoneIndex LocalIndex { get; set; }
     
-    // General Fields
+    /* --- General Fields --- */
     public Vector3 Position { get; set; } = Vector3.zero;
     public float Delay { get; set; } = 0f;
     public float Duration { get; set; } = 0f;
@@ -54,11 +54,11 @@ public sealed class WEE_EventData
     public string WorldEventObjectFilter { private get => SpecialText; set => SpecialText = new(value); }
     public List<WardenObjectiveEventData> Events { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
 
-    // Common Updater
+    /* --- Common Updater --- */
     public WEE_SubObjectiveData SubObjective { get; set; } = new();
     public WEE_UpdateFogData Fog { get; set; } = new();
 
-    // Command Specific
+    /* --- Command Specific --- */
     public bool CleanUpEnemiesBehind { get; set; } = true;
     public WEE_ReactorEventData? Reactor { get; set; } = null;
     public WEE_CountdownData? Countdown { get; set; } = null;
@@ -67,7 +67,7 @@ public sealed class WEE_EventData
     public Arrayable<WEE_SpawnHibernateData> SpawnHibernates { get; set; } = new();
     public Arrayable<WEE_SpawnScoutData> SpawnScouts { get; set; } = new();
 
-    // Hirnu
+    /* --- Hirnu --- */
     public Arrayable<WEE_AddTerminalCommand> AddTerminalCommand { get; set; } = new();
     public Arrayable<WEE_AddTerminalCommand> AddCommand { private get => AddTerminalCommand; set => AddTerminalCommand = value; }
     public Arrayable<WEE_HideTerminalCommand> HideTerminalCommand { get; set; } = new();
@@ -75,11 +75,11 @@ public sealed class WEE_EventData
     public Arrayable<WEE_UnhideTerminalCommand> UnhideTerminalCommand { get; set; } = new();
     public Arrayable<WEE_UnhideTerminalCommand> UnhideCommand { private get => UnhideTerminalCommand; set => UnhideTerminalCommand = value; }
 
-    // Dino
+    /* --- Dino --- */
     public WEE_GiveResource? GiveResource { get; set; } = null;
     public ActiveEnemyWaveData? ActiveEnemyWave { get; set; } = null;
 
-    // Amor
+    /* --- Amor --- */
     public WEE_NestedEvent? NestedEvent { get; set; } = null;
     public WEE_StartEventLoop? StartEventLoop { get; set; } = null;
     public WEE_StartEventLoop? EventLoop { private get => StartEventLoop; set => StartEventLoop = value; }
@@ -142,7 +142,6 @@ public sealed class WEE_ReactorEventData
     public WaveState State { get; set; } = WaveState.Intro;
     public int Wave { get; set; } = 1;
     public float Progress { get; set; } = 0f;
-
     public enum WaveState
     {
         Intro,
@@ -173,6 +172,11 @@ public sealed class WEE_CleanupEnemiesData
     public bool IncludeScout { get; set; } = true;
     public uint[] ExcludeEnemyID { get; set; } = Array.Empty<uint>();
     public uint[] IncludeOnlyID { get; set; } = Array.Empty<uint>();
+    public enum CleanUpType
+    {
+        Kill,
+        Despawn
+    }
 
     public void DoClear(AIG_CourseNode node)
     {
@@ -204,13 +208,7 @@ public sealed class WEE_CleanupEnemiesData
                     break;
             }
         }
-    }
-
-    public enum CleanUpType
-    {
-        Kill,
-        Despawn
-    }
+    }    
 }
 
 public sealed class WEE_ZoneLightData
@@ -239,6 +237,7 @@ public sealed class WEE_SpawnHibernateData
     public bool ResetPlacementInfo { get; set; } = false;
     public Vector3 Position { get; set; } = Vector3.zero;
     public Vector3 Rotation { get; set; } = Vector3.zero;
+    public bool RandomizeRotation { get; set; } = false;
 }
 
 public sealed class WEE_SpawnScoutData
@@ -329,6 +328,7 @@ public sealed class WEE_NestedEvent
         RandomAny,
         RandomWeighted
     }
+
     public struct EventsOnRandomWeight
     {
         public string DebugName { get; set; }
@@ -379,6 +379,7 @@ public sealed partial class WEE_TeleportPlayer // new
     public bool FullTeamOverflow { get; set; } = false;
     public FromLocationData FromLocation { get; set; } = new();
     public List<TeleportData> TPData { get; set; } = new();
+
     public struct TeleportData
     { 
         public PlayerIndex PlayerIndex { get; set; }
@@ -419,7 +420,7 @@ public sealed partial class WEE_TeleportPlayer // new
 
 public sealed class WEE_InfectPlayer
 {
-    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3};
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
     public bool FullTeamOverflow { get; set; } = true;
     public float InfectionAmount { get; set; } = 0f;
     public bool InfectOverTime { get; set; } = false;
@@ -429,7 +430,7 @@ public sealed class WEE_InfectPlayer
 
 public sealed class WEE_DamagePlayer
 {
-    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
     public bool FullTeamOverflow { get; set; } = true;
     public float DamageAmount { get; set; } = 0f;
     public bool DealPercentageDamage { get; set; } = false;
@@ -440,7 +441,7 @@ public sealed class WEE_DamagePlayer
 
 public sealed class WEE_RevivePlayer
 {
-    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new() { PlayerIndex.P0, PlayerIndex.P1, PlayerIndex.P2, PlayerIndex.P3 };
+    public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
     public bool FullTeamOverflow { get; set; } = true;
 }
 
@@ -512,7 +513,7 @@ public sealed class WEE_SetSuccessScreen
     public ScreenType Type { get; set; } = ScreenType.SetSuccessScreen;
     public WinScreen CustomSuccessScreen { get; set; } = WinScreen.Empty;
     public eCM_MenuPage FakeEndScreen { get; set; } = eCM_MenuPage.CMP_EXPEDITION_SUCCESS;
-    public uint OverrideMusic { get; set; } = 0;
+    public uint OverrideMusic { get; set; } = 0u;
     public enum ScreenType : byte
     {
         SetSuccessScreen,
@@ -613,6 +614,12 @@ public sealed class WEE_SetTerminalLog
     public int AttachedAudioByteSize { get; set; } = 0;
     public uint PlayerDialogToTriggerAfterAudio { get; set; } = 0u;
     public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = EmptyList<WardenObjectiveEventData>.Instance;
+    public enum LogEventType : byte
+    {
+        Add,
+        Remove,
+        Move
+    }
 
     public bool TryGetTargetTerminal(out LG_ComputerTerminal targetTerm)
     {
@@ -623,14 +630,7 @@ public sealed class WEE_SetTerminalLog
             return false;
         targetTerm = targetZone.TerminalsSpawnedInZone[TargetTerminalIndex];
         return targetTerm != null;
-    }
-
-    public enum LogEventType : byte
-    {
-        Add,
-        Remove,
-        Move
-    }
+    }    
 }
 
 public sealed class WEE_SetPocketItem
@@ -642,17 +642,6 @@ public sealed class WEE_SetPocketItem
     public PlayerTagType TagType { get; set; } = PlayerTagType.Custom;
     public PlayerIndex PlayerIndex { get; set; } = PlayerIndex.P0;
     public string CustomTag { get; set; } = string.Empty;
-
-    [JsonIgnore]
-    public string? Tag { get; set; } = string.Empty;
-    public bool ShouldRemove => Count < 1;
-    private string LiveCount => Count > 1 ? $"{Count} " : string.Empty;
-
-    public string FormatString()
-    {
-        return $"{LiveCount}{ItemName} <uppercase><color=#ffffff{MathUtil.ZeroOneRangeToHex(0.2f)}>[{Tag}]</color></uppercase>";
-    }
-
     public enum PlayerTagType : byte
     {
         Custom,
@@ -660,6 +649,16 @@ public sealed class WEE_SetPocketItem
         Random,
         Closest
     }
+
+    [JsonIgnore]
+    public string? Tag { get; set; } = string.Empty;
+    public bool ShouldRemove => Count < 1;
+    private string LiveCount => Count > 1 ? $"{Count} " : string.Empty;    
+
+    public string FormatString()
+    {
+        return $"{LiveCount}{ItemName} <uppercase><color=#ffffff{MathUtil.ZeroOneRangeToHex(0.2f)}>[{Tag}]</color></uppercase>";
+    }    
 }
 
 public sealed class WEE_SetOutsideDimensionData

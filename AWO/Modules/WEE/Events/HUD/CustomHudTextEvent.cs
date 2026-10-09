@@ -1,6 +1,6 @@
 ﻿using AK;
-using AmorLib.Events;
 using AWO.Modules.TSL;
+using GTFO.API;
 using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
@@ -13,7 +13,7 @@ internal sealed class CustomHudTextEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        SNetEvents.OnCheckpointReload += OnCheckpointReload;
+        EventAPI.OnCheckpointReloaded += OnCheckpointReload;
     }
 
     private void OnCheckpointReload() // should kill the timer hud

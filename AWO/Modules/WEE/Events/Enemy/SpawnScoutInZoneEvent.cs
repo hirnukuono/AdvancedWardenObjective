@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
 
-internal class SpawnScoutInZoneEvent : BaseEvent
+internal sealed class SpawnScoutInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnScoutInZone;
     public override bool AllowArrayableGlobalIndex => true;

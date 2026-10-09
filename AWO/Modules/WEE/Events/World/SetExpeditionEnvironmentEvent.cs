@@ -21,7 +21,7 @@ internal sealed class SetExpeditionEnvironmentEvent : BaseEvent
         LevelAPI.OnLevelCleanup += OnLevelCleanup;
     }
 
-    private void OnLevelDataUpdated(ActiveExpedition activeExp, ExpeditionInTierData expData)
+    private void OnLevelDataUpdated(ActiveExpedition activeExp, ExpeditionInTierData expData) // cache active expedition
     {
         _activeExpedition = expData.Expedition;
     }
@@ -57,6 +57,7 @@ internal sealed class SetExpeditionEnvironmentEvent : BaseEvent
             if (_activeExpedition == null) return;
             _activeExpedition.EnvironmentWetness = envData.EnvironmentWetness.GetAbsValue(_activeExpedition.EnvironmentWetness);
             _activeExpedition.DustColor = envData.UpdateColor ? envData.DustColor : _activeExpedition.DustColor;
+            // no dust alpha boost in reality
             _activeExpedition.DustTurbulence = envData.DustTurbulence.GetAbsValue(_activeExpedition.DustTurbulence);
         }
         else

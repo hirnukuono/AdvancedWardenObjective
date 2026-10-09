@@ -1,6 +1,6 @@
 ﻿namespace AWO.Modules.WEE.Events;
 
-internal class CleanupEnemiesInZoneEvent : BaseEvent
+internal sealed class CleanupEnemiesInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.CleanupEnemiesInZone;
     public override bool AllowArrayableGlobalIndex => true;
@@ -14,10 +14,11 @@ internal class CleanupEnemiesInZoneEvent : BaseEvent
         {
             if (ce.AreaIndex == -1)
             {
-                foreach (var node in zone.m_courseNodes)
+                foreach (var area in zone.m_areas)
                 {
-                    if (ce.AreaBlacklist.Contains(zone.m_courseNodes.IndexOf(node))) continue;
-                    ce.DoClear(node);
+                    if (ce.AreaBlacklist.Contains(zone.m_areas.IndexOf(area))) 
+                        continue;
+                    ce.DoClear(area.m_courseNode);
                 }
             }
             else if (IsValidAreaIndex(ce.AreaIndex, zone))

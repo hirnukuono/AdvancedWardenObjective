@@ -1,9 +1,6 @@
 ﻿using AK;
-using BepInEx.Logging;
 using ChainedPuzzles;
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -18,8 +15,7 @@ internal class CompleteChainPuzzleEvent : BaseEvent
         {
             LogError($"An active chained puzzle with index {chainPuzzle} was not found!");
             return;
-        }
-        
+        }        
         SolvePuzzleCores(puzzleInstance, e.Count);
     }
 

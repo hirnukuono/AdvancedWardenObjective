@@ -67,7 +67,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
     }
 
-    public static bool TryGetClosestAlivePlayerByNodeDist(AIG_CourseNode node, [NotNullWhen(true)] out PlayerAgent? player)
+    private static bool TryGetClosestAlivePlayerByNodeDist(AIG_CourseNode node, [NotNullWhen(true)] out PlayerAgent? player)
     {
         PlayerAgent? humanPlayer = null;        
         PlayerAgent? botPlayer = null;

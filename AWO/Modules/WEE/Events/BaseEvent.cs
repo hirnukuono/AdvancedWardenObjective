@@ -173,7 +173,7 @@ internal abstract class BaseEvent
         return string.Empty;
     }
 
-    public List<WardenObjectiveEventData> ResolveFieldsFallback(List<WardenObjectiveEventData> value, List<WardenObjectiveEventData> nested, bool debug = true)
+    public List<WardenObjectiveEventData> ResolveFieldsFallback(List<WardenObjectiveEventData> value, List<WardenObjectiveEventData> nested, bool debug = false)
     {
         if (nested?.Count > 0)
         {

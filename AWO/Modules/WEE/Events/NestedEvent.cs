@@ -2,7 +2,6 @@
 using BepInEx.Logging;
 using GameData;
 using Player;
-using NestedType = AWO.Modules.WEE.WEE_NestedEvent.NestedMode;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -27,18 +26,16 @@ internal sealed class NestedEvent : BaseEvent
         var events = ResolveFieldsFallback(e.Events, nested.EventsToActivate);
         List<WardenObjectiveEventData> eventList = nested.Type switch
         {
-            NestedType.RandomAny => SelectRandomUniform(nested, events),
-            NestedType.RandomWeighted => SelectRandomWeighted(nested, events),
+            WEE_NestedEvent.NestedMode.RandomAny => SelectRandomUniform(nested, events),
+            WEE_NestedEvent.NestedMode.RandomWeighted => SelectRandomWeighted(nested, events),
             _ => events
-        };
-        
+        };        
         ExecuteWardenEvents(eventList);
     }
 
     private static List<WardenObjectiveEventData> SelectRandomUniform(WEE_NestedEvent nested, List<WardenObjectiveEventData> events)
     {
         List<WardenObjectiveEventData> eventList = new();
-
         int maxRolls = Math.Min(nested.MaxRandomEvents, events.Count);
         for (int i = 0; i < maxRolls; i++)
         {
@@ -51,7 +48,6 @@ internal sealed class NestedEvent : BaseEvent
 
             eventList.Add(events[randIndex]);
         }
-
         return eventList;
     }
 
@@ -59,7 +55,7 @@ internal sealed class NestedEvent : BaseEvent
     {
         int count = 0;
         int maxSpins = nested.MaxRandomEvents;
-        List<WardenObjectiveEventData> eventList = events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.None || e.Trigger == eWardenObjectiveEventTrigger.OnStart).ToList();
+        List<WardenObjectiveEventData> eventList = events.Where(e => e.Trigger <= eWardenObjectiveEventTrigger.OnStart).ToList();
         List<WardenObjectiveEventData> eventsOnMid = events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnMid).ToList();
         List<WEE_NestedEvent.EventsOnRandomWeight> wheel = new(nested.WheelOfEvents);
 
@@ -109,7 +105,6 @@ internal sealed class NestedEvent : BaseEvent
                 return i;
             }
         }
-
         return wheel.Count - 1;
     }
 }

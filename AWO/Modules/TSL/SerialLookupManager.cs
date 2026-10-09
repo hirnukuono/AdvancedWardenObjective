@@ -1,4 +1,5 @@
-﻿using AmorLib.Utils;
+﻿using AmorLib.Events;
+using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using AmorLib.Utils.JsonElementConverters;
 using BepInEx;
@@ -19,11 +20,12 @@ public static class SerialLookupManager
     private const string Pattern = @"\[(?<ItemName>.+?)_(?:(?:[^\d_]*)(?<Dimension>\d+))_(?:(?:[^\d_]*)(?<Layer>\d+))_(?:(?:[^\d_]*)(?<Zone>\d+))(?:_(?<InstanceIndex>\d+))?\]";
     private const string Terminal = "TERMINAL";
     private const string Zone = "ZONE";
+    private const string Uplink = "UPLINK";
     private static readonly string Module = nameof(SerialLookupManager);
 
     internal static void Init()
     {
-        LevelAPI.OnBuildDone += BuildSerialMap;
+        LevelEvents.OnBuildDoneLate += BuildSerialMap;
         LevelAPI.OnEnterLevel += OnEnterLevel;
         LevelAPI.OnLevelCleanup += Cleanup;
 
@@ -112,6 +114,9 @@ public static class SerialLookupManager
                                 OnEnterParseText += () => postCmd.Output = ParseLocaleText(new(postCmd.Output));
                             }
                         }
+
+                        if (term.UplinkPuzzle != null && !term.UplinkPuzzle.TerminalUplinkIP.IsNullOrWhiteSpace())
+                            SerialMap.GetOrAddNew(Uplink).GetOrAddNew(globalIndex).Add(term.UplinkPuzzle.TerminalUplinkIP);
                     }
                 }
 
@@ -210,7 +215,10 @@ public static class SerialLookupManager
             if (instanceIndex < serialList.Count)
             {
                 string serialNumber = serialList[instanceIndex];
-                serialStr = $"<color=orange>{itemName}{(itemName != Zone ? "_" : " ")}{serialNumber}</color>";
+                if (itemName != Uplink)
+                    serialStr = $"<color=orange>{itemName}{(itemName != Zone ? "_" : " ")}{serialNumber}</color>";
+                else
+                    serialStr = $"<color=orange>{serialNumber}</color>"; 
                 return true;
             }
         }

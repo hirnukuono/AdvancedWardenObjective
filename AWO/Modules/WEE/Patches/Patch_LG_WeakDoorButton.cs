@@ -1,7 +1,7 @@
 ﻿using AmorLib.Utils.Extensions;
+using AWO.Modules.WEE.Events;
 using HarmonyLib;
 using LevelGeneration;
-using static AWO.Modules.WEE.Events.DoInteractWeakDoorsEvent;
 
 namespace AWO.Modules.WEE.Patches;
 
@@ -12,6 +12,6 @@ internal static class Patch_LG_WeakDoorButton
     [HarmonyWrapSafe]
     private static void Post_Setup(LG_WeakDoor __instance)
     {
-        WeakDoors.GetOrAddNew(__instance.Gate.CoursePortal.m_nodeA.m_zone.ID).Add(__instance);
+        DoInteractWeakDoorsEvent.WeakDoors.GetOrAddNew(__instance.Gate.CoursePortal.m_nodeA.m_zone.ID).Add(__instance);
     }
 }

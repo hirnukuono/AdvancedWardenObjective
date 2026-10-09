@@ -8,7 +8,6 @@ using Player;
 using System.Collections;
 using UnityEngine;
 using Il2CppPlayerList = Il2CppSystem.Collections.Generic.List<Player.PlayerAgent>;
-using TeleportData = AWO.Modules.WEE.WEE_TeleportPlayer.TeleportData;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -72,7 +71,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             if (idx == -1) continue;
             var playerData = tp.TPData[idx];
 
-            var tpData = new TeleportData()
+            var tpData = new WEE_TeleportPlayer.TeleportData()
             {
                 Player = player,
                 PlayerIndex = playerData.PlayerIndex,
@@ -118,7 +117,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         return itemAssignment;
     }
 
-    static IEnumerator FlashBack(TeleportData tpData)
+    static IEnumerator FlashBack(WEE_TeleportPlayer.TeleportData tpData)
     {
         int reloadCount = CheckpointManager.CheckpointUsage;
         Logger.Verbose(LogLevel.Debug, $"{tpData.PlayerIndex} flash warp to {tpData.LastDimension} is queued...");
@@ -138,7 +137,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         DoTeleport(tpData);
     }
 
-    private static void DoTeleport(TeleportData tpData)
+    private static void DoTeleport(WEE_TeleportPlayer.TeleportData tpData)
     {
         if (tpData.Player.Owner.IsBot)
         {
@@ -153,6 +152,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
     }
 
     private static void WarpItemsTo(PlayerAgent player, List<IWarpableObject> items) => WarpItemsTo(player, player.Position, player.DimensionIndex, items);
+
     private static void WarpItemsTo(PlayerAgent player, Vector3 position, eDimensionIndex dimension, List<IWarpableObject> items)
     {
         foreach (var item in items)
@@ -211,7 +211,8 @@ internal sealed class TeleportPlayerEvent : BaseEvent
 
     private static bool PlayerIsInLocation(PlayerAgent player, WEE_TeleportPlayer.FromLocationData data)
     {
-        if (!data.Enabled) return true;
+        if (!data.Enabled) 
+            return true;
 
         var node = player.CourseNode;
         if (node == null)
@@ -219,15 +220,16 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             Logger.Verbose(LogLevel.Warning, $"Player {player.Owner.NickName} has no CourseNode, can't check FromLocation filter!");
             return false;
         }
-
         return NodeIsInLocation(node, data);
     }
 
     private static bool NodeIsInLocation(AIG_CourseNode node, WEE_TeleportPlayer.FromLocationData data)
     {
-        if (!data.Enabled) return true;
+        if (!data.Enabled) 
+            return true;
 
-        if (node == null) return false;
+        if (node == null) 
+            return false;
 
         (var nodeDim, var nodeLayer, var nodeZone) = (node.m_dimension.DimensionIndex, node.LayerType, node.m_zone?.LocalIndex ?? eLocalZoneIndex.Zone_0);
         foreach (var d in data.DimensionIndex.Values)

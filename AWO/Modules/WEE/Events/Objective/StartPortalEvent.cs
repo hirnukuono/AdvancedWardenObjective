@@ -14,12 +14,7 @@ internal sealed class StartPortalEvent : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        Portals.Clear();
+        LevelAPI.OnLevelCleanup += Portals.Clear;
     }
 
     protected override void TriggerCommon(WEE_EventData e)

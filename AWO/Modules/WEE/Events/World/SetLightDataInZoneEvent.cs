@@ -2,7 +2,6 @@
 using AWO.Modules.WEE.Replicators;
 using GTFO.API;
 using LevelGeneration;
-using ModifierType = AWO.Modules.WEE.WEE_ZoneLightData.ModifierType;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -41,11 +40,11 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
 
         switch (setting.Type)
         {
-            case ModifierType.RevertToOriginal:
+            case WEE_ZoneLightData.ModifierType.RevertToOriginal:
                 replicator.RevertLightData();
                 break;
             
-            case ModifierType.SetZoneLightData:
+            case WEE_ZoneLightData.ModifierType.SetZoneLightData:
                 replicator.SetLightSetting(new ZoneLightState()
                 {
                     transitionToOriginal = false,
@@ -55,7 +54,7 @@ internal sealed class SetLightDataInZoneEvent : BaseEvent
                 });
                 break;
 
-            case ModifierType.TransitionToOriginal:
+            case WEE_ZoneLightData.ModifierType.TransitionToOriginal:
                 replicator.SetLightSetting(new ZoneLightState()
                 {
                     transitionToOriginal = true,

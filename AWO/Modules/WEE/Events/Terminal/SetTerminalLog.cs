@@ -2,7 +2,6 @@
 using GameData;
 using GTFO.API;
 using LevelGeneration;
-using LogEventType = AWO.Modules.WEE.WEE_SetTerminalLog.LogEventType;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -15,12 +14,7 @@ internal sealed class SetTerminalLog : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        LogEventQueue.Clear();
+        LevelAPI.OnLevelCleanup += LogEventQueue.Clear;
     }
 
     protected override void TriggerCommon(WEE_EventData e)
@@ -34,7 +28,7 @@ internal sealed class SetTerminalLog : BaseEvent
             var filename = eLog.FileName.ToUpper();
             switch (eLog.Type)
             {
-                case LogEventType.Add:
+                case WEE_SetTerminalLog.LogEventType.Add:
                     if (!LogAbsentOn(term))
                     {
                         continue;
@@ -60,14 +54,14 @@ internal sealed class SetTerminalLog : BaseEvent
                     }
                     break;
 
-                case LogEventType.Remove:
+                case WEE_SetTerminalLog.LogEventType.Remove:
                     if (LogPresentOnSrc())
                     {
                         term.RemoveLocalLog(filename);
                     }
                     break;
 
-                case LogEventType.Move:
+                case WEE_SetTerminalLog.LogEventType.Move:
                     if (!LogPresentOnSrc())
                     {
                         continue;

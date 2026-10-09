@@ -9,7 +9,6 @@ internal static class WEE_EnumInjector
     private readonly static Dictionary<string, object> _EventTypes = new();
     private static int _CurrentIndex = 0;
 
-
     static WEE_EnumInjector()
     {
         foreach (var value in Enum.GetValues<WEE_Type>())

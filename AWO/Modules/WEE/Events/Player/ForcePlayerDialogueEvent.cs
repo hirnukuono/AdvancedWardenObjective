@@ -2,6 +2,7 @@
 using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using AmorLib.Utils.JsonElementConverters;
+using BepInEx.Logging;
 using GameData;
 using Localization;
 using Player;
@@ -46,7 +47,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
             IntensityState.Stealth => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_2_STEALTH,
             IntensityState.Encounter => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_3_ENCOUNTER,
             IntensityState.Combat => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_4_COMBAT,
-            _ => SWITCHES.INTENSITY_STATE.SWITCH.INTENSITY_1_EXPLORATION
+            _ => throw new InvalidOperationException($"[{Name}] encountered an invalid intensity state. Accepted values: {string.Join(", ", Enum.GetValues<IntensityState>())}")
         });
 
         if (!player.IsLocallyOwned) // idk if this does anything anymore
@@ -87,13 +88,13 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         uint lineEvent = dialogueVariation.m_data.lineEventIDs[index];
         uint subtitle = dialogueVariation.m_data.SubtitleIDs[index];
 
-        AkSoundEngine.SetRandomSeed(EntryPoint.SessionRand.Next());
+        AkSoundEngine.SetRandomSeed(EntryPoint.SessionRand.Next()); // is this necessary?
         dialogue.PostWithCleanup(lineEvent, player.Position);
 
         WOManager.Current.m_sound.Post(e.SoundID, true);
         if (e.SoundSubtitle != LocaleText.Empty)
         {
-            LogWarning("Skipping this event's SoundSubtitle since player dialogue is active");
+            Logger.Verbose(LogLevel.Warning, "Skipping this event's SoundSubtitle since player dialogue is active");
         }
         GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(4f, e.Duration));
     }

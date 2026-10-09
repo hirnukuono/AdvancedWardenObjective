@@ -3,7 +3,7 @@ using LevelGeneration;
 
 namespace AWO.Modules.WEE.Events;
 
-internal class SolveSecurityDoorAlarmEvent : BaseEvent
+internal sealed class SolveSecurityDoorAlarmEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SolveSecurityDoorAlarm;
     public override bool AllowArrayableGlobalIndex => true;

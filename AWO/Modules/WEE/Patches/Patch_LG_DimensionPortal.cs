@@ -1,7 +1,7 @@
 ﻿using AmorLib.Utils;
+using AWO.Modules.WEE.Events;
 using HarmonyLib;
 using LevelGeneration;
-using static AWO.Modules.WEE.Events.StartPortalEvent;
 
 namespace AWO.Modules.WEE.Patches;
 
@@ -12,6 +12,6 @@ internal static class Patch_LG_DimensionPortal
     [HarmonyWrapSafe]
     private static void Post_Setup(LG_DimensionPortal __instance)
     {
-        Portals.Add(__instance.SpawnNode.m_zone.ToStruct(), __instance);
+        StartPortalEvent.Portals.Add(__instance.SpawnNode.m_zone.ToStruct(), __instance);
     }
 }

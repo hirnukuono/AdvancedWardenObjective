@@ -16,6 +16,7 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
 
         waveRoar.SetSwitch(SWITCHES.ENEMY_TYPE.GROUP, roarData.RoarSound switch
         {
+            RoarSound.Striker => SWITCHES.ENEMY_TYPE.SWITCH.STRIKER,
             RoarSound.Shooter => SWITCHES.ENEMY_TYPE.SWITCH.SHOOTER,
             RoarSound.Birther => SWITCHES.ENEMY_TYPE.SWITCH.BIRTHER,
             RoarSound.Shadow => SWITCHES.ENEMY_TYPE.SWITCH.SHADOW,
@@ -26,14 +27,15 @@ internal sealed class PlayWaveDistantRoarEvent : BaseEvent
             RoarSound.Pouncer => SWITCHES.ENEMY_TYPE.SWITCH.POUNCER,
             RoarSound.Striker_Berserk => SWITCHES.ENEMY_TYPE.SWITCH.STRIKER_BERSERK,
             RoarSound.Shooter_Spread => SWITCHES.ENEMY_TYPE.SWITCH.SHOOTER_SPREAD,
-            _ => SWITCHES.ENEMY_TYPE.SWITCH.STRIKER
+            _ => throw new InvalidOperationException($"[{Name}] encountered an invalid roar sound type. Accepted values: {string.Join(", ", Enum.GetValues<RoarSound>())}")
         });
 
         waveRoar.SetSwitch(SWITCHES.ROAR_SIZE.GROUP, roarData.RoarSize switch
         {
+            RoarSize.Small => SWITCHES.ROAR_SIZE.SWITCH.SMALL,
             RoarSize.Medium => SWITCHES.ROAR_SIZE.SWITCH.MEDIUM,
             RoarSize.Big => SWITCHES.ROAR_SIZE.SWITCH.BIG,
-            _ => SWITCHES.ROAR_SIZE.SWITCH.SMALL
+            _ => throw new InvalidOperationException($"[{Name}] encountered an invalid roar size type. Accepted values: {string.Join(", ", Enum.GetValues<RoarSize>())}")
         });
 
         waveRoar.SetSwitch(SWITCHES.ENVIROMENT.GROUP, roarData.IsOutside ? SWITCHES.ENVIROMENT.SWITCH.DESERT : SWITCHES.ENVIROMENT.SWITCH.COMPLEX);

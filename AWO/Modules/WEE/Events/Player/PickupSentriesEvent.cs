@@ -11,7 +11,7 @@ internal sealed class PickupSentries : BaseEvent
         foreach (var item in Dimension.WarpableObjects)
         {
             var sentry = item.TryCast<SentryGunInstance>();
-            if (sentry != null && sentry.LocallyPlaced)
+            if (sentry != null && sentry.Owner != null && sentry.LocallyPlaced)
             {
                 sentry.m_sync.WantItemAction(sentry.Owner, SyncedItemAction_New.PickUp);
             }

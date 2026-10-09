@@ -1,6 +1,5 @@
 ﻿using Agents;
 using AIGraph;
-using AmorLib.Events;
 using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
@@ -13,7 +12,7 @@ using UnityEngine;
 
 namespace AWO.Modules.WEE.Events;
 
-internal class SpawnHibernateInZoneEvent : BaseEvent
+internal sealed class SpawnHibernateInZoneEvent : BaseEvent
 {
     public override WEE_Type EventType => WEE_Type.SpawnHibernateInZone;
     public override bool AllowArrayableGlobalIndex => true;
@@ -104,7 +103,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         }
     }
 
-    private readonly static WaitForSeconds?[] s_spawnInterval = new WaitForSeconds?[] { null, new(0.05f), new(0.15f) };
+    private readonly static WaitForSeconds?[] s_spawnInterval = new WaitForSeconds?[] { null, new(0.15f), new(0.25f) };
     private readonly static Queue<QueuedSpawn>[] s_spawnQueues = new Queue<QueuedSpawn>[] { new (), new (), new () };
     private static Coroutine? s_updateRoutine;
     #endregion
@@ -115,7 +114,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
         LevelAPI.OnAfterBuildBatch += ApplyVoxelCoverageFix;
         LevelAPI.OnAfterBuildBatch += HandlePlacementBatches;
         LevelAPI.OnLevelCleanup += CleanupSpawnUpdate;
-        SNetEvents.OnCheckpointReload += CleanupSpawnUpdate;
+        EventAPI.OnCheckpointReloaded += CleanupSpawnUpdate;
     }
 
     protected override void TriggerMaster(WEE_EventData e)
@@ -137,7 +136,7 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
                 {
                     var node = sh.AreaIndex == -1 ? CourseNodeUtil.GetCourseNode(pos) : zone.m_areas[sh.AreaIndex].m_courseNode;
                     node.m_area.PlacedPopScore += sh.PlacementScore;
-                    QueueSpawn(sh.EnemyID, node, pos, Quaternion.Euler(sh.Rotation));
+                    QueueSpawn(sh.EnemyID, node, pos, Quaternion.Euler(!sh.RandomizeRotation ? sh.Rotation : new(0f, MasterRand.NextRange(0, 360), 0)));
                 }
                 else
                 {
@@ -383,7 +382,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     private static void PrepareVoxelCoverageFix(LG_Factory.BatchName batchName)
     {
-        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) return;
+        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) 
+            return;
 
         s_areasToFixCoverage.Add(AIG_CourseNode.s_allNodes[0].m_area);
         bool hasEnemyPop = RundownManager.ActiveExpedition.Expedition.EnemyPopulation != 0;
@@ -403,7 +403,8 @@ internal class SpawnHibernateInZoneEvent : BaseEvent
 
     private static void ApplyVoxelCoverageFix(LG_Factory.BatchName batchName)
     {
-        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) return;
+        if (batchName != LG_Factory.BatchName.EnemiesPlacement_Scoring) 
+            return;
 
         float mult = RundownManager.ActiveExpeditionBalanceData.VoxelCoverageAreaMultiplier;
         foreach (var area in s_areasToFixCoverage)

@@ -15,7 +15,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
             return;
 
         uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle; // resolve terminal field fallback
@@ -34,7 +34,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                 case eDoorStatus.Opening:
                     LogError("Door is already open!");
                     break;
-                
+
                 case eDoorStatus.ChainedPuzzleActivated:
                     LogError("Door already has an active chained puzzle!");
                     break;
@@ -42,7 +42,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                 case eDoorStatus.Closed:
                 case eDoorStatus.Closed_LockedWithBulkheadDC:
                 case eDoorStatus.Closed_LockedWithChainedPuzzle:
-                case eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm:                
+                case eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm:
                 case eDoorStatus.Closed_LockedWithKeyItem:
                 case eDoorStatus.Closed_LockedWithPowerGenerator:
                 case eDoorStatus.Closed_LockedWithNoKey:
@@ -82,7 +82,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     LogError("Door is in an unsupported state!");
                     break;
             }
-        }        
+        }
     }
 
     private static IEnumerator DestroyScanDelayed(ChainedPuzzleInstance scan)

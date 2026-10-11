@@ -1,18 +1,34 @@
 ﻿using AK;
 using ChainedPuzzles;
 using LevelGeneration;
+using System.Diagnostics.CodeAnalysis;
 
-namespace AWO.Modules.WEE.Events;
+namespace AWO.Modules.WEE.Events.World;
 
-internal class ResetSecurityDoorAlarmEvent : BaseEvent
+internal class ResetChainPuzzleEvent : BaseEvent
 {
-    public override WEE_Type EventType => WEE_Type.ResetSecurityDoorAlarm;
+    public override WEE_Type EventType => WEE_Type.ForceResetChainPuzzle;
     public override bool AllowArrayableGlobalIndex => true;
 
     protected override void TriggerCommon(WEE_EventData e)
     {
+        // If using ChainPuzzle version, don't do door logic
+        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle;
+        ChainedPuzzleInstance? puzzleInstance;
+        if (chainPuzzle != 0)
+        {
+            if (TryGetCPInstance(chainPuzzle, out puzzleInstance))
+                FixChainedPuzzleSound(puzzleInstance);
+            return;
+        }
+
         if (!TryGetZoneEntranceSecDoor(e, out var door))
             return;
+
+        puzzleInstance = door.m_locks.ChainedPuzzleToSolve;
+        if (puzzleInstance == null)
+            return;
+        FixChainedPuzzleSound(puzzleInstance);
 
         var doorState = door.m_sync.GetCurrentSyncState();
         switch (doorState.status)
@@ -38,7 +54,54 @@ internal class ResetSecurityDoorAlarmEvent : BaseEvent
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (!TryGetZoneEntranceSecDoor(e, out var door)) 
+        uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle;
+        if (chainPuzzle != 0)
+        {
+            if (TryGetCPInstance(chainPuzzle, out var puzzleInstance))
+                ResetChainedPuzzle(e, puzzleInstance);
+            else
+                LogError($"A chained puzzle with index {chainPuzzle} was not found!");
+        }
+        else
+            ResetDoor(e);
+    }
+
+    static void FixChainedPuzzleSound(ChainedPuzzleInstance puzzle)
+    {
+        // If DisableSurvivalWaveOnComplete is true, the sound is recycled when the puzzle is completed and needs to be re-registered.
+        if (!puzzle.m_sound.m_registred)
+            puzzle.m_sound = new(puzzle.m_parent.position);
+    }
+
+    static void ResetChainedPuzzle(WEE_EventData e, ChainedPuzzleInstance puzzle)
+    {
+        ResetPuzzleCores(puzzle);
+
+        var puzzleState = puzzle.m_stateReplicator.State;
+        if (puzzleState.isActive)
+        {
+            if (e.Enabled)
+            {
+                puzzle.m_chainedPuzzleCores[0].Activate();
+                return;
+            }
+            else if (puzzle.Data.DisableSurvivalWaveOnComplete && Mastermind.Current.TryGetEvent(puzzle.GetSetSurvivalWaveID(), out var masterMindEvent))
+            {
+                masterMindEvent.StopEvent();
+                puzzle.SetSurvivalWaveID(0);
+                puzzle.m_sound.Stop();
+            }
+        }
+
+        // Need to reset isSolved so not using Deactivate interact.
+        puzzleState.isSolved = false;
+        puzzleState.isActive = false;
+        puzzleState.status = eChainedPuzzleStatus.Disabled;
+    }
+
+    void ResetDoor(WEE_EventData e)
+    {
+        if (!TryGetZoneEntranceSecDoor(e, out var door))
             return;
 
         var puzzle = door.m_locks.ChainedPuzzleToSolve;
@@ -50,29 +113,8 @@ internal class ResetSecurityDoorAlarmEvent : BaseEvent
 
         var doorState = door.m_sync.GetCurrentSyncState();
         var status = doorState.status;
-
-        ResetPuzzleCores(puzzle);
-
-        if (status == eDoorStatus.ChainedPuzzleActivated)
-        {
-            if (e.Enabled)
-            {
-                puzzle.m_chainedPuzzleCores[0].Activate();
-                return;
-            }
-            else if (puzzle.Data.DisableSurvivalWaveOnComplete && Mastermind.Current.TryGetEvent(puzzle.GetSetSurvivalWaveID(), out var masterMindEvent))
-            {
-                masterMindEvent.StopEvent();
-                puzzle.SetSurvivalWaveID(0);
-            }
-        }
-
-        var puzzleState = puzzle.m_stateReplicator.State;
-        // Need to reset isSolved so not using Deactivate interact.
-        puzzleState.isSolved = false;
-        puzzleState.isActive = false;
-        puzzleState.status = eChainedPuzzleStatus.Disabled;
-        puzzle.m_stateReplicator.State = puzzleState;
+        
+        ResetChainedPuzzle(e, puzzle);
 
         if (status != eDoorStatus.Unlocked && status != eDoorStatus.ChainedPuzzleActivated)
             return;
@@ -80,6 +122,20 @@ internal class ResetSecurityDoorAlarmEvent : BaseEvent
         doorState.status = puzzle.Data.TriggerAlarmOnActivate ? eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm : eDoorStatus.Closed_LockedWithChainedPuzzle;
         var sync = door.m_sync.Cast<LG_Door_Sync>();
         sync.m_stateReplicator.State = doorState;
+    }
+
+    private static bool TryGetCPInstance(uint ID, [NotNullWhen(true)] out ChainedPuzzleInstance? puzzleInstance)
+    {
+        foreach (var instance in ChainedPuzzleManager.Current.m_instances)
+        {
+            if (instance.Data.persistentID == ID)
+            {
+                puzzleInstance = instance;
+                return true;
+            }
+        }
+        puzzleInstance = null;
+        return false;
     }
 
     static void ResetPuzzleCores(ChainedPuzzleInstance puzzleInstance)

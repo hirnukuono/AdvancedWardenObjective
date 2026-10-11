@@ -36,7 +36,7 @@ public enum WEE_Type
     // Dinorush AWO Events:
     SetActiveEnemyWave,
     GiveResource,
-    ResetSecurityDoorAlarm,
+    ForceResetChainPuzzle,
 
     // Amor AWO Events:
     NestedEvent = WEE_EnumInjector.ExtendedIndex + 10000,

@@ -1,4 +1,5 @@
-﻿using AWO.Modules.TSL;
+﻿using AmorLib.Utils.JsonElementConverters;
+using AWO.Modules.TSL;
 using LevelGeneration;
 
 namespace AWO.Modules.WEE.Events;
@@ -15,14 +16,17 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
 
         var state = door.m_sync.GetCurrentSyncState();
 
+        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
+        if (e.SpecialText != LocaleText.Empty && locks != null)
+        {
+            locks.m_lockedWithNoKeyInteractionText = new LocaleText(SerialLookupManager.ParseTextFragments(e.SpecialText));
+            // JFS in case the door status was somehow received first
+            if (state.status == eDoorStatus.Closed_LockedWithNoKey)
+                locks.m_intCustomMessage.m_message = locks.m_lockedWithNoKeyInteractionText;
+        }
+
         if (IsMaster)
             LockSecDoor(door, state);
-
-        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
-        if (locks == null)
-            return;
-
-        locks.m_intCustomMessage.m_message = SerialLookupManager.ParseTextFragments(e.SpecialText);
     }
 
     private void LockSecDoor(LG_SecurityDoor door, pDoorState state)

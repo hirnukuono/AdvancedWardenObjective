@@ -11,11 +11,31 @@ internal class CompleteChainPuzzleEvent : BaseEvent
     protected override void TriggerMaster(WEE_EventData e)
     {
         uint chainPuzzle = e.SpecialNumber > 0 ? (uint)e.SpecialNumber : e.ChainPuzzle; // resolve terminal field fallback
-        if (!TryGetCPInstance(chainPuzzle, out var puzzleInstance) || !puzzleInstance.IsActive || puzzleInstance.IsSolved)
+        ChainedPuzzleInstance? puzzleInstance;
+        if (chainPuzzle == 0)
         {
-            LogError($"An active chained puzzle with index {chainPuzzle} was not found!");
+            if (!TryGetZoneEntranceSecDoor(e, out var door))
+                return;
+
+            puzzleInstance = door.m_locks.ChainedPuzzleToSolve;
+            if (puzzleInstance == null)
+            {
+                LogError($"Unable to complete chained puzzle on a door without one!");
+                return;
+            }
+        }
+        else if(!TryGetCPInstance(chainPuzzle, out puzzleInstance))
+        {
+            LogError($"A chained puzzle with index {chainPuzzle} was not found!");
             return;
-        }        
+        }
+        
+        if (!puzzleInstance.IsActive || puzzleInstance.IsSolved)
+        {
+            LogError($"Unable to complete a chained puzzle that is already solved!");
+            return;
+        }
+
         SolvePuzzleCores(puzzleInstance, e.Count);
     }
 

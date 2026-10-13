@@ -60,11 +60,13 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
                     {
                         door.m_graphics.OnDoorState(state, false);
+                        door.m_locks.OnDoorState(state, false);
                         door.m_mapLookatRevealer.SetLocalGUIObjStatus(eCM_GuiObjectStatus.DoorSecureApex);
                     }
                     else if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle)
                     {
                         door.m_graphics.OnDoorState(state, false);
+                        door.m_locks.OnDoorState(state, false);
                     }
 
                     var anim = door.m_anim.TryCast<LG_SecurityDoor_Anim>();

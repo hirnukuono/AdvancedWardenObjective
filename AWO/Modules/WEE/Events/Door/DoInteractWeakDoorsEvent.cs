@@ -1,4 +1,4 @@
-﻿using GTFO.API;
+﻿using AWO.Modules.WEE.Events.Door.WeakDoors;
 using LevelGeneration;
 
 namespace AWO.Modules.WEE.Events;
@@ -8,20 +8,28 @@ internal sealed class DoInteractWeakDoorsEvent : BaseEvent
     public override WEE_Type EventType => WEE_Type.DoInteractWeakDoorsInZone;
     public override bool AllowArrayableGlobalIndex => true;
 
-    public static readonly Dictionary<int, HashSet<LG_WeakDoor>> WeakDoors = new();
-
-    protected override void OnSetup()
+    protected override void TriggerCommon(WEE_EventData e)
     {
-        LevelAPI.OnLevelCleanup += WeakDoors.Clear;
+        if (TryGetZone(e, out var zone) && WeakDoorInfo.WeakDoors.TryGetValue(zone.ID, out var weakDoors))
+        {
+            foreach (var weakDoor in weakDoors)
+            {
+                weakDoor.PlayButtonAnimation(e.Enabled);
+            }
+        }
+        else
+        {
+            LogError($"Zone may have no WeakDoors?");
+        }
     }
 
     protected override void TriggerMaster(WEE_EventData e)
     {
-        if (TryGetZone(e, out var zone) && WeakDoors.TryGetValue(zone.ID, out var weakDoors))
+        if (TryGetZone(e, out var zone) && WeakDoorInfo.WeakDoors.TryGetValue(zone.ID, out var weakDoors))
         {
             foreach (var weakDoor in weakDoors)
             {
-                weakDoor.m_sync.AttemptDoorInteraction(e.Enabled ? eDoorInteractionType.Open : eDoorInteractionType.Close);
+                weakDoor.DoInteract(e.Enabled);
             }
         }
         else

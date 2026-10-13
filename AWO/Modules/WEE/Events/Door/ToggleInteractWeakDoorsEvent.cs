@@ -1,4 +1,4 @@
-﻿using LevelGeneration;
+﻿using AWO.Modules.WEE.Events.Door.WeakDoors;
 
 namespace AWO.Modules.WEE.Events;
 
@@ -9,26 +9,11 @@ internal sealed class ToggleInteractWeakDoorsEvent : BaseEvent
 
     protected override void TriggerCommon(WEE_EventData e)
     {
-        if (TryGetZone(e, out var zone) && DoInteractWeakDoorsEvent.WeakDoors.TryGetValue(zone.ID, out var weakDoors))
+        if (TryGetZone(e, out var zone) && WeakDoorInfo.WeakDoors.TryGetValue(zone.ID, out var weakDoors))
         {
             foreach (var weakDoor in weakDoors)
             {
-                weakDoor.m_inButtonOperation = !e.Enabled; // lazy
-
-                foreach (var doorButton in weakDoor.m_buttons.Where(button => button != null))
-                {
-                    doorButton.m_anim.gameObject.SetActive(e.Enabled);
-                    doorButton.m_enabled = e.Enabled;
-
-                    if (e.Enabled)
-                    {
-                        var weakLock = doorButton.GetComponentInChildren<LG_WeakLock>();
-                        if (weakLock != null && weakLock.Status != eWeakLockStatus.Unlocked)
-                        {
-                            doorButton.m_enabled = false;
-                        }
-                    }
-                }
+                weakDoor.SetCanInteract(e.Enabled);
             }
         }
         else

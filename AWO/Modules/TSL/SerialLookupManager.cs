@@ -120,7 +120,7 @@ public static class SerialLookupManager
                     }
                 }
 
-                var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
+                var locks = zone.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks.Cast<LG_SecurityDoor_Locks>();
                 if (locks == null) continue;
                 OnEnterParseText += () =>
                 {

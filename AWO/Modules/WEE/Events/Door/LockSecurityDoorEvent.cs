@@ -15,10 +15,9 @@ internal sealed class LockSecurityDoorEvent : BaseEvent
             return;
 
         var state = door.m_sync.GetCurrentSyncState();
-
-        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
-        if (e.SpecialText != LocaleText.Empty && locks != null)
+        if (e.SpecialText != LocaleText.Empty)
         {
+            var locks = door.m_locks.Cast<LG_SecurityDoor_Locks>();
             locks.m_lockedWithNoKeyInteractionText = new LocaleText(SerialLookupManager.ParseTextFragments(e.SpecialText));
             // JFS in case the door status was somehow received first
             if (state.status == eDoorStatus.Closed_LockedWithNoKey)

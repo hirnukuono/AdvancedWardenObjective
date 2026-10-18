@@ -13,10 +13,7 @@ internal sealed class SetDoorInteractionEvent : BaseEvent
         if (!TryGetZoneEntranceSecDoor(e, out var door)) 
             return;
 
-        var locks = door.m_locks.TryCast<LG_SecurityDoor_Locks>();
-        if (locks == null) 
-            return;
-
+        var locks = door.m_locks.Cast<LG_SecurityDoor_Locks>();
         var state = door.m_sync.GetCurrentSyncState();
         switch (state.status)
         {

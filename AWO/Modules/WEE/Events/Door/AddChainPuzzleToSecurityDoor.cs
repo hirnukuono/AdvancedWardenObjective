@@ -47,15 +47,39 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                 case eDoorStatus.Closed_LockedWithPowerGenerator:
                 case eDoorStatus.Closed_LockedWithNoKey:
                 case eDoorStatus.Unlocked:
-                    if (door.m_locks.ChainedPuzzleToSolve != null)
+                    var locks = door.m_locks.Cast<LG_SecurityDoor_Locks>();
+                    if (locks.ChainedPuzzleToSolve != null)
                     {
-                        if (!door.m_locks.ChainedPuzzleToSolve.IsSolved)
+                        if (!locks.ChainedPuzzleToSolve.IsSolved)
                             Logger.Verbose(LogLevel.Debug, $"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
                         CoroutineManager.StartCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve).WrapToIl2Cpp());
                     }
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
-                    state.status = door.m_locks.SetupForChainedPuzzle(puzzleInstance);
-                    door.m_sync.SetStateUnsynced(state);
+
+                    // Manual SetupForChainedPuzzle to avoid overriding current state.
+                    locks.ChainedPuzzleToSolve = puzzleInstance;
+                    locks.m_hasAlarm = puzzleInstance.Data.TriggerAlarmOnActivate;
+                    puzzleInstance.OnPuzzleSolved += (Action) (() =>
+                    {
+                        string msg = Localization.Text.Get(851u);
+                        GuiManager.InteractionLayer.SetTimedMessage(msg, 10f, ePUIMessageStyle.Bioscan);
+                        locks.OnChainedPuzzleSolved?.Invoke();
+                    });
+
+                    switch (state.status)
+                    {
+                        case eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm:
+                        case eDoorStatus.Closed_LockedWithChainedPuzzle:
+                        case eDoorStatus.Unlocked:
+                        case eDoorStatus.Closed:
+                            var newStatus = puzzleInstance.Data.TriggerAlarmOnActivate ? eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm : eDoorStatus.Closed_LockedWithChainedPuzzle;
+                            if (state.status != newStatus)
+                            {
+                                state.status = newStatus;
+                                door.m_sync.SetStateUnsynced(state);
+                            }
+                            break;
+                    }
 
                     if (state.status == eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
                     {

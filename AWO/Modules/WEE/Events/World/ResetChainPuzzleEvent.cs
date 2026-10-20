@@ -97,6 +97,7 @@ internal class ResetChainPuzzleEvent : BaseEvent
         puzzleState.isSolved = false;
         puzzleState.isActive = false;
         puzzleState.status = eChainedPuzzleStatus.Disabled;
+        puzzle.m_stateReplicator.State = puzzleState;
     }
 
     void ResetDoor(WEE_EventData e)

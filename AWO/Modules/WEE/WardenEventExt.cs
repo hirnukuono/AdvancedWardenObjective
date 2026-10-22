@@ -45,6 +45,7 @@ internal static class WardenEventExt
     {
         ClassInjector.RegisterTypeInIl2Cpp<OutsideDataReplicator>();
         ClassInjector.RegisterTypeInIl2Cpp<ScanPositionReplicator>();
+        ClassInjector.RegisterTypeInIl2Cpp<WeakDoorInfoReplicator>();
         ClassInjector.RegisterTypeInIl2Cpp<ZoneLightReplicator>();
 
         JsonInjector.SetConverter(new EventTypeConverter());

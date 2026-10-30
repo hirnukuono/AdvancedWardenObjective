@@ -44,26 +44,26 @@ internal static class Logger
     public static void Debug(string str) => MLS.LogDebug(str);
     public static void Debug(string module, object data) => MLS.LogDebug(Format(module, data));
     
-    public static void Verbose(string data, LogLevel level = LogLevel.Debug)
+    public static void Verbose(string str, LogLevel level = LogLevel.Debug)
     {
         if (VerboseEnabled.Value)
         {
             switch (level)
             {
                 case LogLevel.Error:
-                    Error(Dev, data);
+                    Error(Dev, str);
                     return;
                 case LogLevel.Warning:
-                    Warn(Dev, data);
+                    Warn(Dev, str);
                     return;
                 case LogLevel.Message:
-                    Message(Dev, data);
+                    Message(Dev, str);
                     return;
                 case LogLevel.Info:
-                    Info(Dev, data);
+                    Info(Dev, str);
                     return;
                 case LogLevel.Debug:
-                    Debug(Dev, data);
+                    Debug(Dev, str);
                     return;                
             }
         }

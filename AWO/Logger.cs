@@ -37,7 +37,7 @@ internal static class Logger
     public static void Message(BepInExMessageLogInterpolatedStringHandler handler) => MLS.LogMessage(handler);
     public static void Message(string str) => MLS.LogMessage(str);
     public static void Message(string module, object data) => MLS.LogMessage(Format(module, data));
-    public static void Info(BepInExDebugLogInterpolatedStringHandler handler) => MLS.LogInfo(handler);
+    public static void Info(BepInExInfoLogInterpolatedStringHandler handler) => MLS.LogInfo(handler);
     public static void Info(string str) => MLS.LogInfo(str);
     public static void Info(string module, object data) => MLS.LogInfo(Format(module, data));
     public static void Debug(BepInExDebugLogInterpolatedStringHandler handler) => MLS.LogDebug(handler);

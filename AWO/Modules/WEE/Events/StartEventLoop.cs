@@ -2,6 +2,7 @@
 using GameData;
 using GTFO.API;
 using GTFO.API.Extensions;
+using GTFO.API.Utilities;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
@@ -21,7 +22,7 @@ internal sealed class StartEventLoop : BaseEvent
 
     private void OnLevelCleanup()
     {
-        ActiveEventLoops.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
+        ActiveEventLoops.ForEachValue(loop => CoroutineDispatcher.StopCoroutine(loop));
         ActiveEventLoops.Clear();
     }
 
@@ -43,7 +44,7 @@ internal sealed class StartEventLoop : BaseEvent
 
         LogDebug($"Starting EventLoop Index: {sel.LoopIndex}");
         sel.EventsToActivate = ResolveFieldsFallback(e.Events, sel.EventsToActivate);
-        ActiveEventLoops[sel.LoopIndex] = CoroutineManager.StartCoroutine(DoLoop(sel).WrapToIl2Cpp());
+        ActiveEventLoops[sel.LoopIndex] = CoroutineDispatcher.StartCoroutine(DoLoop(sel));
     }
 
     static IEnumerator DoLoop(WEE_StartEventLoop sel)

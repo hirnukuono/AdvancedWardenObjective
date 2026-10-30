@@ -1,4 +1,5 @@
-﻿using Player;
+﻿using GTFO.API.Utilities;
+using Player;
 using System.Collections;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
                 continue; // Node is null, continue
 
             if (e.DamagePlayer.DamageOverTime && e.Duration > 0f)
-                CoroutineManager.StartCoroutine(DamageOverTime(e, player, zone.ID).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(DamageOverTime(e, player, zone.ID));
             else
                 ApplyDamage(player, e.DamagePlayer.DamageAmount, e.DamagePlayer.DealPercentageDamage, e.DamagePlayer.UseZone, zone.ID);
         }

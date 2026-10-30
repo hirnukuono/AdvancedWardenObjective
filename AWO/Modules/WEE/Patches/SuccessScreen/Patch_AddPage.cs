@@ -22,7 +22,7 @@ internal static class Patch_AddPage
 
         if (pageEnum == eCM_MenuPage.CMP_EXPEDITION_SUCCESS && !McBased)
         {
-            Logger.Info("Credits to McBreezy for CustomSuccessScreens");
+            Logger.Message("Credits to McBreezy for CustomSuccessScreens");
             McBased = true;
         }
 

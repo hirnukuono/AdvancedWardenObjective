@@ -1,4 +1,5 @@
-﻿using Player;
+﻿using GTFO.API.Utilities;
+using Player;
 using System.Collections;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
                 continue; // Node is null, continue
 
             if (e.InfectPlayer.InfectOverTime && e.Duration > 0f)
-                CoroutineManager.StartCoroutine(InfectOverTime(e, player, zone.ID).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(InfectOverTime(e, player, zone.ID));
             else
                 ApplyInfection(player, e.InfectPlayer.InfectionAmount, e.InfectPlayer.UseZone, zone.ID);
         }

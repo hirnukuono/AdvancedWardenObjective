@@ -3,7 +3,7 @@ using ChainedPuzzles;
 using LevelGeneration;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AWO.Modules.WEE.Events.World;
+namespace AWO.Modules.WEE.Events;
 
 internal class ResetChainPuzzleEvent : BaseEvent
 {

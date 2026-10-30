@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Logging;
 using GameData;
 using Player;
 
@@ -63,18 +62,18 @@ internal sealed class NestedEvent : BaseEvent
         {
             do
             {
-                Logger.Verbose(LogLevel.Debug, $"WheelofEvents spin #{count + 1}");
+                Logger.Verbose($"WheelofEvents spin #{count + 1}");
                 int randIndex = PickWeightedIndex(wheel);
                 var rolledGroup = wheel[randIndex];
                 eventList.AddRange(rolledGroup.Events);
 
                 string debugName = $"{nested.WheelOfEvents.IndexOf(rolledGroup)} {(rolledGroup.DebugName.IsNullOrWhiteSpace() ? string.Empty : $"({rolledGroup.DebugName})")}";
-                Logger.Verbose(LogLevel.Debug, $"Selected group index {debugName}");
+                Logger.Verbose($"Selected group index {debugName}");
 
                 if (!nested.AllowRepeatsInRandom || (!rolledGroup.IsInfinite && --rolledGroup.RepeatCount <= 0))
                 {
                     wheel.RemoveAt(randIndex);
-                    Logger.Verbose(LogLevel.Debug, $"Removed group index {debugName}. New wheel size is {wheel.Count}");
+                    Logger.Verbose($"Removed group index {debugName}. New wheel size is {wheel.Count}");
                 }
                 else
                 {
@@ -83,7 +82,7 @@ internal sealed class NestedEvent : BaseEvent
 
                 eventList.AddRange(eventsOnMid);
             } while (++count < maxSpins && wheel.Count > 0);
-            Logger.Verbose(LogLevel.Debug, "WheelofEvents is now done");
+            Logger.Verbose("WheelofEvents is now done");
         }
 
         eventList.AddRange(events.Where(e => e.Trigger == eWardenObjectiveEventTrigger.OnEnd));
@@ -95,7 +94,7 @@ internal sealed class NestedEvent : BaseEvent
         float sum = wheel.Sum(part => part.Weight);
         float rand = EntryPoint.SessionRand.NextFloat() * sum;
         float cumulative = 0f;
-        Logger.Verbose(LogLevel.Debug, $"Rolled {rand} / {sum}");
+        Logger.Verbose($"Rolled {rand} / {sum}");
 
         for (int i = 0; i < wheel.Count; i++)
         {

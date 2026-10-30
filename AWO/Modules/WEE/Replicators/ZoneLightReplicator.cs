@@ -114,6 +114,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         ShareStatus();
     }
 
+    [HideFromIl2Cpp]
     private void ApplyLightMod(LightSettingSelector[] selectors, bool transitionToOrignal, float duration, int seed, int subseed)
     {
         System.Random rand = new(seed);

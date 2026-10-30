@@ -1,5 +1,4 @@
 ﻿using BepInEx.Core.Logging.Interpolation;
-using BepInEx.Logging;
 using GameData;
 using GTFO.API.Extensions;
 using LevelGeneration;
@@ -46,6 +45,33 @@ internal abstract class BaseEvent
     protected virtual void TriggerClient(WEE_EventData e) { }
     protected virtual void TriggerMaster(WEE_EventData e) { }
 
+    protected void LogError(string msg) => Logger.Error($"[{Name}] {msg}");
+    protected void LogError(BepInExErrorLogInterpolatedStringHandler handler)
+    {
+        if (handler.Enabled)
+        {
+            Logger.Error($"[{Name}] {handler}");
+        }
+    }
+
+    protected void LogWarning(string msg) => Logger.Warn($"[{Name}] {msg}");
+    protected void LogWarning(BepInExWarningLogInterpolatedStringHandler handler)
+    {
+        if (handler.Enabled)
+        {
+            Logger.Warn($"[{Name}] {handler}");
+        }
+    }
+
+    protected void LogMessage(string msg) => Logger.Message($"[{Name}] {msg}");
+    protected void LogMessage(BepInExMessageLogInterpolatedStringHandler handler)
+    {
+        if (handler.Enabled)
+        {
+            Logger.Message($"[{Name}] {handler}");
+        }
+    }
+
     protected void LogInfo(string msg) => Logger.Info($"[{Name}] {msg}");
     protected void LogInfo(BepInExInfoLogInterpolatedStringHandler handler)
     {
@@ -62,29 +88,11 @@ internal abstract class BaseEvent
         {
             Logger.Debug($"[{Name}] {handler}");
         }
-    }
-
-    protected void LogWarning(string msg) => Logger.Warn($"[{Name}] {msg}");
-    protected void LogWarning(BepInExWarningLogInterpolatedStringHandler handler)
-    {
-        if (handler.Enabled)
-        {
-            Logger.Warn($"[{Name}] {handler}");
-        }
-    }
-
-    protected void LogError(string msg) => Logger.Error($"[{Name}] {msg}");
-    protected void LogError(BepInExErrorLogInterpolatedStringHandler handler)
-    {
-        if (handler.Enabled)
-        {
-            Logger.Error($"[{Name}] {handler}");
-        }
-    }
+    }    
 
     public bool TryGetZone(WEE_EventData e, [NotNullWhen(true)] out LG_Zone? zone)
     {
-        Logger.Verbose(LogLevel.Debug, $"Searching for ({e.DimensionIndex}, {e.Layer}, {e.LocalIndex}) in level...");
+        Logger.Verbose($"Searching for ({e.DimensionIndex}, {e.Layer}, {e.LocalIndex}) in level...");
         if (Builder.CurrentFloor.TryGetZoneByLocalIndex(e.DimensionIndex, e.Layer, e.LocalIndex, out zone))
         {
             return true;

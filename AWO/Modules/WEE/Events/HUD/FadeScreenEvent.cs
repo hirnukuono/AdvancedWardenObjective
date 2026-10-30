@@ -3,7 +3,7 @@ using FluffyUnderware.DevTools.Extensions;
 using LevelGeneration;
 using UnityEngine;
 
-namespace AWO.Modules.WEE.Events.HUD;
+namespace AWO.Modules.WEE.Events;
 
 internal sealed class FadeScreenEvent : BaseEvent
 {

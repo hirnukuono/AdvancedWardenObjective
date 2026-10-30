@@ -2,7 +2,6 @@
 using AWO.Modules.WEE.Events;
 using AWO.Modules.WEE.JsonInjects;
 using AWO.Modules.WEE.Replicators;
-using BepInEx.Logging;
 using GameData;
 using GTFO.API.Utilities;
 using HarmonyLib;
@@ -83,10 +82,10 @@ internal static class WardenEventExt
                 weeData.DimensionIndex = dim;
                 weeData.Layer = layer;
                 weeData.LocalIndex = zone;
-                CoroutineManager.StartCoroutine(Handle(eventInstance, weeData, currentDuration).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(Handle(eventInstance, weeData, currentDuration));
                 return;
-            }            
-            CoroutineManager.StartCoroutine(Handle(eventInstance, weeData.Clone(dim, layer, zone), currentDuration).WrapToIl2Cpp());
+            }
+            CoroutineDispatcher.StartCoroutine(Handle(eventInstance, weeData.Clone(dim, layer, zone), currentDuration));
         }
     }
 
@@ -116,7 +115,7 @@ internal static class WardenEventExt
         {
             if (WorldEventManager.GetCondition(condition.ConditionIndex) != condition.IsTrue)
             {
-                Logger.Verbose(LogLevel.Debug, $"Condition {condition.ConditionIndex} is not met");
+                Logger.Verbose($"Condition {condition.ConditionIndex} is not met");
                 yield break;
             }
         }

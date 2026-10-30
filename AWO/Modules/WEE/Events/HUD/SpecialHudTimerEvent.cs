@@ -1,6 +1,7 @@
 ﻿using AmorLib.Utils.Extensions;
 using AWO.Modules.TSL;
 using GTFO.API;
+using GTFO.API.Utilities;
 using System.Collections;
 using System.Collections.Concurrent;
 using UnityEngine;
@@ -25,14 +26,14 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         public void StartCoroutine(WEE_SpecialHudTimer hud, float duration)
         {
             var hudCoroutine = hud.Type == WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, duration) : DoSpecialHudPersistent(hud);
-            Coroutine = CoroutineManager.StartCoroutine(hudCoroutine.WrapToIl2Cpp());
+            Coroutine = CoroutineDispatcher.StartCoroutine(hudCoroutine);
         }
 
         public void StopCoroutine()
         {
             if (Coroutine != null)
             {
-                CoroutineManager.StopCoroutine(Coroutine);
+                CoroutineDispatcher.StopCoroutine(Coroutine);
                 Coroutine = null;
             }
         }
@@ -65,7 +66,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug("Starting new Timed SpecialHud (no index, cannot be stopped once started)");
-                CoroutineManager.StartCoroutine(DoSpecialHudTimed(specHud, duration).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(DoSpecialHudTimed(specHud, duration));
                 break;
 
             case WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer: // start timed specialhud with index
@@ -100,13 +101,13 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug($"Stopping SpecialHud with index: {specHud.Index}");
-                CoroutineManager.StopCoroutine(hud.Coroutine);
+                CoroutineDispatcher.StopCoroutine(hud.Coroutine);
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
                 break;
 
             case WEE_SpecialHudTimer.SpecialHudType.StopAll: // stop all specialhuds with index
-                SpecialHuds.ForEachValue(hud => CoroutineManager.StopCoroutine(hud.Coroutine));
+                SpecialHuds.ForEachValue(hud => CoroutineDispatcher.StopCoroutine(hud.Coroutine));
                 SpecialHuds.Clear();
                 LogDebug("Stopping all indexed SpecialHuds");
                 GuiManager.InteractionLayer.MessageVisible = false;
@@ -168,7 +169,6 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                 string tagTime = $"{(int)timeSpan.TotalMinutes:D2}:{timeSpan.Seconds:D2}";
                 string tagPercent = $"{(!hud.InvertProgress ? percentage : invertPercent) * 100:F0}%";
                 string formattedMsg = msg.Replace(Timer, tagTime, StringComparison.Ordinal).Replace(Percent, tagPercent, StringComparison.Ordinal);
-
                 GuiManager.InteractionLayer.SetMessage(formattedMsg, hud.Style, hud.Priority);
             }
 
@@ -229,7 +229,6 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
 
             GuiManager.InteractionLayer.SetMessage(msg, hud.Style, hud.Priority);            
             yield return null;
-
             GuiManager.InteractionLayer.MessageVisible = true;
             GuiManager.InteractionLayer.MessageTimerVisible = false;
         }

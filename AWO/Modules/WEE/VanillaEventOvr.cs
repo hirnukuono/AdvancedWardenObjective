@@ -1,9 +1,9 @@
 ﻿using Agents;
 using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
-using BepInEx.Logging;
 using Enemies;
 using GameData;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using Player;
 using SNetwork;
@@ -27,7 +27,7 @@ internal static class VanillaEventOvr
         };
     }
 
-    internal static void HandleEvent(VEO_Type type, WardenObjectiveEventData e, float currentDuration) => CoroutineManager.StartCoroutine(Handle(type, e, currentDuration).WrapToIl2Cpp());
+    internal static void HandleEvent(VEO_Type type, WardenObjectiveEventData e, float currentDuration) => CoroutineDispatcher.StartCoroutine(Handle(type, e, currentDuration));
 
     private static IEnumerator Handle(VEO_Type type, WardenObjectiveEventData e, float currentDuration)
     {
@@ -45,7 +45,7 @@ internal static class VanillaEventOvr
 
         if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
         {
-            Logger.Verbose(LogLevel.Debug, $"Condition {e.Condition.ConditionIndex} is not met");
+            Logger.Verbose($"Condition {e.Condition.ConditionIndex} is not met");
             yield break;
         }
 
@@ -77,7 +77,7 @@ internal static class VanillaEventOvr
                     break;
 
                 case VEO_Type.SpawnEnemyOnPoint:
-                    CoroutineManager.StartCoroutine(SpawnEnemyOnPoint(e).WrapToIl2Cpp());
+                    CoroutineDispatcher.StartCoroutine(SpawnEnemyOnPoint(e));
                     break;
             }
         }

@@ -2,7 +2,6 @@
 using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
 using AWO.Modules.WEE;
-//using AWO.Modules.WOE;
 using AWO.Sessions;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
@@ -12,11 +11,11 @@ using UnityEngine;
 
 namespace AWO;
 
-[BepInPlugin("GTFO.AWO", "AWO", "2.6.2")]
+[BepInPlugin("GTFO.AWO", "AWO", "2.6.3")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(PartialData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
     /* Globals */
@@ -36,12 +35,10 @@ internal sealed class EntryPoint : BasePlugin
         public static LocaleText TimerBodyText { get; set; }
     }
 
-    public unsafe override void Load()
+    public override void Load()
     {
-        Configuration.Init();
+        Logger.Setup(Log);
         WardenEventExt.Initialize();
-        // WardenObjectiveExt.Initialize();
-
         new Harmony("AWO.Harmony").PatchAll();
 
         AssetAPI.OnStartupAssetsLoaded += () => LevelFailUpdateState.AssetLoaded();
@@ -49,10 +46,8 @@ internal sealed class EntryPoint : BasePlugin
         LevelAPI.OnLevelCleanup += OnLevelCleanup;
 
         WOEventDataFields.Init();
-        // WODataBlockFields.Init();
         SerialLookupManager.Init();
-
-        Logger.Info("AWO is done loading!");
+        Logger.Message("AWO is done loading!");
     }
 
     private void OnBuildDone()

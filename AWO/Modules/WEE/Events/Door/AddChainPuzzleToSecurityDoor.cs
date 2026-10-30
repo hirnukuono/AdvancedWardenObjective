@@ -1,7 +1,7 @@
 ﻿using AmorLib.Utils;
-using BepInEx.Logging;
 using ChainedPuzzles;
 using GameData;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -51,8 +51,8 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     if (locks.ChainedPuzzleToSolve != null)
                     {
                         if (!locks.ChainedPuzzleToSolve.IsSolved)
-                            Logger.Verbose(LogLevel.Debug, $"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
-                        CoroutineManager.StartCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve).WrapToIl2Cpp());
+                            Logger.Verbose($"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
+                        CoroutineDispatcher.StartCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve));
                     }
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
 
@@ -101,7 +101,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                         eSecurityDoorType.Bulkhead => "ClosedIdle",
                         _ => string.Empty
                     });
-                    Logger.Verbose(LogLevel.Debug, $"Door has recieved new chained puzzle {chainPuzzle}");
+                    Logger.Verbose($"Door has recieved new chained puzzle {chainPuzzle}");
                     break;
 
                 default:

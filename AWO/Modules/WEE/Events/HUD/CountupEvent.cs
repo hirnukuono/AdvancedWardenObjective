@@ -1,5 +1,6 @@
 ﻿using AmorLib.Utils.JsonElementConverters;
 using AWO.Modules.TSL;
+using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ internal sealed class CountupEvent : BaseEvent
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
         var countup = e.Countup ?? new();
         countup.EventsOnDone = ResolveFieldsFallback(e.Events, countup.EventsOnDone);
-        CoroutineManager.StartCoroutine(DoCountup(countup, duration).WrapToIl2Cpp());
+        CoroutineDispatcher.StartCoroutine(DoCountup(countup, duration));
     }
 
     static IEnumerator DoCountup(WEE_CountupData cu, float duration)

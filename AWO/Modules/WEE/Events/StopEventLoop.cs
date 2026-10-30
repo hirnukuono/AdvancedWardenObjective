@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
+using GTFO.API.Utilities;
 using static AWO.Modules.WEE.Events.StartEventLoop;
 
 namespace AWO.Modules.WEE.Events;
@@ -11,13 +12,13 @@ internal sealed class StopEventLoop : BaseEvent
     {
         if (e.Count == -1) // remove all event loops
         {
-            ActiveEventLoops.ForEachValue(loop => CoroutineManager.StopCoroutine(loop));
+            ActiveEventLoops.ForEachValue(loop => CoroutineDispatcher.StopCoroutine(loop));
             ActiveEventLoops.Clear();
             LogDebug("Stopped all EventLoops");
         }
         else if (ActiveEventLoops.TryRemove(e.Count, out var loop)) // remove specific event loop
         {
-            CoroutineManager.StopCoroutine(loop);
+            CoroutineDispatcher.StopCoroutine(loop);
             LogDebug($"Stopped EventLoop {e.Count}");
         }
         else // event loop not found

@@ -94,7 +94,7 @@ internal sealed class ForcePlayerDialogueEvent : BaseEvent
         WOManager.Current.m_sound.Post(e.SoundID, true);
         if (e.SoundSubtitle != LocaleText.Empty)
         {
-            Logger.Verbose(LogLevel.Warning, "Skipping this event's SoundSubtitle since player dialogue is active");
+            Logger.Verbose("Skipping this event's SoundSubtitle since player dialogue is active", LogLevel.Warning);
         }
         GuiManager.PlayerLayer.m_subtitles.ShowMultiLineSubtitle(Text.Get(subtitle), ResolveFieldsFallback(4f, e.Duration));
     }

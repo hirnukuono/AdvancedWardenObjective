@@ -1,6 +1,5 @@
 ﻿using Agents;
 using AIGraph;
-using BepInEx.Logging;
 using Player;
 using System.Diagnostics.CodeAnalysis;
 
@@ -103,7 +102,7 @@ internal sealed class AlertEnemiesInZoneEvent : BaseEvent
         }
 
         player = humanDist <= botDist ? humanPlayer : botPlayer;
-        Logger.Verbose(LogLevel.Debug, $"Closest alive player to node {node.m_zone.m_courseNodes.IndexOf(node)} by node dist: {player?.PlayerName ?? "null"})");
+        Logger.Verbose($"Closest alive player to node {node.m_zone.m_courseNodes.IndexOf(node)} by node dist: {player?.PlayerName ?? "null"})");
         return player != null;
     }
 }

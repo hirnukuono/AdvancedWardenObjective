@@ -1,4 +1,5 @@
 ﻿using ChainedPuzzles;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -48,7 +49,7 @@ internal sealed class HideTerminalCommand : BaseEvent
                     if (!term.TryGetChainPuzzleForCommand(command, i, out var puzzle) || puzzle == null) continue;
                     // If a puzzle is in use, command is not done; just let it leak, too much effort to clean up later
                     if (puzzle.IsActive) break;
-                    CoroutineManager.StartCoroutine(DestroyScanDelayed(puzzle).WrapToIl2Cpp());
+                    CoroutineDispatcher.StartCoroutine(DestroyScanDelayed(puzzle));
                 }
             }
             else if (IsMaster)

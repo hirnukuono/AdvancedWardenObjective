@@ -41,7 +41,7 @@ public static class SerialLookupManager
 
     private static void BuildSerialMap()
     {
-        Logger.Verbose(LogLevel.Debug, "Building serial map...");
+        Logger.Verbose("Building serial map...");
         int count = 0;
 
         // collect all general terminal items
@@ -68,7 +68,7 @@ public static class SerialLookupManager
             }
             catch (Exception ex)
             {
-                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through LG_LevelInteractionManager.GetAllTerminalInterfaces [{count + 1}]:\n{ex}");
+                Logger.Verbose($"We encountered an exception iterating through LG_LevelInteractionManager.GetAllTerminalInterfaces [{count + 1}]:\n{ex}", LogLevel.Error);
                 continue;
             }
         }
@@ -131,12 +131,12 @@ public static class SerialLookupManager
             }
             catch (Exception ex)
             {
-                Logger.Verbose(LogLevel.Error, $"We encountered an exception iterating through ({zone.DimensionIndex}, {zone.Layer.m_type}, {zone.LocalIndex})'s TerminalsSpawnedInZone:\n{ex}");
+                Logger.Verbose($"We encountered an exception iterating through ({zone.DimensionIndex}, {zone.Layer.m_type}, {zone.LocalIndex})'s terminals and/or doors:\n{ex}", LogLevel.Error);
                 continue;
             }
         }
 
-        Logger.Verbose(LogLevel.Debug, PrintSerialMap());
+        Logger.Verbose(PrintSerialMap());
         Logger.Info(Module, $"On build done, collected {count} serial numbers");
     }
 

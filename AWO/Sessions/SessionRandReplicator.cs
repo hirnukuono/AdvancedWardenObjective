@@ -20,7 +20,7 @@ public sealed class SessionRandReplicator : IStateReplicatorHolder<SessionRandSt
         Seed = seed;
         Step = 0u;
         State = (uint)Seed;
-        Logger.Info($"SessionSeed {Seed}");
+        Logger.Message($"SessionSeed {Seed}");
         Replicator = StateReplicator<SessionRandState>.Create(id, new() { currentStep = Step }, LifeTimeType.Session, this);
     }
 
@@ -39,12 +39,12 @@ public sealed class SessionRandReplicator : IStateReplicatorHolder<SessionRandSt
     {
         if (state.currentStep == Step)
         {
-            Logger.Verbose(LogLevel.Debug, $"No change in SessionRand step from received state, isRecall: {isRecall}");
+            Logger.Verbose($"No change in SessionRand step from received state, isRecall: {isRecall}");
             return;
         }
         else if (state.currentStep < Step)
         {
-            Logger.Verbose(LogLevel.Warning, $"SessionRand step cannot be lowered by received state, isRecall: {isRecall}");
+            Logger.Verbose($"SessionRand step cannot be lowered by received state, isRecall: {isRecall}", LogLevel.Warning);
             Replicator?.SetStateUnsynced(new() { currentStep = Step });
             return;
         }

@@ -5,6 +5,7 @@ using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using Enemies;
 using GTFO.API;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using Player;
 using System.Collections;
@@ -188,14 +189,14 @@ internal sealed class SpawnHibernateInZoneEvent : BaseEvent
     {
         int nodeDist = Math.Min(node.m_playerCoverage.GetNodeDistanceToClosestPlayer(), 2);
         s_spawnQueues[nodeDist].Enqueue(new(enemyID, node, position, rotation));
-        s_updateRoutine ??= CoroutineManager.StartCoroutine(SpawnUpdate().WrapToIl2Cpp());
+        s_updateRoutine ??= CoroutineDispatcher.StartCoroutine(SpawnUpdate());
     }
 
     private static void QueueSpawn(uint enemyID, AIG_CourseNode node, bool enabled)
     {
         int nodeDist = Math.Min(node.m_playerCoverage.GetNodeDistanceToClosestPlayer(), 2);
         s_spawnQueues[nodeDist].Enqueue(new(enemyID, node, enabled));
-        s_updateRoutine ??= CoroutineManager.StartCoroutine(SpawnUpdate().WrapToIl2Cpp());
+        s_updateRoutine ??= CoroutineDispatcher.StartCoroutine(SpawnUpdate());
     }
 
     static IEnumerator SpawnUpdate()
@@ -238,7 +239,7 @@ internal sealed class SpawnHibernateInZoneEvent : BaseEvent
                 if (!player.Owner.IsBot && player.Position.IsWithinSqrDistance(pos, 12.25f)) // 3.5^2
                 {
                     isValidPos = false;
-                    Logger.Verbose(LogLevel.Debug, "A spawn position rerolled due to nearby player");
+                    Logger.Verbose("A spawn position rerolled due to nearby player");
                     break;
                 }
             }
@@ -246,7 +247,7 @@ internal sealed class SpawnHibernateInZoneEvent : BaseEvent
 
         if (!isValidPos && !enabled)
         {
-            Logger.Verbose(LogLevel.Warning, "An enemy failed to spawn after maximum reroll attempts reached");
+            Logger.Verbose("An enemy failed to spawn after maximum reroll attempts reached", LogLevel.Warning);
             return false;
         }
 
@@ -259,7 +260,7 @@ internal sealed class SpawnHibernateInZoneEvent : BaseEvent
         {
             foreach (var queue in s_spawnQueues)
                 queue.Clear();
-            CoroutineManager.StopCoroutine(s_updateRoutine);
+            CoroutineDispatcher.StopCoroutine(s_updateRoutine);
             s_updateRoutine = null;
         }
     }

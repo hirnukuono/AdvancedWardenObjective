@@ -63,7 +63,7 @@ internal static class Detour_ExecuteEvent
         var context = new ExecuteEventContext(_this);
         var data = context.Data;
         var type = data.Type;
-        Logger.Debug($"We got Type {(int)type} on a Warden Event");
+        Logger.Info($"We got Type {(int)type} on a Warden Event");
 
         if (Enum.IsDefined(typeof(WEE_Type), (int)type))
         {

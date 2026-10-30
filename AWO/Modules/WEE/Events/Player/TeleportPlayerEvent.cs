@@ -3,6 +3,7 @@ using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
 using BepInEx.Logging;
 using GameData;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using Player;
 using System.Collections;
@@ -87,7 +88,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             };
             if (tp.FlashTeleport)
             {
-                CoroutineManager.StartCoroutine(FlashBack(tpData).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(FlashBack(tpData));
             }
             DoTeleport(tpData);
         }
@@ -120,7 +121,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
     static IEnumerator FlashBack(WEE_TeleportPlayer.TeleportData tpData)
     {
         int reloadCount = CheckpointManager.CheckpointUsage;
-        Logger.Verbose(LogLevel.Debug, $"{tpData.PlayerIndex} flash warp to {tpData.LastDimension} is queued...");
+        Logger.Verbose($"{tpData.PlayerIndex} flash warp to {tpData.LastDimension} is queued...");
 
         yield return new WaitForSeconds(tpData.Duration);
 
@@ -130,7 +131,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             yield break; 
         }
 
-        Logger.Verbose(LogLevel.Debug, $"Warping {tpData.PlayerIndex} back to {tpData.LastDimension}");
+        Logger.Verbose($"Warping {tpData.PlayerIndex} back to {tpData.LastDimension}");
         tpData.Dimension = tpData.LastDimension;
         tpData.Position = tpData.LastPosition;
         tpData.LookDirV3 = tpData.LookDir != 4 ? tpData.LastLookDirV3 : CamDirIfNotBot(tpData.Player);
@@ -217,7 +218,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         var node = player.CourseNode;
         if (node == null)
         {
-            Logger.Verbose(LogLevel.Warning, $"Player {player.Owner.NickName} has no CourseNode, can't check FromLocation filter!");
+            Logger.Verbose($"Player {player.Owner.NickName} has no CourseNode, can't check FromLocation filter!", LogLevel.Warning);
             return false;
         }
         return NodeIsInLocation(node, data);

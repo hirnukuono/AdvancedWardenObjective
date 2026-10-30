@@ -1,6 +1,6 @@
-﻿using BepInEx.Logging;
-using CellMenu;
+﻿using CellMenu;
 using GTFO.API;
+using GTFO.API.Utilities;
 using Localization;
 using System.Collections;
 using UnityEngine;
@@ -26,7 +26,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
                 break;
 
             case WEE_SetSuccessScreen.ScreenType.FlashFakeScreen:
-                CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(FakeScreen(e));
                 break;
         }
     }
@@ -53,7 +53,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
 
     static IEnumerator FakeScreen(WEE_EventData e)
     {
-        Logger.Verbose(LogLevel.Debug, "Enabling fake end screen... Disabled map and menu toggle");
+        Logger.Verbose("Enabling fake end screen... Disabled map and menu toggle");
         SetSuccessText(e.SpecialText);
         FocusStateManager.EnterMenu(e.SuccessScreen!.FakeEndScreen, force: true);
         FocusStateManager.MapToggleAllowed = false;
@@ -61,7 +61,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
 
         yield return new WaitForSeconds(e.Duration);
 
-        Logger.Verbose(LogLevel.Debug, "Disabling fake end screen... Enabled map and menu toggle");
+        Logger.Verbose("Disabling fake end screen... Enabled map and menu toggle");
         RestoreSuccessText();
         FocusStateManager.ExitMenu();
         FocusStateManager.ChangeState(eFocusState.FPS, force: true);
@@ -80,7 +80,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
             GameObject.Destroy(MainMenuGuiLayer.Current.PageExpeditionSuccess.gameObject);
 
         MainMenuGuiLayer.Current.PageExpeditionSuccess = MainMenuGuiLayer.Current.AddPage(eCM_MenuPage.CMP_EXPEDITION_SUCCESS, pageResourcePath).Cast<CM_PageExpeditionSuccess>();
-        Logger.Verbose(LogLevel.Debug, $"CustomSuccessScreen should now be changed to {pageResourcePath}");
+        Logger.Verbose($"CustomSuccessScreen should now be changed to {pageResourcePath}");
     }
 
     private static void SetSuccessText(string text)
@@ -102,7 +102,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         if (localizer != null)
             GameObject.Destroy(localizer);
 
-        Logger.Verbose(LogLevel.Debug, $"Set success screen text to {text}.");
+        Logger.Verbose($"Set success screen text to {text}.");
     }
     
     private static void SetSuccessMusic(uint music)
@@ -114,7 +114,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
         }
         
         MainMenuGuiLayer.Current.PageExpeditionSuccess.m_overrideSuccessMusic = music;
-        Logger.Verbose(LogLevel.Debug, $"Set success screen music to sound id {music}.");
+        Logger.Verbose($"Set success screen music to sound id {music}.");
     }
 
     private static void RestoreSuccessPage()

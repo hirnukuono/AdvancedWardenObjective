@@ -1,4 +1,5 @@
 ﻿using AmorLib.Networking.StateReplicators;
+using GTFO.API.Utilities;
 using System.Collections;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         if (OnLightsChanged != null)
         {
             StopShareStatus();
-            ShareStatusCoroutine = CoroutineManager.StartCoroutine(DoShareStatus(duration).WrapToIl2Cpp());
+            ShareStatusCoroutine = CoroutineDispatcher.StartCoroutine(DoShareStatus(duration));
         }
     }
 
@@ -28,7 +29,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
     {
         if (ShareStatusCoroutine != null)
         {
-            CoroutineManager.StopCoroutine(ShareStatusCoroutine);
+            CoroutineDispatcher.StopCoroutine(ShareStatusCoroutine);
             ShareStatusCoroutine = null;
         }
     }

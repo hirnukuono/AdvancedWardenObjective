@@ -1,5 +1,6 @@
 ﻿using AmorLib.Utils;
 using GTFO.API;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -42,7 +43,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
                 if (e.Duration > 0f)
                 {
-                    CoroutineManager.StartCoroutine(DestroyAfterDelay(index, e.Duration).WrapToIl2Cpp());
+                    CoroutineDispatcher.StartCoroutine(DestroyAfterDelay(index, e.Duration));
                 }
             }
             marker.SetVisible(e.Enabled);

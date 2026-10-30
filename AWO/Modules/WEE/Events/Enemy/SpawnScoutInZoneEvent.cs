@@ -1,6 +1,7 @@
 ﻿using AIGraph;
 using Enemies;
 using GameData;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using System.Collections;
 using UnityEngine;
@@ -25,7 +26,7 @@ internal sealed class SpawnScoutInZoneEvent : BaseEvent
             {
                 Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
                 int count = ResolveFieldsFallback(e.Count, ss.Count);
-                CoroutineManager.StartCoroutine(DoSpawn(ss, zone, pos, count).WrapToIl2Cpp());
+                CoroutineDispatcher.StartCoroutine(DoSpawn(ss, zone, pos, count));
             }
         }
     }

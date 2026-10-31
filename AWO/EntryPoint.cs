@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace AWO;
 
-[BepInPlugin("GTFO.AWO", "AWO", "2.6.3")]
+[BepInPlugin("GTFO.AWO", "AWO", "2.6.2")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]

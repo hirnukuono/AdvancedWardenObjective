@@ -27,7 +27,7 @@ internal static class VanillaEventOvr
         };
     }
 
-    internal static void HandleEvent(VEO_Type type, WardenObjectiveEventData e, float currentDuration) => CoroutineDispatcher.StartCoroutine(Handle(type, e, currentDuration));
+    internal static void HandleEvent(VEO_Type type, WardenObjectiveEventData e, float currentDuration) => CoroutineDispatcher.StartInLevelCoroutine(Handle(type, e, currentDuration));
 
     private static IEnumerator Handle(VEO_Type type, WardenObjectiveEventData e, float currentDuration)
     {
@@ -36,9 +36,9 @@ internal static class VanillaEventOvr
         {
             int reloadCount = CheckpointManager.CheckpointUsage;
             yield return new WaitForSeconds(delay);
-            if (reloadCount < CheckpointManager.CheckpointUsage)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
-                Logger.Warn($"Delayed event {type} aborted due to checkpoint reload");
+                Logger.Warn($"Delayed event {e.Type} aborted due to checkpoint reload, or not in level");
                 yield break;
             }
         }
@@ -77,7 +77,7 @@ internal static class VanillaEventOvr
                     break;
 
                 case VEO_Type.SpawnEnemyOnPoint:
-                    CoroutineDispatcher.StartCoroutine(SpawnEnemyOnPoint(e));
+                    CoroutineDispatcher.StartInLevelCoroutine(SpawnEnemyOnPoint(e));
                     break;
             }
         }

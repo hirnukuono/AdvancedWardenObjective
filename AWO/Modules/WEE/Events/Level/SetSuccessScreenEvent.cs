@@ -1,6 +1,5 @@
 ﻿using CellMenu;
 using GTFO.API;
-using GTFO.API.Utilities;
 using Localization;
 using System.Collections;
 using UnityEngine;
@@ -26,7 +25,7 @@ internal sealed class SetSuccessScreenEvent : BaseEvent
                 break;
 
             case WEE_SetSuccessScreen.ScreenType.FlashFakeScreen:
-                CoroutineDispatcher.StartCoroutine(FakeScreen(e));
+                CoroutineManager.StartCoroutine(FakeScreen(e).WrapToIl2Cpp());
                 break;
         }
     }

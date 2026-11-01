@@ -52,7 +52,7 @@ internal sealed class AddChainPuzzleToSecurityDoor : BaseEvent
                     {
                         if (!locks.ChainedPuzzleToSolve.IsSolved)
                             Logger.Verbose($"Door has an unsolved chained puzzle {door.m_locks.ChainedPuzzleToSolve.Data.persistentID}, overriding...");
-                        CoroutineDispatcher.StartCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve));
+                        CoroutineDispatcher.StartInLevelCoroutine(DestroyScanDelayed(door.m_locks.ChainedPuzzleToSolve));
                     }
                     var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, door.Gate.ProgressionSourceArea, door.Gate.m_linksTo, pos, door.transform);
 

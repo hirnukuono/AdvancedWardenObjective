@@ -26,29 +26,14 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
         public void StartCoroutine(WEE_SpecialHudTimer hud, float duration)
         {
             var hudCoroutine = hud.Type == WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer ? DoSpecialHudTimed(hud, duration) : DoSpecialHudPersistent(hud);
-            Coroutine = CoroutineDispatcher.StartCoroutine(hudCoroutine);
-        }
-
-        public void StopCoroutine()
-        {
-            if (Coroutine != null)
-            {
-                CoroutineDispatcher.StopCoroutine(Coroutine);
-                Coroutine = null;
-            }
+            Coroutine = CoroutineDispatcher.StartInLevelCoroutine(hudCoroutine);
         }
     }
     #endregion
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        SpecialHuds.ForEachValue(pSpecialHud => pSpecialHud.StopCoroutine());
-        SpecialHuds.Clear();
+        LevelAPI.OnLevelCleanup += SpecialHuds.Clear;
     }
 
     protected override void TriggerCommon(WEE_EventData e)
@@ -66,7 +51,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
                     return;
                 }
                 LogDebug("Starting new Timed SpecialHud (no index, cannot be stopped once started)");
-                CoroutineDispatcher.StartCoroutine(DoSpecialHudTimed(specHud, duration));
+                CoroutineDispatcher.StartInLevelCoroutine(DoSpecialHudTimed(specHud, duration));
                 break;
 
             case WEE_SpecialHudTimer.SpecialHudType.StartIndexTimer: // start timed specialhud with index
@@ -137,6 +122,8 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             {
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
+                if (hud.HasIndex)
+                    SpecialHuds.TryRemove(hud.Index, out _);
                 yield break;
             }
 
@@ -224,6 +211,7 @@ internal sealed class SpecialHudTimerEvent : BaseEvent
             {
                 GuiManager.InteractionLayer.MessageVisible = false;
                 GuiManager.InteractionLayer.MessageTimerVisible = false;
+                SpecialHuds.TryRemove(hud.Index, out _);
                 yield break;
             }
 

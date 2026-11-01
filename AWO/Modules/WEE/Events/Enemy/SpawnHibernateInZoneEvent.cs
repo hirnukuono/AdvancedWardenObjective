@@ -189,14 +189,14 @@ internal sealed class SpawnHibernateInZoneEvent : BaseEvent
     {
         int nodeDist = Math.Min(node.m_playerCoverage.GetNodeDistanceToClosestPlayer(), 2);
         s_spawnQueues[nodeDist].Enqueue(new(enemyID, node, position, rotation));
-        s_updateRoutine ??= CoroutineDispatcher.StartCoroutine(SpawnUpdate());
+        s_updateRoutine ??= CoroutineDispatcher.StartInLevelCoroutine(SpawnUpdate());
     }
 
     private static void QueueSpawn(uint enemyID, AIG_CourseNode node, bool enabled)
     {
         int nodeDist = Math.Min(node.m_playerCoverage.GetNodeDistanceToClosestPlayer(), 2);
         s_spawnQueues[nodeDist].Enqueue(new(enemyID, node, enabled));
-        s_updateRoutine ??= CoroutineDispatcher.StartCoroutine(SpawnUpdate());
+        s_updateRoutine ??= CoroutineDispatcher.StartInLevelCoroutine(SpawnUpdate());
     }
 
     static IEnumerator SpawnUpdate()

@@ -29,7 +29,7 @@ internal sealed class DamagePlayerEvent : BaseEvent
                 continue; // Node is null, continue
 
             if (e.DamagePlayer.DamageOverTime && e.Duration > 0f)
-                CoroutineDispatcher.StartCoroutine(DamageOverTime(e, player, zone.ID));
+                CoroutineDispatcher.StartInLevelCoroutine(DamageOverTime(e, player, zone.ID));
             else
                 ApplyDamage(player, e.DamagePlayer.DamageAmount, e.DamagePlayer.DealPercentageDamage, e.DamagePlayer.UseZone, zone.ID);
         }

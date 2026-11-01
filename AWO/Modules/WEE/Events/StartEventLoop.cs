@@ -1,5 +1,4 @@
-﻿using AmorLib.Utils.Extensions;
-using GameData;
+﻿using GameData;
 using GTFO.API;
 using GTFO.API.Extensions;
 using GTFO.API.Utilities;
@@ -17,13 +16,7 @@ internal sealed class StartEventLoop : BaseEvent
 
     protected override void OnSetup()
     {
-        LevelAPI.OnLevelCleanup += OnLevelCleanup;
-    }
-
-    private void OnLevelCleanup()
-    {
-        ActiveEventLoops.ForEachValue(loop => CoroutineDispatcher.StopCoroutine(loop));
-        ActiveEventLoops.Clear();
+        LevelAPI.OnLevelCleanup += ActiveEventLoops.Clear;
     }
 
     protected override void TriggerCommon(WEE_EventData e)
@@ -44,7 +37,7 @@ internal sealed class StartEventLoop : BaseEvent
 
         LogDebug($"Starting EventLoop Index: {sel.LoopIndex}");
         sel.EventsToActivate = ResolveFieldsFallback(e.Events, sel.EventsToActivate);
-        ActiveEventLoops[sel.LoopIndex] = CoroutineDispatcher.StartCoroutine(DoLoop(sel));
+        ActiveEventLoops[sel.LoopIndex] = CoroutineDispatcher.StartInLevelCoroutine(DoLoop(sel));
     }
 
     static IEnumerator DoLoop(WEE_StartEventLoop sel)

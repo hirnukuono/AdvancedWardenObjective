@@ -24,7 +24,7 @@ internal sealed class CountupEvent : BaseEvent
         EntryPoint.Coroutines.CountdownStarted = Time.realtimeSinceStartup; // i keep fucking this up. we need to refresh the time **before** starting the corouinte
         var countup = e.Countup ?? new();
         countup.EventsOnDone = ResolveFieldsFallback(e.Events, countup.EventsOnDone);
-        CoroutineDispatcher.StartCoroutine(DoCountup(countup, duration));
+        CoroutineDispatcher.StartInLevelCoroutine(DoCountup(countup, duration));
     }
 
     static IEnumerator DoCountup(WEE_CountupData cu, float duration)

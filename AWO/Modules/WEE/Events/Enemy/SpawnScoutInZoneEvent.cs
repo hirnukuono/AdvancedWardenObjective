@@ -26,7 +26,7 @@ internal sealed class SpawnScoutInZoneEvent : BaseEvent
             {
                 Vector3 pos = GetPositionFallback(e.Position, e.SpecialText, false);
                 int count = ResolveFieldsFallback(e.Count, ss.Count);
-                CoroutineDispatcher.StartCoroutine(DoSpawn(ss, zone, pos, count));
+                CoroutineDispatcher.StartInLevelCoroutine(DoSpawn(ss, zone, pos, count));
             }
         }
     }

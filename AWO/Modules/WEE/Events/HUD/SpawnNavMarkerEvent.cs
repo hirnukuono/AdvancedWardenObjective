@@ -43,7 +43,7 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
                 if (e.Duration > 0f)
                 {
-                    CoroutineDispatcher.StartCoroutine(DestroyAfterDelay(index, e.Duration));
+                    CoroutineDispatcher.StartInLevelCoroutine(DestroyAfterDelay(index, e.Duration));
                 }
             }
             marker.SetVisible(e.Enabled);
@@ -52,7 +52,13 @@ internal class SpawnNavMarkerEvent : BaseEvent
 
     static IEnumerator DestroyAfterDelay(int index, float duration)
     {
+        int myReloadCount = CheckpointManager.CheckpointUsage;
         yield return new WaitForSeconds(duration);
+        if (GameStateManager.CurrentStateName != eGameStateName.InLevel || myReloadCount < CheckpointManager.CheckpointUsage)
+        {
+            NavMarkers.Remove(index);
+            yield break; 
+        }
         NavMarkers[index].SetVisible(false);
         NavMarkers.Remove(index);
     }

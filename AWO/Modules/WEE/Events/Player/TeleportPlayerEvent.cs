@@ -88,7 +88,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             };
             if (tp.FlashTeleport)
             {
-                CoroutineDispatcher.StartCoroutine(FlashBack(tpData));
+                CoroutineDispatcher.StartInLevelCoroutine(FlashBack(tpData));
             }
             DoTeleport(tpData);
         }

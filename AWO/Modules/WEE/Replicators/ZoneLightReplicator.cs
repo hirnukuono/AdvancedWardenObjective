@@ -58,6 +58,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
     public void OnDestroy()
     {
         Replicator?.Unload();
+        StopShareStatus();
     }
 
     public void SetLightSetting(ZoneLightState data)

@@ -49,7 +49,7 @@ internal sealed class HideTerminalCommand : BaseEvent
                     if (!term.TryGetChainPuzzleForCommand(command, i, out var puzzle) || puzzle == null) continue;
                     // If a puzzle is in use, command is not done; just let it leak, too much effort to clean up later
                     if (puzzle.IsActive) break;
-                    CoroutineDispatcher.StartCoroutine(DestroyScanDelayed(puzzle));
+                    CoroutineDispatcher.StartInLevelCoroutine(DestroyScanDelayed(puzzle));
                 }
             }
             else if (IsMaster)

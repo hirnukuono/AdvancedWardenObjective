@@ -21,7 +21,7 @@ public sealed partial class ZoneLightReplicator : MonoBehaviour, IStateReplicato
         if (OnLightsChanged != null)
         {
             StopShareStatus();
-            ShareStatusCoroutine = CoroutineDispatcher.StartCoroutine(DoShareStatus(duration));
+            ShareStatusCoroutine = CoroutineDispatcher.StartInLevelCoroutine(DoShareStatus(duration));
         }
     }
 

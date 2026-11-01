@@ -29,7 +29,7 @@ internal sealed class InfectPlayerEvent : BaseEvent
                 continue; // Node is null, continue
 
             if (e.InfectPlayer.InfectOverTime && e.Duration > 0f)
-                CoroutineDispatcher.StartCoroutine(InfectOverTime(e, player, zone.ID));
+                CoroutineDispatcher.StartInLevelCoroutine(InfectOverTime(e, player, zone.ID));
             else
                 ApplyInfection(player, e.InfectPlayer.InfectionAmount, e.InfectPlayer.UseZone, zone.ID);
         }

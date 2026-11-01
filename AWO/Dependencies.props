@@ -38,7 +38,7 @@
 
 	<!-- Plugins -->
 	<ItemGroup>
-		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="false" />
+		<Reference Include="$(PluginsFolder)\**\GTFO-API.dll" Private="false" />
 		<Reference Include="$(PluginsFolder)\**\InjectLib.dll" Private="false" />
 		<Reference Include="$(PluginsFolder)\**\AmorLib.dll" Private="false" />
 	</ItemGroup>

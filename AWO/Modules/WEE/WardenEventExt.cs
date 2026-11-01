@@ -82,10 +82,10 @@ internal static class WardenEventExt
                 weeData.DimensionIndex = dim;
                 weeData.Layer = layer;
                 weeData.LocalIndex = zone;
-                CoroutineDispatcher.StartCoroutine(Handle(eventInstance, weeData, currentDuration));
+                CoroutineDispatcher.StartInLevelCoroutine(Handle(eventInstance, weeData, currentDuration));
                 return;
             }
-            CoroutineDispatcher.StartCoroutine(Handle(eventInstance, weeData.Clone(dim, layer, zone), currentDuration));
+            CoroutineDispatcher.StartInLevelCoroutine(Handle(eventInstance, weeData.Clone(dim, layer, zone), currentDuration));
         }
     }
 
@@ -104,9 +104,9 @@ internal static class WardenEventExt
         {
             int reloadCount = CheckpointManager.CheckpointUsage;
             yield return new WaitForSeconds(delay);
-            if (reloadCount < CheckpointManager.CheckpointUsage)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
-                Logger.Warn($"Delayed event {e.Type} aborted due to checkpoint reload");
+                Logger.Warn($"Delayed event {e.Type} aborted due to checkpoint reload, or not in level");
                 yield break;
             }
         }

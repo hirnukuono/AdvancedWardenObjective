@@ -104,7 +104,7 @@ internal static class WardenEventExt
         {
             int reloadCount = CheckpointManager.CheckpointUsage;
             yield return new WaitForSeconds(delay);
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
+            if (GameStateManager.CurrentStateName < eGameStateName.Generating || GameStateManager.CurrentStateName > eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
             {
                 Logger.Warn($"Delayed event {e.Type} aborted due to checkpoint reload, or not in level");
                 yield break;

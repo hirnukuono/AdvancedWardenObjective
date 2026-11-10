@@ -59,7 +59,7 @@ internal sealed class TeleportPlayerEvent : BaseEvent
         for (int j = 0; j < playersInLevel.Count; j++)
         {
             PlayerAgent player = playersInLevel[j];
-            if (!PlayerIsInLocation(player, tp.FromLocation))
+            if (!NodeIsInLocation(player.CourseNode, tp.FromLocation))
             {
                 if (itemAssignment.TryGetValue(j, out var items))
                     WarpItemsTo(player, items);
@@ -161,11 +161,8 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             var sentry = item.TryCast<SentryGunInstance>();
             if (sentry != null)
             {
-                if (sentry.LocallyPlaced)
-                {
-                    sentry.m_sync.WantItemAction(player, SyncedItemAction_New.PickUp);
-                    continue;
-                }
+                sentry.m_sync.WantItemAction(player, SyncedItemAction_New.PickUp);
+                continue;
             }
 
             var bigPickup = item.TryCast<ItemInLevel>();
@@ -208,20 +205,6 @@ internal sealed class TeleportPlayerEvent : BaseEvent
             return player.FPSCamera.CameraRayDir.normalized;
 
         return player.Sync.m_locomotionData.LookDir.Value;
-    }
-
-    private static bool PlayerIsInLocation(PlayerAgent player, WEE_TeleportPlayer.FromLocationData data)
-    {
-        if (!data.Enabled) 
-            return true;
-
-        var node = player.CourseNode;
-        if (node == null)
-        {
-            Logger.Verbose($"Player {player.Owner.NickName} has no CourseNode, can't check FromLocation filter!", LogLevel.Warning);
-            return false;
-        }
-        return NodeIsInLocation(node, data);
     }
 
     private static bool NodeIsInLocation(AIG_CourseNode node, WEE_TeleportPlayer.FromLocationData data)

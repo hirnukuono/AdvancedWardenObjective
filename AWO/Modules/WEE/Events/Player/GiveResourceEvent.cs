@@ -43,5 +43,9 @@ internal sealed class GiveResourceEvent : BaseEvent
             float mod = data.IncludeSupplyEfficiency ? AgentModifierManager.ApplyModifier(player, AgentModifier.HealSupport, 1f) : 1f;
             player.GiveHealth(player, data.Health * mod);
         }
+        if (data.Disinfect != 0f)
+        {
+            player.GiveDisinfection(player, data.Disinfect);
+        }
     }
 }

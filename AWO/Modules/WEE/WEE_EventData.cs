@@ -304,6 +304,7 @@ public sealed class WEE_GiveResource
     public float MainAmmo { get; set; } = 0f;
     public float SpecialAmmo { get; set; } = 0f;
     public float ToolAmmo { get; set; } = 0f;
+    public float Disinfect { get; set; } = 0f;
     public HashSet<PlayerIndex> PlayerFilter { get; set; } = new(Enum.GetValues<PlayerIndex>());
     public bool FullTeamOverflow { get; set; } = true;
     public bool UseLocation { get; set; } = false;

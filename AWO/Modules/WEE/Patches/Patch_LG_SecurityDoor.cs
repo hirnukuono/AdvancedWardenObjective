@@ -33,6 +33,6 @@ internal static class Patch_LG_SecurityDoor
         // Restore blood door sound, but only on non-recall (SetAsClosed is called on recall, but vanilla already starts the audio)
         var door = __instance.m_gate.SpawnedDoor.Cast<LG_SecurityDoor>();
         if (door.ActiveEnemyWaveData != null && door.ActiveEnemyWaveData.HasActiveEnemyWave)
-            __instance.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
+            door.m_sound.Post(EVENTS.MONSTER_RUCKUS_FROM_BEHIND_SECURITY_DOOR_LOOP_START);
     }
 }

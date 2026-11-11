@@ -68,5 +68,6 @@ public enum WEE_Type
     SetExpeditionEnvironment,
     ClearWardenIntelQueue,
     ResetOnApproachDoor,
-    FadeScreenInOut
+    FadeScreenInOut,
+    SetTerminalPassword
 }

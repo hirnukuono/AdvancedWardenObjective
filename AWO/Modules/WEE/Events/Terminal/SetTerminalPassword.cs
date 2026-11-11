@@ -30,6 +30,14 @@ internal sealed class SetTerminalPassword : BaseEvent
                         return;
                     }
 
+                    // If already locked, only the answer needs to be changed
+                    if (term.IsPasswordProtected)
+                    {
+                        term.m_password = password;
+                        LogDebug($"Updated terminal {ePassword.TerminalIndex} in {e.DimensionIndex}, {e.Layer}, {e.LocalIndex} to password {password}");
+                        return;
+                    }
+
                     term.LockWithPassword(password);
                     // If term has been unlocked previously, input is no longer allowed
                     if (term.CurrentStateName != TERM_State.EnterPassword)

@@ -106,6 +106,7 @@ public sealed class WEE_EventData
     public WEE_SetOutsideDimensionData? DimensionData { get; set; } = null;
     public WEE_SetExpeditionEnvironment? EnvironmentData { get; set; } = null;
     public WEE_FadeScreenInOut? FadeScreen { get; set; } = null;
+    public Arrayable<WEE_SetTerminalPassword> SetTerminalPassword { get; set; } = new();
 
     public WEE_EventData Clone(eDimensionIndex dim, LG_LayerType layer, eLocalZoneIndex zone)
     {
@@ -710,5 +711,16 @@ public sealed class WEE_FadeScreenInOut
     public float CurveTimeEnd{ get; set; } = 1f;
     public float CurveValueEnd { get; set; } = 1f;
     public float FadeSpeed { get; set; } = 1f;
+}
+public sealed class WEE_SetTerminalPassword
+{
+    public int TerminalIndex { get; set; } = 0;
+    public PasswordEventType Type { get; set; } = PasswordEventType.Add;
+    public string Password { get; set; } = string.Empty;
+    public enum PasswordEventType : byte
+    {
+        Add,
+        Remove
+    }
 }
 #endregion
